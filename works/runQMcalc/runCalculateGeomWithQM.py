@@ -1,21 +1,24 @@
-#! /truba/home/yzorlu/miniconda3/bin/python
 
-from calculateGeomWithQM import CaculateData
+import os, sys
+sys.path.insert(0, "/truba_scratch/otayfuroglu/deepMOF_dev")
+from data_gen.calculateGeomWithQM import CaculateData
 import multiprocessing
-import os
+import getpass
+
+USER = getpass.getuser()
 
 UNIT = "ev"
-mof_num = "7"
-db_path = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data/dataBases"
+mof_num = "1"
+db_path = f"/truba_scratch/{USER}/deepMOF_dev/data_bases"
 
-#  mol_path ="/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data/outOfSFGeomsIRMOFs%s" % mof_num
+#  filesDIR = f"/truba_scratch/{USER}/deepMOF/HDNNP/prepare_data/outOfSFGeomsIRMOFs%s" % mof_num
 #  db_name = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_%s.db" %(mof_num, UNIT)
 #  csv_name = "IRMOFseries%s_CalculatedFilesFrom_outOfSFGeomsTZVP.csv" % mof_num
 
 # for calculation of test data
-mol_path ="/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data/testDataGeomsIRMOFs%s" % mof_num
-db_name = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_%s_testData.db" %(mof_num, UNIT)
-csv_name = "IRMOFseries%s_CalculatedFilesFrom_outOfSFGeomsTZVP_testData.csv" % mof_num
+filesDIR = f"/truba_scratch/{USER}/deepMOF_dev/geom_files/MOF5/broken_bond"
+db_name = "breken_bond_irmofseries%s_f1_%s_testData.db" %(mof_num, UNIT)
+csv_name = "IRMOFseries%s_f1_broken_bonds.csv" % mof_num
 
 os.chdir(os.getcwd())
 
@@ -23,13 +26,13 @@ os.chdir(os.getcwd())
 #      df = pd.DataFrame(columns=["FileNames"])
 #      df.to_csv("%s/%s" %(db_path, csv_name), index=None)
 #
-#  #os.chdir(mol_path)
-#  file_names = os.listdir(mol_path)
+#  #os.chdir(filesDIR)
+#  file_names = os.listdir(filesDIR)
 #  print(len(file_names))
 
 n_core = multiprocessing.cpu_count()
 
-n_cpu = 6
+n_cpu = 8
 if n_core == 24 or n_core == 48:
     n_cpu = 6
 if n_core == 40 or n_core == 80:
@@ -42,20 +45,16 @@ if n_core == 112:
 n_proc = int(n_core / n_cpu)
 
 
-
-# import time
-# 
-# start= time.time()
-
 properties = ["energy", "forces", "dipole_moment"]
-fragBase = "irmofseries"
+fragBase = "irmof"
 nFragments = 7
 nMolecules = 16
 
 calculate = CaculateData(properties, fragBase, nFragments, nMolecules, n_cpu,
-                         mol_path, db_path, db_name, csv_name, UNIT
+                         filesDIR, db_path, db_name, csv_name, UNIT
                         )
 print ("Nuber of out of range geomtries", calculate.countFiles())
 print("QM calculations Running...")
 calculate.calculate_data(n_proc)
+print("DONE")
 #  print("All process taken %2f minutes" %((time.time()- start) / 60.0))
