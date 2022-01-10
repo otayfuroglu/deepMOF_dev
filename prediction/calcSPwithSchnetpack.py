@@ -1,5 +1,4 @@
-#! /truba/home/yzorlu/miniconda3/bin/python
-
+#
 import torch
 #  import numpy as np
 #  from math import sqrt
@@ -28,43 +27,21 @@ warnings.filterwarnings('ignore', index_warning)
 import argparse
 
 parser = argparse.ArgumentParser(description="Give something ...")
-#  parser.add_argument("-mof_num", "--mof_num",
-#                      type=int, required=True,
-                    #  help="..")
-parser.add_argument("-val_type", "--val_type",
-                    type=str, required=True,
-                    help="..")
-parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
-                    type=str, required=True,
-                    help="..")
-parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
-                    type=str, required=True,
-                    help="..")
+parser.add_argument("-val_type", "--val_type", type=str, required=True)
+parser.add_argument("-MODEL_DIR", "--MODEL_DIR", type=str, required=True)
+parser.add_argument("-RESULT_DIR", "--RESULT_DIR", type=str, required=True)
+parser.add_argument("-filesDIR", "--filesDIR", type=str, required=False)
 args = parser.parse_args()
 
 #  mof_num = args.mof_num
 mode = args.val_type
 MODEL_DIR = args.MODEL_DIR
 RESULT_DIR = args.RESULT_DIR
-device = "cuda"
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
-BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP"
-# path definitions
-#  if mof_num == 1:
-#      if mode == "test":
-#          path_to_db = ("%s/prepare_data/dataBases/"
-#                        "nonEquGeometriesEnergyForcesWithORCAFromMD_testSet.db" %(BASE_DIR))
-#      elif mode == "train":
-#          path_to_db = ("%s/prepare_data/dataBases/"
-#                        "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" %(BASE_DIR))
-#  else:
-#      if mode == "test":
-#          path_to_db = ("%s/prepare_data/dataBases/"
-#                        "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev_testData.db" %(BASE_DIR, mof_num))
-#      elif mode == "train":
-#          path_to_db = ("%s/prepare_data/dataBases/"
-#                        "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %(BASE_DIR, mof_num))
+USER=RESULT_DIR.split("/")[2]
+BASE_DIR = f"/truba_scratch/{USER}/deepMOF/HDNNP"
 
 if mode == "train" or mode == "test":
     path_to_db = ("%s/prepare_data/workingOnDataBase/"
@@ -82,15 +59,17 @@ elif mode == "aliphatic_ch_bond":
     path_to_db = ("%s/prepare_data/dataBases/"
                   "aliphaticCHBondEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries4_ev.db" %BASE_DIR)
     data = AtomsData(path_to_db)
+elif mode == "fromFiles":
+    filesDIR = args.filesDIR
+    file_names = [file_name for file_name in os.listdir(filesDIR)]
+    print("Working on xyz files which in ", filesDIR.split("/")[-1])
+else:
+    print("Error: Ivalid calculation type")
+    sys.exit(1)
 
-elif mode == "xyz_files":
-    xyzDIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/optimized_IRMOF7_linker_torsion36x36"
-    file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
-    print("Working on xyz files which in ", xyzDIR.split("/")[-1])
 
 
-
-if mode == "xyz_files":
+if mode == "fromFiles":
     column_names_energy = [
         "FileNames",
         "schnet_SP_energies",
@@ -289,7 +268,8 @@ def get_fmax_componentFrom_idx(forces, fmax_component_idx):
 
 def getSPEneryForces(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
-    model_schnet = load_model("%s/schnetpack/runTraining/%s/best_model" %(BASE_DIR, MODEL_DIR))
+    model_schnet = load_model("%s/schnetpack/runTraining/%s/best_model" %(BASE_DIR, MODEL_DIR),
+                              map_location=device)
 
     calc_schnet = SpkCalculator(model_schnet, device=device,
                                 energy=Properties.energy,
@@ -359,7 +339,8 @@ def getSPEneryForces(idx):
 
 def getSPEneryForcesFromFiles(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
-    model_schnet = load_model("%s/schnetpack/runTraining/%s/best_model" %(BASE_DIR, MODEL_DIR))
+    model_schnet = load_model("%s/schnetpack/runTraining/%s/best_model" %(BASE_DIR, MODEL_DIR),
+                              map_location=device)
 
     calc_schnet = SpkCalculator(model_schnet, device=device,
                                 energy=Properties.energy,
@@ -368,10 +349,9 @@ def getSPEneryForcesFromFiles(idx):
                                 environment_provider=AseEnvironmentProvider(cutoff=6.0)
                                )
 
-    file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
     file_name = file_names[idx]
-    xyz_path = os.path.join(xyzDIR, file_name)
-    mol = read(xyz_path)
+    file_path = os.path.join(filesDIR, file_name)
+    mol = read(file_path)
     n_atoms = mol.get_number_of_atoms()
 
 
@@ -380,13 +360,13 @@ def getSPEneryForcesFromFiles(idx):
     schnet_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
 
 
-    file_names = file_name.replace(".xyz", "")
-    energy_values = [file_names,
+    file_base = file_name.split(".")[0]
+    energy_values = [file_base,
                      schnet_energy,
                      schnet_energy/n_atoms,
                     ]
 
-    fmax_values = [file_names,
+    fmax_values = [file_base,
                      schnet_fmax,
                     ]
 
@@ -422,7 +402,7 @@ def main(n_procs):
         run_multiprocessing(func=getSPEneryForces,
                                            argument_list=idxs,
                                            num_processes=n_procs)
-    elif mode == "xyz_files":
+    elif mode == "fromFiles":
         idxs = range(len(file_names))
         print("Nuber of %s data points: %d" %(mode, len(idxs)))
         #  result_list_tqdm = []
