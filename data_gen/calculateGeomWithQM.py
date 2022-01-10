@@ -11,7 +11,7 @@ from ase.calculators.orca import ORCA
 import numpy as np
 import pandas as pd
 import multiprocessing
-from orca_parser import OrcaParser
+from .orca_parser import OrcaParser
 
 
 
@@ -23,13 +23,12 @@ def orca_calculator(label, n_cpu, initial_gbw=['', '']):
                 orcablocks='%scf Convergence normal \n maxiter 40 end \n %pal nprocs ' + str(n_cpu) + ' end' + initial_gbw[1]
                 )
 
-"STARTING PARALLEL CALCULTAIONS ..."
 
 class CaculateData():
     def __init__(self, properties, fragBase, nFragments, nMolecules, n_cpu,
-                 mol_path, db_path, db_name, csv_name, UNIT,
+                 filesDIR, db_path, db_name, csv_name, UNIT,
                 ):
-        self.mol_path = mol_path
+        self.filesDIR = filesDIR
         self.db_path = db_path
         self.db_name = db_name
         self.csv_name = csv_name
@@ -62,7 +61,7 @@ class CaculateData():
         self.fromOrcaParser = True
 
     def _getFileNames(self):
-        self.file_names = os.listdir(self.mol_path)
+        self.file_names = os.listdir(self.filesDIR)
 
     def _getFragments(self):
         fragments = []
@@ -86,7 +85,7 @@ class CaculateData():
         df_calculated_files_new.to_csv("%s/%s" %(self.db_path, self.csv_name), mode='a', header=False, index=None)
 
     def _calculate_data(self, file_name):
-        file_base = file_name.replace(".xyz", "")
+        file_base = file_name.split(".")[0]
         initial_gbw_name = "initial_" + file_base.split("_")[0]\
                 + "_" + file_base.split("_")[1] + ".gbw"
 
@@ -101,7 +100,7 @@ class CaculateData():
 
         # Fistyl, file base will be add to calculted csv file
         self._add_calculated_file(df_calculated_files, file_base)
-        mol = read("%s/%s.xyz" %(self.mol_path, file_base))
+        mol = read("%s/%s" %(self.filesDIR, file_name))
 
         label = "orca_%s" %file_base
         temp_files = os.listdir(os.getcwd())
@@ -156,7 +155,7 @@ class CaculateData():
             self.i += 1
 
             # remove this non SCF converged file from xyz directory.
-            os.remove("%s/%s" %(self.mol_path, file_name))
+            os.remove("%s/%s" %(self.filesDIR, file_name))
             #  print("Removed!")
 
             # remove all orca temp out files related to label from runGeom directory.
