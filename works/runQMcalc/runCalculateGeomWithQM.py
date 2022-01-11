@@ -17,8 +17,9 @@ db_path = f"/truba_scratch/{USER}/deepMOF_dev/data_bases"
 
 # for calculation of test data
 filesDIR = f"/truba_scratch/{USER}/deepMOF_dev/geom_files/MOF5/broken_bond"
-db_name = "breken_bond_irmofseries%s_f1_%s_testData.db" %(mof_num, UNIT)
-csv_name = "IRMOFseries%s_f1_broken_bonds.csv" % mof_num
+print(filesDIR)
+db_name = "broken_bond_irmofseries%s_f1_%s_testData.db" %(mof_num, UNIT)
+csv_name = db_name.replace(".db", ".csv")
 
 os.chdir(os.getcwd())
 
@@ -55,6 +56,8 @@ calculate = CaculateData(properties, fragBase, nFragments, nMolecules, n_cpu,
                         )
 print ("Nuber of out of range geomtries", calculate.countFiles())
 print("QM calculations Running...")
+# set remove file if has error
+calculate.rmNotConvFiles()
 calculate.calculate_data(n_proc)
 print("DONE")
 #  print("All process taken %2f minutes" %((time.time()- start) / 60.0))
