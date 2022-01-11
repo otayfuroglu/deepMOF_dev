@@ -57,8 +57,13 @@ class CaculateData():
 
         self.UNIT = "ev"
 
+        self.rm_files = True
+
     def _setOrcaParser(self):
         self.fromOrcaParser = True
+
+    def rmNotConvFiles(self):
+        self.rm_files = True
 
     def _getFileNames(self):
         self.file_names = os.listdir(self.filesDIR)
@@ -155,8 +160,9 @@ class CaculateData():
             self.i += 1
 
             # remove this non SCF converged file from xyz directory.
-            os.remove("%s/%s" %(self.filesDIR, file_name))
-            #  print("Removed!")
+            if self.rm_files:
+                os.remove("%s/%s" %(self.filesDIR, file_name))
+                #  print(file_name, "Removed!")
 
             # remove all orca temp out files related to label from runGeom directory.
             os.system("rm %s*" %label)
@@ -168,10 +174,10 @@ class CaculateData():
             print("There aren't fragment files")
             exit(1)
 
-        for self.file_names in self.fragmentFiles:
+        for file_names in self.fragmentFiles:
             self.i = 0
             with multiprocessing.Pool(n_proc) as pool:
-                pool.map(self._calculate_data, self.file_names)
+                pool.map(self._calculate_data, file_names)
             pool.close()
 
 
