@@ -31,6 +31,7 @@ parser.add_argument("-val_type", "--val_type", type=str, required=True)
 parser.add_argument("-MODEL_DIR", "--MODEL_DIR", type=str, required=True)
 parser.add_argument("-RESULT_DIR", "--RESULT_DIR", type=str, required=True)
 parser.add_argument("-filesDIR", "--filesDIR", type=str, required=False)
+parser.add_argument("-db_path", "--db_path", type=str, required=False)
 args = parser.parse_args()
 
 #  mof_num = args.mof_num
@@ -43,22 +44,25 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 USER=RESULT_DIR.split("/")[2]
 BASE_DIR = f"/truba_scratch/{USER}/deepMOF/HDNNP"
 
-if mode == "train" or mode == "test":
-    path_to_db = ("%s/prepare_data/workingOnDataBase/"
-                  "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db" %(BASE_DIR))
-    data = AtomsData(path_to_db)
-elif mode == "torsion":
-    path_to_db = ("%s/prepare_data/dataBases/"
-                  "mof5_phenyl_torsion_ev_v2.db" %BASE_DIR)
-    data = AtomsData(path_to_db)
-elif mode == "aromatic_ch_bond":
-    path_to_db = ("%s/prepare_data/dataBases/"
-                  "mof5_phenyl_CH_bond_ev.db" %BASE_DIR)
-    data = AtomsData(path_to_db)
-elif mode == "aliphatic_ch_bond":
-    path_to_db = ("%s/prepare_data/dataBases/"
-                  "aliphaticCHBondEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries4_ev.db" %BASE_DIR)
-    data = AtomsData(path_to_db)
+#  if mode == "train" or mode == "test":
+#      path_to_db = ("%s/prepare_data/workingOnDataBase/"
+#                    "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db" %(BASE_DIR))
+#      data = AtomsData(path_to_db)
+#  elif mode == "torsion":
+#      path_to_db = ("%s/prepare_data/dataBases/"
+#                    "mof5_phenyl_torsion_ev_v2.db" %BASE_DIR)
+#      data = AtomsData(path_to_db)
+#  elif mode == "aromatic_ch_bond":
+#      path_to_db = ("%s/prepare_data/dataBases/"
+#                    "mof5_phenyl_CH_bond_ev.db" %BASE_DIR)
+#      data = AtomsData(path_to_db)
+#  elif mode == "aliphatic_ch_bond":
+#      path_to_db = ("%s/prepare_data/dataBases/"
+#                    "aliphaticCHBondEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries4_ev.db" %BASE_DIR)
+#    data = AtomsData(path_to_db)
+if mode == "train" or mode == "test" or mode == "fromDB":
+    db_path = args.db_path
+    data = AtomsData(db_path)
 elif mode == "fromFiles":
     filesDIR = args.filesDIR
     file_names = [file_name for file_name in os.listdir(filesDIR)]
@@ -402,6 +406,14 @@ def main(n_procs):
         run_multiprocessing(func=getSPEneryForces,
                                            argument_list=idxs,
                                            num_processes=n_procs)
+    elif mode == "fromDB":
+        n_data = len(data)
+        idxs = range(n_data)
+        print("Nuber of %s data points: %d" %(mode, len(idxs)))
+        #  result_list_tqdm = []
+        run_multiprocessing(func=getSPEneryForces,
+                                           argument_list=idxs,
+                                           num_processes=n_procs)
     elif mode == "fromFiles":
         idxs = range(len(file_names))
         print("Nuber of %s data points: %d" %(mode, len(idxs)))
@@ -410,12 +422,6 @@ def main(n_procs):
                                            argument_list=idxs,
                                            num_processes=n_procs)
     else:
-        n_data = len(data)
-        idxs = range(n_data)
-        print("Nuber of %s data points: %d" %(mode, len(idxs)))
-        #  result_list_tqdm = []
-        run_multiprocessing(func=getSPEneryForces,
-                                           argument_list=idxs,
-                                           num_processes=n_procs)
+        print("Error: Invalid calculation type")
 main(8)
 
