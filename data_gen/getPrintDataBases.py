@@ -1,5 +1,4 @@
-#! /truba/home/yzorlu/miniconda3/bin/python
-
+#
 from multiprocessing import Pool
 from ase.db import connect
 from ase import units
@@ -13,7 +12,6 @@ import argparse
 import torch
 
 
-mof_num ="5"
 
 def get_fmax_idx(forces):
     """
@@ -435,36 +433,41 @@ class GetPrintDB:
         # Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
         pool = Pool(processes=num_processes)
         for result in tqdm.tqdm(
-            pool.imap_unordered(func=self._hartree2Unit, iterable=range(lenDB)),
-            total=lenDB):
+            pool.imap_unordered(func=self._hartree2Unit,
+                                iterable=range(lenDB)), total=lenDB):
             if result:
                 atoms_list.append(result[0])
                 name_list.append(result[1])
                 property_list.append(result[2])
         new_db.add_systems(atoms_list, name_list, property_list)
 
+
 parser = argparse.ArgumentParser(description="")
-parser.add_argument("-calcMode", "--calcMode",
-                    type=str, required=False,
+parser.add_argument("-calcMode", "--calcMode", type=str, required=False,
                     help="enter target function name exactly")
+parser.add_argument("-dbPath", "--dbPath", type=str, required=False)
 
 args = parser.parse_args()
 
+mof_num = "5"
 BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data"
 dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %mof_num
 
-# for test datbase
+# False test datbase
 #  dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev_testData.db" %mof_num
 
 if args.calcMode == "mergeDataBases":
     db_path = "%s/workingOnDataBase/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" %BASE_DIR
+elif args.calcMode == "print_data" or args.calcMode == "calculatedFiles2csv":
+    db_path = args.dbPath
 else:
     db_path = "%s/dataBases/%s" %(BASE_DIR, dbName)
 
 getprint = GetPrintDB(db_path, BASE_DIR)
 
 if args.calcMode == "calculatedFiles2csv":
-    out_csv_path = "%s/dataBases/IRMOFseries%s_CalculatedFilesFrom_outOfSFGeomsTZVP.csv" %(BASE_DIR, mof_num)
+    #  out_csv_path = "%s/dataBases/IRMOFseries%s_CalculatedFilesFrom_outOfSFGeomsTZVP.csv" %(BASE_DIR, mof_num)
+    out_csv_path = db_path.replace(".db", ".csv")
     getprint.calculatedFiles2csv(out_csv_path, frag_base=None)
 
 if args.calcMode == "mergeDataBases":
