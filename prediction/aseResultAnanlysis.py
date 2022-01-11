@@ -29,3 +29,4 @@ for idx, mof_num in enumerate([1, 4, 6, 7, 10]):
     colors = ["b", "m", "y", "g", "c"]
 
     plot_phonon_dos()
+
