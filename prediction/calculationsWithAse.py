@@ -24,7 +24,6 @@ from ase.constraints import StrainFilter, UnitCellFilter
 from ase.md import VelocityVerlet, Langevin, MDLogger
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.npt import NPT
-from ase.md.npt import NPT
 from ase.md.velocitydistribution import (
     MaxwellBoltzmannDistribution,
     Stationary,
@@ -171,7 +170,7 @@ class AseCalculations(object):
         calculator = SpkCalculator(
             model,
             device=device,
-            collect_triples=True,
+            collect_triples=False,
             environment_provider=environment_provider,
             energy=properties[0],
             forces=properties[1],
@@ -182,6 +181,19 @@ class AseCalculations(object):
         )
 
         self.molecule.set_calculator(calculator)
+
+    def setQMMMcalculator(self, qm_region, qm_calcultor, mm_calcultor):
+        from ase.calculators.qmmm import SimpleQMMM
+        self.molecule.set_calculator(SimpleQMMM(
+            qm_region, qm_calcultor, mm_calcultor, mm_calcultor
+        ))
+
+    def setQMMMForceCalculator(self, qm_musk, qm_calcultor, mm_calcultor, buffer_width):
+        from ase.calculators.qmmm import ForceQMMM, RescaledCalculator
+        self.molecule.set_calculator(ForceQMMM(
+            self.molecule,
+            qm_musk, qm_calcultor, mm_calcultor, buffer_width,
+        ))
 
     def _moleculeCheck(self):
         if self.molecule is None:
@@ -245,10 +257,10 @@ class AseCalculations(object):
         vib.write_dos(out="vib-dos_Lorentzian_10_width.dat", start=0, end=4000, type="Lorentzian", width=10)
         vib.write_dos(out="vib-dos_Lorentzian_20_width.dat", start=0, end=4000, type="Lorentzian", width=20)
         vib.write_dos(out="vib-dos_Lorentzian_30_width.dat", start=0, end=4000, type="Lorentzian", width=30)
-        vib.write_dos(out="vib-dos_Lorentzian_5_width.dat", start=0, end=4000, type="Gaussian", width=5)
-        vib.write_dos(out="vib-dos_Lorentzian_10_width.dat", start=0, end=4000, type="Gaussian", width=10)
-        vib.write_dos(out="vib-dos_Lorentzian_20_width.dat", start=0, end=4000, type="Gaussian", width=20)
-        vib.write_dos(out="vib-dos_Lorentzian_30_width.dat", start=0, end=4000, type="Gaussian", width=30)
+        vib.write_dos(out="vib-dos_Gaussian_5_width.dat", start=0, end=4000, type="Gaussian", width=5)
+        vib.write_dos(out="vib-dos_Gaussian_10_width.dat", start=0, end=4000, type="Gaussian", width=10)
+        vib.write_dos(out="vib-dos_Gaussian_20_width.dat", start=0, end=4000, type="Gaussian", width=20)
+        vib.write_dos(out="vib-dos_Gaussian_30_width.dat", start=0, end=4000, type="Gaussian", width=30)
         vib.clean()
 
     def optimizeWithStrain(self, fmax=1.0e-1, steps=1000):
