@@ -203,6 +203,8 @@ def run(file_base, molecule_path, calc_type, run_type):
         print(calculation.molecule.get_cell_lengths_and_angles())
 
         calculation.optimize(fmax=0.05)
+
+
 def p_run(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
 
