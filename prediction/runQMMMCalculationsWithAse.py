@@ -15,6 +15,8 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.io.trajectory import Trajectory
 #  from ase.io.xyz import read_xyz,  write_xyz
 #  from ase.io import read, write
+from ase.build import molecule
+
 
 import numpy as np
 import torch
@@ -27,7 +29,7 @@ import getpass
 USER = getpass.getuser()
 
 properties = ["energy", "forces", "stress"]  # properties used for training
-BASE_DIR = f"/truba_scratch/{USER}/deepMOF/HDNNP/"
+BASE_DIR = f"/truba_scratch/{USER}/deepMOF_dev/"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # in case multiprocesses, global device variable rise CUDA spawn error.
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,8 +50,8 @@ def getWorksDir(calc_name):
 def getMLcalculator():
 
     MODEL_DIR = BASE_DIR \
-            + "/schnetpack" \
-            + "/runTraining" \
+            + "/works" \
+            + "/runTrain" \
             + "/schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_"\
             + "withoutStress_aseEnv_test_IRMOFseries1_4_6_7_10_merged_173014_ev"
     #  + "/hdnnBehler_l3n100_rho001_r20a5_lr0001_bs1_IRMOFseries%s_merged_72886_ev" %mof_num\
@@ -90,18 +92,18 @@ def getLJcalculator():
     return calculator
 
 
-def run(file_base, molecule_path, calc_type, run_type):
+def run(file_base, molecule_path, run_type):
 
     temp = 300
-    asePlatformDIR = BASE_DIR + "/schnetpack/asePlatform"
-    name = file_base + "_%s_%s_%sK" % (calc_type, run_type, temp)
+    asePlatformDIR = BASE_DIR + ""
+    name = file_base + "_%s_%sK" % (run_type, temp)
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
-    if not os.path.exists("run_worksdir"):
-        os.mkdir("run_worksdir")
+    if not os.path.exists("ase_worksdir"):
+        os.mkdir("ase_worksdir")
 
-    WORKS_DIR = getWorksDir(asePlatformDIR + "/run_worksdir/" + name)
+    WORKS_DIR = getWorksDir(BASE_DIR + "/works/runMLMM" + "/ase_worksdir/" + name)
 
     os.chdir(WORKS_DIR)
 
@@ -113,12 +115,25 @@ def run(file_base, molecule_path, calc_type, run_type):
     calculation.makeSupercell(P)
 
 
-    calculation.setQMMMForceCalculator(
-        qm_musk=range(calculation.molecule.get_number_of_atoms()),
+    # qm_selection_musk must be numpy array for ase bug
+    qm_region = np.arange(calculation.molecule.get_number_of_atoms())
+
+    #add h2 moecules
+    #  calculation.attach_molecule(molecule("H2"), 10, distance=3.5)
+    calculation.save_molecule()
+
+    calculation.setQMMMcalculator(
+        qm_region=qm_region,
         qm_calcultor=getMLcalculator(),
         mm_calcultor=getLJcalculator(),
-        buffer_width=12.0
     )
+
+    #  calculation.setQMMMForceCalculator(
+    #      qm_selection_mask=qm_selection_mask,
+    #      qm_calcultor=getMLcalculator(),
+    #      mm_calcultor=getLJcalculator(),
+    #      buffer_width=12.0
+    #  )
 
     if run_type == "opt":
         calculation.optimize()
@@ -166,7 +181,7 @@ def run(file_base, molecule_path, calc_type, run_type):
         cell = calculation.molecule.get_cell()
 
 
-        traj_name = "%s_%s_EOS.traj" % (file_base, calc_type)
+        traj_name = "%s_EOS.traj" % (file_base)
         traj = Trajectory(traj_name, "w")
         scaleFs = np.linspace(0.98, 1.10, 12)
         print(len(scaleFs))
@@ -195,12 +210,11 @@ def main():
     mof_num = 1
     file_base = "mercury_IRMOF%s" %mof_num
 
-    MOL_DIR = BASE_DIR + "/prepare_data/geomFiles/IRMOFSeries/cif_files"
+    MOL_DIR = BASE_DIR + "/geom_files/IRMOFSeries/cif_files"
     molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
 
-    calc_type = "model"
-    run_type = "optLattice"
+    run_type = "md"
 
-    run(file_base, molecule_path, calc_type, run_type)
+    run(file_base, molecule_path, run_type)
 
 main()
