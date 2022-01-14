@@ -28,7 +28,7 @@ import shutil
 import getpass
 USER = getpass.getuser()
 
-properties = ["energy", "forces", "stress"]  # properties used for training
+properties = ["energy", "forces"]#, "stress"]  # properties used for training
 BASE_DIR = f"/truba_scratch/{USER}/deepMOF_dev/"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # in case multiprocesses, global device variable rise CUDA spawn error.
@@ -83,14 +83,29 @@ def getMLcalculator():
 
 def getLJcalculator():
     from ase.calculators.lj import LennardJones
+    from ase.calculators.qmmm import RescaledCalculator
 
     calculator = LennardJones()
-    calculator.parameters.epsilon = 0.0102996
-    calculator.parameters.sigma = 3.4
-    calculator.parameters.rc = 12.0
+    calculator.parameters.epsilon = 0.0032
+    calculator.parameters.sigma = 0.296
+    calculator.parameters.rc = 6.0
 
     return calculator
 
+
+def getDFTB():
+    from ase.calculators.dftb import Dftb
+
+    calculator = Dftb(
+        Hamiltonian_SCC='No',
+        Hamiltonian_SCCTolerance=1e-2,
+        Hamiltonian_MaxAngularMomentum_='',
+        Hamiltonian_MaxAngularMomentum_H='s',
+        Hamiltonian_MaxAngularMomentum_C='p',
+        Hamiltonian_MaxAngularMomentum_O='p',
+    )
+
+    return calculator
 
 def run(file_base, molecule_path, run_type):
 
@@ -111,29 +126,37 @@ def run(file_base, molecule_path, run_type):
     calculation.setCalcName(name)
 
     calculation.load_molecule_fromFile(molecule_path)
-    P = [[0, 0, -1], [0, -1, 0], [-1, 0, 0]]
-    calculation.makeSupercell(P)
 
-
-    # qm_selection_musk must be numpy array for ase bug
-    qm_region = np.arange(calculation.molecule.get_number_of_atoms())
+    n_atoms_bulk = len(calculation.molecule)
 
     #add h2 moecules
-    #  calculation.attach_molecule(molecule("H2"), 10, distance=3.5)
+    calculation.attach_molecule(molecule("H2"), 5, distance=3.5)
+    #  P = [[0, 0, -1], [0, -1, 0], [-1, 0, 0]]
+    #  calculation.makeSupercell(P)
+
+    # qm_selection_musk must be numpy array for ase bug
+    qm_selection_mask = np.arange(n_atoms_bulk, len(calculation.molecule))
+    print(qm_selection_mask)
     calculation.save_molecule()
 
-    calculation.setQMMMcalculator(
-        qm_region=qm_region,
-        qm_calcultor=getMLcalculator(),
-        mm_calcultor=getLJcalculator(),
-    )
-
-    #  calculation.setQMMMForceCalculator(
-    #      qm_selection_mask=qm_selection_mask,
-    #      qm_calcultor=getMLcalculator(),
-    #      mm_calcultor=getLJcalculator(),
-    #      buffer_width=12.0
+    #  calculation.setQMMMcalculator(
+    #      qm_region=qm_selection_mask,
+    #      qm_calcultor=getDFTB(),
+    #      mm_calcultor=getMLcalculator(),
     #  )
+
+
+    #      qm_selection_mask=qm_selection_mask,
+    #      qm_calcultor=getLJcalculator(),
+    #      mm_calcultor=getMLcalculator(),
+    #      buffer_width=3.5
+    #  )
+
+    calculation.setEIQMMMCalculator(
+        qm_selection=qm_selection_mask,
+        qm_calcultor=getDFTB(),
+        mm_calcultor=getMLcalculator(),
+    )
 
     if run_type == "opt":
         calculation.optimize()
@@ -160,7 +183,7 @@ def run(file_base, molecule_path, run_type):
           interval=5,
         )
 
-        calculation.optimize(fmax=0.02)
+        calculation.optimize(fmax=0.9)
         calculation.run_md(1000000)
 
         #  setting strain for pressure deformation simultaions
