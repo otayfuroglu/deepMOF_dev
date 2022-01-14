@@ -191,15 +191,24 @@ class AseCalculations(object):
     def setQMMMForceCalculator(self, qm_selection_mask, qm_calcultor, mm_calcultor, buffer_width):
         from ase.calculators.qmmm import ForceQMMM, RescaledCalculator
 
-        qmmm_calc = ForceQMMM( self.molecule, qm_selection_mask,
+        qmmm_calc = ForceQMMM(self.molecule, qm_selection_mask,
                               qm_calcultor, mm_calcultor, buffer_width,)
+        self.molecule.set_calculator(qmmm_calc)
+
+    def setEIQMMMCalculator(self, qm_selection, qm_calcultor, mm_calcultor):
+        from ase.calculators.qmmm import EIQMMM, Embedding, LJInteractions
+        from ase.calculators.tip3p import epsilon0, sigma0
+
+        lj = LJInteractions({'HH': (epsilon0, sigma0)})
+
+        qmmm_calc = EIQMMM(qm_selection, qm_calcultor, mm_calcultor,
+                           interaction=lj, embedding=Embedding(molecule_size=len(self.molecule)))
         self.molecule.set_calculator(qmmm_calc)
 
     def attach_molecule(self, molecule, n_molecule, distance):
         from ase.build.attach import attach_randomly
         for _ in range(n_molecule):
             self.molecule = attach_randomly(self.molecule, molecule, distance=3.0)
-
 
     def _moleculeCheck(self):
         if self.molecule is None:
