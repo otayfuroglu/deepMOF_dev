@@ -1,5 +1,4 @@
-#! /truba/home/yzorlu/miniconda3/bin/python
-
+#
 import os, io
 import numpy as np
 import shutil
