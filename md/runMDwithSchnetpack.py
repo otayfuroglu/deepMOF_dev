@@ -78,17 +78,18 @@ if args.restart == "yes":
 
 _, name = ntpath.split(molecule_path)
 name = name[:-4]
-BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/schnetpack"
 
 WORKS_DIR = os.getcwd() + "/" + name + "_%dK_" % args.temp + md_type + args.descrip_word
 MODELS_DIR = [
-    BASE_DIR
-    + "/runTraining/"
-    + args.MODEL1_DIR,
-    #  BASE_DIR
-    #  + "/runTraining"
+    args.MODEL1_DIR,
     #  + args.MODEL2_DIR,
 ]
+print(MODELS_DIR)
+
+# units for all calculator
+position_conversion = "Angstrom"
+force_conversion = "eV / Angstrom"
+stress_conversion="eV / Angstrom / Angstrom / Angstrom"
 
 
 def optStructure(atoms, model):
@@ -122,24 +123,24 @@ def getAseMol(molecule_path, pbc=True):
         atoms.pbc = [0, 0, 0]
     return read(molecule_path)
 
+
 def makeSpercell(molecule_path, P):
     from ase.build import make_supercell
     mol = read(molecule_path)
     mol.pbc = [True, True, True]
     return make_supercell(mol, P)
 
+
 def getLastPoseFromHDF5(log_file_path, nsample):
+    from schnetpack.data import Atoms
     skip_pose = nsample - 1
     data = HDF5Loader(log_file_path, skip_initial=skip_pose, load_properties=False)
     atoms = Atoms(data.get_property(Properties.Z, mol_idx=0),
                   positions=data.get_property(Properties.R, mol_idx=0)[0] * 10.0) # *10.0 for the hdf5 scaling
     return atoms
 
-def setCalculator(calc_mode, models, properties, stress_handle, cutoff):
 
-    position_conversion = "Angstrom"
-    force_conversion = "eV / Angstrom"
-    stress_conversion="eV / Angstrom / Angstrom / Angstrom"
+def setCalculator(calc_mode, models, properties, stress_handle, cutoff):
 
     if calc_mode == "ensemble":
         md_calculator = EnsembleSchnetPackCalculator(
@@ -165,16 +166,18 @@ def setCalculator(calc_mode, models, properties, stress_handle, cutoff):
             stress_handle=stress_handle,
             cutoff=cutoff,
             position_conversion=position_conversion,
+
             force_conversion=force_conversion,
             stress_conversion=stress_conversion,
         )
 
     return md_calculator
 
+
 def setSimulator(md_type, system_temperature, ensemble, restart=True):
 
     bath_temperature = args.temp
-    target_pressure = 1.01325 # bar
+    target_pressure = 1.01325  # bar
     time_constant = 100
     buffer_size = 50
 
@@ -343,10 +346,10 @@ if __name__ == "__main__":
 
     initializer.initialize_system(system)
 
-    #  simulator = setSimulator(md_type, system_temperature, ensemble="NVT", restart=False)
-    #  simulator.simulate(n_steps=1000000)
-    simulator = setSimulator(md_type, system_temperature, ensemble="NPT", restart=restart)
-    simulator.simulate(n_steps)
+    simulator = setSimulator(md_type, system_temperature, ensemble="NVT", restart=False)
+    simulator.simulate(n_steps=1000000)
+    #  simulator = setSimulator(md_type, system_temperature, ensemble="NPT", restart=restart)
+    #  simulator.simulate(n_steps)
 
     # setting strain for pressure deformation simultaions
 
