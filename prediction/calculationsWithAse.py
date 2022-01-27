@@ -34,6 +34,7 @@ from ase import units
 #  from ase.calculators.mixing import SumCalculator
 #  from dftd4.ase import DFTD4
 
+import numpy as np
 import os
 import tqdm
 
@@ -192,17 +193,38 @@ class AseCalculations(object):
         from ase.calculators.qmmm import ForceQMMM, RescaledCalculator
 
         qmmm_calc = ForceQMMM(self.molecule, qm_selection_mask,
-                              qm_calcultor, mm_calcultor, buffer_width,)
+                              qm_calcultor, mm_calcultor, buffer_width,
+                              vacuum=0.0,
+                             )
         self.molecule.set_calculator(qmmm_calc)
 
     def setEIQMMMCalculator(self, qm_selection, qm_calcultor, mm_calcultor):
-        from ase.calculators.qmmm import EIQMMM, Embedding, LJInteractions
+        from ase.calculators.qmmm import (EIQMMM, Embedding,
+                                          LJInteractions,
+                                          LJInteractionsGeneral)
         from ase.calculators.tip3p import epsilon0, sigma0
 
-        lj = LJInteractions({'HH': (epsilon0, sigma0)})
+        # General LJ interaction object for the 'OHHOHH' water dimer
+        #  sigma_mm = np.array([sigma0, 0, 0])  # Hydrogens have 0 LJ parameters
+        #  epsilon_mm = np.array([epsilon0, 0, 0])
+        #  sigma_qm = np.array([sigma0, 0, 0])
+        #  epsilon_qm = np.array([epsilon0, 0, 0])
 
-        qmmm_calc = EIQMMM(qm_selection, qm_calcultor, mm_calcultor,
-                           interaction=lj, embedding=Embedding(molecule_size=len(self.molecule)))
+        qm_molecule_size = len(qm_selection)
+        mm_molecule_size = len(self.molecule) - qm_molecule_size
+        #  interaction = LJInteractionsGeneral(sigma_qm, epsilon_qm,
+        #                                      sigma_mm, epsilon_mm,
+        #                                      qm_molecule_size,
+        #                                      mm_molecule_size)
+        interaction = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
+
+        embedding=Embedding(mm_molecule_size)
+
+        qmmm_calc = EIQMMM(
+            qm_selection, qm_calcultor, mm_calcultor,
+            interaction=interaction, embedding=embedding,
+            vacuum=None
+        )
         self.molecule.set_calculator(qmmm_calc)
 
     def attach_molecule(self, molecule, n_molecule, distance):
@@ -295,6 +317,7 @@ class AseCalculations(object):
         temp_init=100,
         temp_bath=None,
         temperature_K=None,
+        pressure=1, #bar
         reset=False,
         interval=1,
     ):
@@ -305,22 +328,23 @@ class AseCalculations(object):
             self._init_velocities(temp_init=temp_init)
 
         # setup dynamics
-        if temp_bath:
+        if temperature_K:
+            print("NPT ensemble.. Pressure set to %s bar" %pressure)
+            self.dynamics = NPTBerendsen(
+                self.molecule,
+                timestep=time_step * units.fs,
+                temperature_K=temperature_K,
+                taut=100 * units.fs,
+                pressure_au=pressure * 1.01325 * units.bar,
+                taup=1000 * units.fs,
+                compressibility=4.57e-5 / units.bar)
+        elif temp_bath:
             self.dynamics = Langevin(
                 self.molecule,
                 time_step * units.fs,
                 temp_bath * units.kB,
                 1.0 / (100.0 * units.fs),
             )
-        elif temperature_K:
-            self.dynamics = NPTBerendsen(
-                self.molecule,
-                timestep=time_step * units.fs,
-                temperature_K=temperature_K,
-                taut=100 * units.fs,
-                pressure_au=1.01325 * units.bar,
-                taup=1000 * units.fs,
-                compressibility=4.57e-5 / units.bar)
         else:
             self.dynamics = VelocityVerlet(self.molecule, time_step * units.fs)
 
