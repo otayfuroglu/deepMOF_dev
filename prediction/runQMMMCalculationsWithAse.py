@@ -17,6 +17,8 @@ from ase.io.trajectory import Trajectory
 #  from ase.io import read, write
 from ase.build import molecule
 
+from LammpsInterfacePar import Parameters
+
 
 import numpy as np
 import torch
@@ -47,7 +49,7 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def getMLcalculator():
+def getMLcalc():
 
     MODEL_DIR = BASE_DIR \
             + "/works" \
@@ -58,13 +60,12 @@ def getMLcalculator():
 
     model_path = os.path.join(MODEL_DIR, "best_model")
     model = load_model(model_path, map_location=device)
+    stress = None
     if "stress" in properties:
         print("Stress calculations are active")
         schnetpack.utils.activate_stress_computation(model)
-    try:
-        stress = properties[2]
-    except:
-        stress = None
+        stress = "stress"
+
     calculator = SpkCalculator(
         model,
         device=device,
@@ -81,24 +82,24 @@ def getMLcalculator():
     return calculator
 
 
-def getLJcalculator():
+def getLJcalc():
     from ase.calculators.lj import LennardJones
     from ase.calculators.qmmm import RescaledCalculator
 
     calculator = LennardJones()
-    calculator.parameters.epsilon = 0.0032
-    calculator.parameters.sigma = 0.296
-    calculator.parameters.rc = 6.0
+    calculator.parameters.epsilon = 0.00318
+    calculator.parameters.sigma = 0.2928
+    calculator.parameters.rc = 12.0
 
     return calculator
 
 
-def getDFTB():
+def getDFTBcalc():
     from ase.calculators.dftb import Dftb
 
     calculator = Dftb(
-        Hamiltonian_SCC='No',
-        Hamiltonian_SCCTolerance=1e-2,
+        Hamiltonian_SCC='Yes',
+        Hamiltonian_SCCTolerance=1e-5,
         Hamiltonian_MaxAngularMomentum_='',
         Hamiltonian_MaxAngularMomentum_H='s',
         Hamiltonian_MaxAngularMomentum_C='p',
@@ -106,6 +107,69 @@ def getDFTB():
     )
 
     return calculator
+
+
+def getGPAWcalc():
+    from gpaw import GPAW, PW
+    return  GPAW(xc='PBE', mode=PW(300))
+
+
+def getOrcaCalc(n_cpu=40, initial_gbw=["", ""]):
+    from ase.calculators.orca import ORCA
+
+    calculator = ORCA(
+        maxiter=200,
+        charge=0, mult=1,
+        orcasimpleinput='SP PBE DEF2-SVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NOPOP NoKeepInts NOKEEPDENS '\
+                        + ' ' + initial_gbw[0],
+        orcablocks= '%scf Convergence normal \n maxiter 40 end \n %pal nprocs ' + str(n_cpu) + ' end' + initial_gbw[1])
+    return calculator
+
+
+def getEMTcalc():
+    from asap3 import EMT
+    return EMT()
+
+
+def getLammpsCalc():
+    from ase.calculators.lammpsrun import LAMMPS
+    parameters = {"pair_style": "lj/cut/coul/cut 12.500",
+                  "atom_style": "full",
+                  "units": "electron",
+                  #  "bond_style": "harmonic",
+                  #  "angle_style": "cosine/periodic",
+                  #  "dihedral_style": "harmonic",
+                  #  "improper_style": "fourier",
+                  #  "special_bonds": " lj/coul 0.0 0.0 1.0",
+                  #  "dielectric":   "1.0",
+                  #  "pair_modify":   "tail yes mix arithmetic",
+                  #  "box tilt ":   "large",
+                  #  "pair_coeff": ["1 1 0.105 3.43", "2 2 0.04 2.57",
+                  #                 "3 3 0.06 3.118", "4 4 0.124 2.462"],
+                  #  "kspace_style": "ewald 0.000001",
+                  #  "kspace_modify": "gewald 3.0",
+                 }
+    #  parameters = getParamLammps(BASE_DIR + "/works/runMLMM/in.IRMOF-1")
+    #  print(parameters)
+    files = ["../works/runMLMM/data.IRMOF-1"]
+    par_lammps_interface = Parameters()
+    lmp = LAMMPS(
+        #  parameters=parameters,
+        #  tmp_dir="./lammpstmp",
+        #  no_data_file=True,
+        )
+    return lmp
+
+
+def getParamLammps(file_path):
+    parameters = {}
+    with open(file_path) as lines:
+        for line in lines:
+            if line.strip(" ").startswith("#") or len(line) <= 1:
+                continue
+            parameters[line.split()[0]] = " ".join(line.split()[1:])
+    return parameters
+
 
 def run(file_base, molecule_path, run_type):
 
@@ -128,38 +192,50 @@ def run(file_base, molecule_path, run_type):
     calculation.load_molecule_fromFile(molecule_path)
 
     n_atoms_bulk = len(calculation.molecule)
+    print(n_atoms_bulk)
 
     #add h2 moecules
-    calculation.attach_molecule(molecule("H2"), 5, distance=3.5)
+    #  calculation.attach_molecule(molecule("H2"), 1, distance=3.5)
     #  P = [[0, 0, -1], [0, -1, 0], [-1, 0, 0]]
     #  calculation.makeSupercell(P)
+    calculation.molecule.center(vacuum=1.0)
 
     # qm_selection_musk must be numpy array for ase bug
-    qm_selection_mask = np.arange(n_atoms_bulk, len(calculation.molecule))
-    print(qm_selection_mask)
+    # selection of gas
+    #  qm_selection_mask = np.arange(n_atoms_bulk, len(calculation.molecule))
+    # selection of frame
+    qm_selection_mask = np.arange(n_atoms_bulk)
     calculation.save_molecule()
 
     #  calculation.setQMMMcalculator(
     #      qm_region=qm_selection_mask,
-    #      qm_calcultor=getDFTB(),
-    #      mm_calcultor=getMLcalculator(),
+    #      qm_calcultor=getMLcalc(),
+    #      mm_calcultor=getLammpsCalc(),
     #  )
 
 
+    #  calculation.setQMMMForceCalculator(
     #      qm_selection_mask=qm_selection_mask,
-    #      qm_calcultor=getLJcalculator(),
-    #      mm_calcultor=getMLcalculator(),
+    #      qm_calcultor=getDFTBcalc(),
+    #      mm_calcultor=getMLcalc(),
     #      buffer_width=3.5
     #  )
 
-    calculation.setEIQMMMCalculator(
-        qm_selection=qm_selection_mask,
-        qm_calcultor=getDFTB(),
-        mm_calcultor=getMLcalculator(),
-    )
+    #  from ase.calculators.tip4p import TIP4P
+    #  calculation.setEIQMMMCalculator(
+    #      qm_selection=qm_selection_mask,
+    #      qm_calcultor=getOrcaCalc(),
+    #      mm_calcultor=TIP4P(),
+    #  )
+
+    calculation.molecule.calc = getEMTcalc()
 
     if run_type == "opt":
-        calculation.optimize()
+        calculation.optimize(fmax=0.01)
+        os.chdir(CW_DIR)
+
+    if run_type == "sp":
+        calculation.get_potential_energy()
         os.chdir(CW_DIR)
 
     elif run_type == "vibration":
@@ -180,10 +256,11 @@ def run(file_base, molecule_path, run_type):
           temp_bath=temp,
           # temperature_K for NPT
           #  temperature_K=temp,
+          pressure = 35,
           interval=5,
         )
 
-        calculation.optimize(fmax=0.9)
+        calculation.optimize(fmax=0.5)
         calculation.run_md(1000000)
 
         #  setting strain for pressure deformation simultaions
@@ -231,12 +308,13 @@ def run(file_base, molecule_path, run_type):
 
 def main():
     mof_num = 1
-    file_base = "mercury_IRMOF%s" %mof_num
+    file_base = "IRMOF%s" %mof_num
 
     MOL_DIR = BASE_DIR + "/geom_files/IRMOFSeries/cif_files"
-    molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
+    #  molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
+    molecule_path = BASE_DIR + "/geom_files/methane.xyz"
 
-    run_type = "md"
+    run_type = "opt"
 
     run(file_base, molecule_path, run_type)
 
