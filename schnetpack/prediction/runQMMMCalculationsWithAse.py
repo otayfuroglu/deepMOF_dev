@@ -98,12 +98,14 @@ def getDFTBcalc():
     from ase.calculators.dftb import Dftb
 
     calculator = Dftb(
-        Hamiltonian_SCC='Yes',
-        Hamiltonian_SCCTolerance=1e-5,
+        Hamiltonian_SCC='No',
+        Hamiltonian_SCCTolerance=1e-4,
         Hamiltonian_MaxAngularMomentum_='',
         Hamiltonian_MaxAngularMomentum_H='s',
         Hamiltonian_MaxAngularMomentum_C='p',
         Hamiltonian_MaxAngularMomentum_O='p',
+        Hamiltonian_MaxAngularMomentum_Zn='p',
+        kpts=(1, 1, 1),
     )
 
     return calculator
@@ -131,11 +133,14 @@ def getEMTcalc():
     return EMT()
 
 
-def getLammpsCalc():
+def getLammpsCalc(WORKS_DIR):
     from ase.calculators.lammpsrun import LAMMPS
-    parameters = {"pair_style": "lj/cut/coul/cut 12.500",
+    os.environ["ASE_LAMMPSRUN_COMMAND"] = "lmp_serial"
+    LAMMPS_POTENTIALS_DIR = os.environ["LAMMPS_POTENTIALS_DIR"]
+    parameters = {"pair_style": "comb3 polar_on",
+                  "pair_coeff": ["* * ffield.comb3 H C O Zn"],
                   "atom_style": "full",
-                  "units": "electron",
+                  "units": "metal",
                   #  "bond_style": "harmonic",
                   #  "angle_style": "cosine/periodic",
                   #  "dihedral_style": "harmonic",
@@ -144,18 +149,25 @@ def getLammpsCalc():
                   #  "dielectric":   "1.0",
                   #  "pair_modify":   "tail yes mix arithmetic",
                   #  "box tilt ":   "large",
-                  #  "pair_coeff": ["1 1 0.105 3.43", "2 2 0.04 2.57",
-                  #                 "3 3 0.06 3.118", "4 4 0.124 2.462"],
+                  #  "pair_coeff": ["1 1 0.105 3.43",
+                  #                 "2 2 0.044 2.71",
+                  #                 "3 3 0.06 3.118",
+                  #                 "4 4 0.124 2.462"],
                   #  "kspace_style": "ewald 0.000001",
                   #  "kspace_modify": "gewald 3.0",
                  }
     #  parameters = getParamLammps(BASE_DIR + "/works/runMLMM/in.IRMOF-1")
     #  print(parameters)
-    files = ["../works/runMLMM/data.IRMOF-1"]
-    par_lammps_interface = Parameters()
+    files = [LAMMPS_POTENTIALS_DIR+"/ffield.comb3",
+             LAMMPS_POTENTIALS_DIR+"/lib.comb3"
+            ]
+    for fl in files: shutil.copy(fl, WORKS_DIR)
+    print(files)
+    #  par_lammps_interface = Parameters()
     lmp = LAMMPS(
-        #  parameters=parameters,
-        #  tmp_dir="./lammpstmp",
+        parameters=parameters,
+        tmp_dir="./lammpstmp",
+        files=files
         #  no_data_file=True,
         )
     return lmp
@@ -171,10 +183,29 @@ def getParamLammps(file_path):
     return parameters
 
 
+def getLammpsCalc_v2(WORKS_DIR):
+    from ase.calculators.lammpslib import LAMMPSlib
+    #  from lammps import lammps
+    #  lines = open(BASE_DIR+"/works/runMLMM/in.IRMOF-1", 'r').readlines()
+    #  cmds = [line.strip("\n") for line in lines if not line.startswith("#") and len(line) > 1]
+    cmds = ["pair_style lj/cut 12.500",]
+    #  shutil.copy(BASE_DIR+"/works/runMLMM/data.IRMOF-1", WORKS_DIR)
+    lammps_header = ["units real", "atom_style full"]
+    amendments = ["special_bonds   lj/coul 0.0 0.0 1.0", "dielectric      1.0 ",
+                  "pair_modify     tail yes mix arithmetic", 
+                 ]
+
+    #  lmp = lammps()
+    #  for cmd in cmds:
+    #      lmp.command(cmd)
+    lammps = LAMMPSlib(lmpcmds=cmds, lammps_header=lammps_header,
+                       amendments=amendments, log_file='test.log')
+    return lammps
+
 def run(file_base, molecule_path, run_type):
 
     temp = 300
-    asePlatformDIR = BASE_DIR + ""
+    #  asePlatformDIR = BASE_DIR + ""
     name = file_base + "_%s_%sK" % (run_type, temp)
     CW_DIR = os.getcwd()
 
@@ -195,22 +226,22 @@ def run(file_base, molecule_path, run_type):
     print(n_atoms_bulk)
 
     #add h2 moecules
-    #  calculation.attach_molecule(molecule("H2"), 1, distance=3.5)
+    #  calculation.attach_molecule(molecule("H2"), 5, distance=3.5)
     #  P = [[0, 0, -1], [0, -1, 0], [-1, 0, 0]]
     #  calculation.makeSupercell(P)
-    calculation.molecule.center(vacuum=1.0)
+    #  calculation.molecule.center(vacuum=1.0)
 
     # qm_selection_musk must be numpy array for ase bug
     # selection of gas
-    #  qm_selection_mask = np.arange(n_atoms_bulk, len(calculation.molecule))
+    qm_selection_mask = np.arange(n_atoms_bulk, len(calculation.molecule))
     # selection of frame
-    qm_selection_mask = np.arange(n_atoms_bulk)
+    #  qm_selection_mask = np.arange(n_atoms_bulk)
     calculation.save_molecule()
 
     #  calculation.setQMMMcalculator(
     #      qm_region=qm_selection_mask,
     #      qm_calcultor=getMLcalc(),
-    #      mm_calcultor=getLammpsCalc(),
+    #      mm_calcultor=getDFTBcalc()
     #  )
 
 
@@ -228,10 +259,10 @@ def run(file_base, molecule_path, run_type):
     #      mm_calcultor=TIP4P(),
     #  )
 
-    calculation.molecule.calc = getEMTcalc()
+    calculation.molecule.calc = getLammpsCalc(WORKS_DIR)
 
     if run_type == "opt":
-        calculation.optimize(fmax=0.01)
+        calculation.optimize(fmax=0.05)
         os.chdir(CW_DIR)
 
     if run_type == "sp":
@@ -311,8 +342,8 @@ def main():
     file_base = "IRMOF%s" %mof_num
 
     MOL_DIR = BASE_DIR + "/geom_files/IRMOFSeries/cif_files"
-    #  molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
-    molecule_path = BASE_DIR + "/geom_files/methane.xyz"
+    molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
+    #  molecule_path = BASE_DIR + "/geom_files/methane.xyz"
 
     run_type = "opt"
 
