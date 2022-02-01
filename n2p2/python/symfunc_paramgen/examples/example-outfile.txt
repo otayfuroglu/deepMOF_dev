@@ -1,0 +1,537 @@
+#########################################################################
+# Narrow angular symmetry function set, for elements ['H', 'C', 'O', 'Zn']
+#########################################################################
+# r_cutoff       = 6.0
+# The following settings were used for generating sets
+# of values for the radial parameters r_shift and eta:
+# rule           = gastegger2018
+# mode           = center
+# nb_param_pairs = 3
+# r_lower        = 1.5
+# r_upper        = 6.0
+# Sets of values for parameters:
+# r_shift_grid   = [0. 0. 0.]
+# eta_grid       = [0.2222 0.0356 0.0139]
+# lambdas        = [-1.  1.]
+# zetas          = [1. 6.]
+
+symfunction_short H  3 H  H  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  H  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 H  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 H  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 H  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 H  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 C  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 C  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 C  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 C  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 O  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 O  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 O  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short H  3 Zn Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short H  3 Zn Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 H  H  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  H  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 H  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 H  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 H  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 H  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 C  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 C  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 C  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 C  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 O  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 O  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 O  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short C  3 Zn Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short C  3 Zn Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 H  H  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  H  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 H  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 H  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 H  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 H  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 C  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 C  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 C  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 C  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 O  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 O  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 O  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short O  3 Zn Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short O  3 Zn Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 H  H  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  H  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 H  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 H  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 H  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 H  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 C  C  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  C  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 C  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 C  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 C  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 O  O  2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  O  1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 O  Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 O  Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
+symfunction_short Zn 3 Zn Zn 2.222E-01 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 2.222E-01  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 2.222E-01 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 2.222E-01  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 3.556E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 3.556E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 3.556E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 3.556E-02  1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 1.389E-02 -1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 1.389E-02  1 1.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 1.389E-02 -1 6.000E+00 6.000E+00 0.000E+00
+symfunction_short Zn 3 Zn Zn 1.389E-02  1 6.000E+00 6.000E+00 0.000E+00
+
