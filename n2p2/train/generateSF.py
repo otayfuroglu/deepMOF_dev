@@ -15,23 +15,23 @@ myGenerator = SymFuncParamGenerator( elements=['H', 'C', 'O', 'Zn'],
 
 myGenerator.symfunc_type = 'radial'
 myGenerator.generate_radial_params(rule='imbalzano2018',
-                                   mode='shift', nb_param_pairs=5)
+                                   mode='shift', nb_param_pairs=6)
 
 f = open('sym_func_params.txt', 'w')
 myGenerator.write_settings_overview(fileobj=f)
 myGenerator.write_parameter_strings(fileobj=f)
 
-
+zetas = [1, 2]
 myGenerator.symfunc_type = 'angular_narrow'
-myGenerator.zetas = [1.0, 4.0]
-myGenerator.generate_radial_params(rule='gastegger2018',
+myGenerator.zetas = zetas
+myGenerator.generate_radial_params(rule='imbalzano2018',
                                    mode='center', nb_param_pairs=3, r_lower=1.5)
 myGenerator.write_settings_overview(fileobj=f)
 myGenerator.write_parameter_strings(fileobj=f)
 
 myGenerator.symfunc_type = 'angular_wide'
-myGenerator.zetas = [1.0, 4.0]
-myGenerator.generate_radial_params(rule='gastegger2018',
+myGenerator.zetas = zetas
+myGenerator.generate_radial_params(rule='imbalzano2018',
                                    mode='center', nb_param_pairs=3, r_lower=1.5)
 myGenerator.write_settings_overview(fileobj=f)
 myGenerator.write_parameter_strings(fileobj=f)
