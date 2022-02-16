@@ -14,6 +14,7 @@ class N2P2Calculator(Calculator):
             'forces' : self.calculate_energy_and_forces}
         self.results = {}
         self.nnp_dir = nnp_dir
+        self.copy = True
 
     def calculate(self, atoms=None, properties=['energy'], system_changes=all_changes):
         # Calculator essentially does: self.atoms = atoms
@@ -61,7 +62,9 @@ class N2P2Calculator(Calculator):
         with open('input.data', 'w') as input_data:
             input_data.write(n2p2_data())
 
-        os.system(f'cp {self.nnp_dir}/* .')
+        if self.copy:
+            os.system(f'cp {self.nnp_dir}/* .')
+            self.copy = False
         p = pynnp.Prediction()
         p.setup()
         p.readStructureFromFile()
@@ -78,4 +81,4 @@ class N2P2Calculator(Calculator):
         self.results['energy'] = e_nnp
         self.results['forces'] = f
 
-        os.system('rm weights* input.nn scaling.data input.data')
+        #  os.system('rm weights* input.nn scaling.data input.data')
