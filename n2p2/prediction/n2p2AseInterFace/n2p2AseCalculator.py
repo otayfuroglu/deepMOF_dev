@@ -86,7 +86,7 @@ class n2p2Calculator(Calculator):
     def _atoms2n2p2(self, atoms):
         out_str = ''
         out_str += 'begin\n'
-        out_str += 'comment test \n'
+        out_str += 'comment created by ASE \n'
 
         n = len(atoms)
 
