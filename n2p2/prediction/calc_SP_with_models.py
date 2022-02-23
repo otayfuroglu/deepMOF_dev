@@ -8,10 +8,11 @@ import torch
 #  from scipy import stats
 #  from matplotlib import pyplot as plt
 
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
 
 import tqdm
 from ase.io import write, read
+from ase.db import connect
 
 import numpy as np
 
@@ -46,19 +47,6 @@ RESULT_DIR = args.RESULT_DIR
 device = "cuda"
 
 
-def prepareCalc(best_epoch):
-
-    os.system(f"cp {MODEL_DIR}/input.nn {RESULT_DIR}/")
-    os.system(f"cp {MODEL_DIR}/scaling.data {RESULT_DIR}/")
-
-    weights_files = [item for item in os.listdir(MODEL_DIR) if "weights" in item]
-    best_weights_files = [item for item in weights_files if int(item.split(".")[-2]) == best_epoch]
-    assert len(best_weights_files) != 0, "Erro: NOT FOUND best epoch number"
-
-    for best_weights_file in best_weights_files:
-        os.system(f"cp {MODEL_DIR}/{best_weights_file} {RESULT_DIR}/{best_weights_file[:11]}.data")
-
-
 def get_fRMS(forces):
     """
     Args:
@@ -88,6 +76,7 @@ def get_fRMS(forces):
 
     return torch.sqrt(((forces -forces.mean(axis=0))**2).mean())
 
+
 def get_fmax_atomic(forces):
     """
     Args:
@@ -116,6 +105,7 @@ def get_fmax_atomic(forces):
         forces = forces.squeeze(0)
 
     return (forces**2).sum(1).max()**5 # Maximum atomic force (fom ASE)
+
 
 def get_fmax_component(forces):
     """
@@ -151,6 +141,7 @@ def get_fmax_component(forces):
         abs_idxs = abs_idxs[0]  # select just one
     return forces[abs_idxs[0], abs_idxs[1]].item()
 
+
 def get_fmax_idx(forces):
     """
     Args:
@@ -171,6 +162,7 @@ def get_fmax_idx(forces):
         abs_idxs = abs_idxs[0]  # select just one
     return abs_idxs
 
+
 def get_fmax_componentFrom_idx(forces, fmax_component_idx):
     """
     xxx
@@ -187,23 +179,30 @@ def get_fmax_componentFrom_idx(forces, fmax_component_idx):
 def getSPEneryForces(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
 
+    #  creating working directory for each processors doe to avoid confliction
+    current = current_process()
+    proc_dir = RESULT_DIR + "/tmp_%s" % current._identity
+    if not os.path.exists(proc_dir):
+        os.mkdir(proc_dir)
+    os.chdir(proc_dir)
+
     calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=57)
 
-    file_names = [data.get_name(idx)]
-    mol = data.get_atoms(idx)
+    row = data.get(idx+1)  # +1 because of index starts 1
+    file_names = row.name
     #  write("test_atom_%d.xyz" %idx, mol)
-    n_atoms = mol.get_number_of_atoms()
+    mol = row.toatoms()
+    n_atoms = len(mol)
 
-    qm_energy = data[idx][Properties.energy]
-    qm_fmax = data.get_fmax(idx)
+    qm_energy = row.energy
+    qm_fmax = row.fmax
 
     # first get fmax indices than get qm_fmax and n2p2 fmax component
-    qm_fmax_component_idx = get_fmax_idx(data[idx][Properties.forces])
-    qm_fmax_component = get_fmax_componentFrom_idx(data[idx][Properties.forces],
+    qm_fmax_component_idx = get_fmax_idx(row.forces)
+    qm_fmax_component = get_fmax_componentFrom_idx(row.forces,
                                                    qm_fmax_component_idx)
 
     mol.set_calculator(calculator)
-    write("%s.xyz"%file_names[0], mol)
 
     n2p2_energy = mol.get_potential_energy()
     n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
@@ -236,14 +235,9 @@ def getSPEneryForces(idx):
                      fmax_component_err,
                     ]
 
-    for column_name, value in zip(column_names_energy, energy_values):
-        df_data_energy[column_name] = value
-
-    for column_name, value in zip(column_names_fmax, fmax_values):
-        df_data_fmax[column_name] = value
-
-    for column_name, value in zip(column_names_fmax_component, fmax_component_values):
-        df_data_fmax_component[column_name] = value
+    df_data_energy.loc[0] = energy_values # rewrite on first row at each steps
+    df_data_fmax.loc[0] = fmax_values
+    df_data_fmax_component.loc[0] = fmax_component_values
 
     df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), mode="a", header=False, float_format='%.6f')
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
@@ -253,18 +247,15 @@ def getSPEneryForces(idx):
 def getSPEneryForcesFromFiles(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
 
-
     file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
     file_name = file_names[idx]
     xyz_path = os.path.join(xyzDIR, file_name)
     mol = read(xyz_path)
-    n_atoms = mol.get_number_of_atoms()
-
+    n_atoms = len(mol)
 
     mol.set_calculator(calculator)
     n2p2_energy = mol.get_potential_energy()
     n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
-
 
     file_names = file_name.replace(".xyz", "")
     energy_values = [file_names,
@@ -276,12 +267,8 @@ def getSPEneryForcesFromFiles(idx):
                      n2p2_fmax,
                     ]
 
-
-    for column_name, value in zip(column_names_energy, energy_values):
-        df_data_energy[column_name] = [value]
-
-    for column_name, value in zip(column_names_fmax, fmax_values):
-        df_data_fmax[column_name] = [value]
+    df_data_energy.loc[0] = energy_values # rewrite on first row at each steps
+    df_data_fmax.loc[0] = fmax_values
 
     df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), mode="a", header=False, float_format='%.6f')
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
@@ -300,13 +287,11 @@ def run_multiprocessing(func, argument_list, num_processes):
     #  return result_list_tqdm
 
 
-def main(n_procs):
-    prepareCalc(best_epoch=32)
-    os.chdir(RESULT_DIR)
+def run_multiproc(n_procs):
     if mode == "train" or mode == "test":
         n_data = len(data)
         idxs = range(n_data)
-        idxs = range(10)
+        idxs = range(200)
         print("Nuber of %s data points: %d" %(mode, len(idxs)))
         #  result_list_tqdm = []
         run_multiprocessing(func=getSPEneryForces,
@@ -320,33 +305,12 @@ def main(n_procs):
                                            argument_list=idxs,
                                            num_processes=n_procs)
 
+
 if __name__ == "__main__":
 
     if mode == "train" or mode == "test":
-        data = AtomsData(args.data_path)
-    elif mode == "xyz_files":
-        xyzDIR = "/truba_scratch/otayfuroglu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/IRMOF7_linker_torsion36x36"
-        file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
-        print("Working on xyz files which in ", xyzDIR.split("/")[-1])
-    if mode == "xyz_files":
-        column_names_energy = [
-            "FileNames",
-            "n2p2_SP_energies",
-            "n2p2_SP_energiesPerAtom",
-        ]
+        data = connect(args.data_path)
 
-        column_names_fmax = [
-            "FileNames"
-            "n2p2_SP_fmax",
-        ]
-
-        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
-        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
-        df_data_energy = pd.DataFrame(columns=column_names_energy)
-        df_data_fmax = pd.DataFrame(columns=column_names_fmax)
-        df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
-        df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
-    else:
         column_names_energy = [
             "FileNames",
             "qm_SP_energies",
@@ -382,5 +346,31 @@ if __name__ == "__main__":
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
         df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
         df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), float_format='%.6f')
-    main(8)
 
+    elif mode == "xyz_files":
+        xyzDIR = "/truba_scratch/otayfuroglu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/IRMOF7_linker_torsion36x36"
+        file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
+        print("Working on xyz files which in ", xyzDIR.split("/")[-1])
+
+        column_names_energy = [
+            "FileNames",
+            "n2p2_SP_energies",
+            "n2p2_SP_energiesPerAtom",
+        ]
+
+        column_names_fmax = [
+            "FileNames"
+            "n2p2_SP_fmax",
+        ]
+
+        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
+        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
+        df_data_energy = pd.DataFrame(columns=column_names_energy)
+        df_data_fmax = pd.DataFrame(columns=column_names_fmax)
+        df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
+        df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
+
+    run_multiproc(40)
+
+    # remove tmp_ precessor working directory
+    os.system(f"rm -r {RESULT_DIR}/tmp_*")
