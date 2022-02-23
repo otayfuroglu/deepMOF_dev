@@ -3,10 +3,13 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import pynnp
+import numpy as np
 from ase.db import connect
 import os, sys
+import torch
 
 
+from n2p2AseInterFace import n2p2Calculator
 import argparse
 
 parser = argparse.ArgumentParser(description="Give something ...")
@@ -26,6 +29,7 @@ parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                     type=str, required=True,
                     help="..")
 args = parser.parse_args()
+
 
 def aseDB2n2p2(row):
     fl = open("input.data", "w")
@@ -58,6 +62,38 @@ def prepareCalc(best_epoch):
         os.system(f"cp {MODEL_DIR}/{best_weights_file} {RESULT_DIR}/{best_weights_file[:11]}.data")
 
 
+def get_fmax_idx(forces):
+    """
+    Args:
+    forces(3D torch tensor)
+
+    retrun:
+    maximum force conponent indices (zero 1D torch tensor)
+    """
+
+    if not torch.is_tensor(forces):
+        forces = torch.from_numpy(forces) # if numpy array convert to 3d tensor
+    else:
+        forces = forces.squeeze(0)
+
+    abs_forces = forces.abs()
+    abs_idxs = (abs_forces==torch.max(abs_forces)).nonzero().squeeze(0) # get index of max value in abs_forces.
+    if len(abs_idxs.shape) > 1: # if there are more than one max value
+        abs_idxs = abs_idxs[0]  # select just one
+    return abs_idxs
+
+
+def get_fmax_componentFrom_idx(forces, fmax_component_idx):
+    """
+    xxx
+    """
+
+    if not torch.is_tensor(forces):
+        forces = torch.from_numpy(forces) # if numpy array convert to 3d tensor
+    else:
+        forces = forces.squeeze(0)
+
+    return forces[fmax_component_idx[0], fmax_component_idx[1]].item()
 
 
 def runPredict(row, fl_obj):
@@ -73,7 +109,54 @@ def runPredict(row, fl_obj):
     # Shortcut for structure container.
     s = p.structure
 
-    print("{},{}".format(row.name, (s.energyRef-s.energy)), file=fl_obj)
+    natoms = len(row.symbols)
+    n2p2_forces = np.zeros([natoms,3])
+    for i, atom in enumerate(s.atoms):
+        n2p2_forces[i, :] = atom.f.r
+
+    # first get fmax indices than get qm_fmax and n2p2 fmax component
+    qm_fmax_component_idx = get_fmax_idx(row.forces)
+    qm_fmax_component = get_fmax_componentFrom_idx(row.forces,
+                                                   qm_fmax_component_idx)
+    n2p2_fmax_component = get_fmax_componentFrom_idx(n2p2_forces, qm_fmax_component_idx)
+
+    diffE = s.energyRef - s.energy
+    diffEpa = diffE / natoms
+
+    diffFamxComp = n2p2_fmax_component - qm_fmax_component
+    print("{},{},{},{}".format(row.name, diffE, diffEpa, diffFamxComp), file=fl_obj)
+   #   print("------------")
+   #   print("Structure 1:")
+   #   print("------------")
+   #   print("numAtoms           : ", s.numAtoms)
+   #   print("numAtomsPerElement : ", s.numAtomsPerElement)
+   #   print("------------")
+   #   print("Energy (Ref) : ", s.energyRef)
+   #   print("Energy (NNP) : ", s.energy)
+   #   print("------------")
+   #   for atom in s.atoms:
+   #       print(atom.index, atom.element, p.elementMap[atom.element], atom.f.r)
+
+def runPredict_test(row, calculator, fl_obj):
+
+    atoms = row.toatoms()
+    atoms.set_calculator(calculator)
+
+    qm_energy = row.energy
+    # first get fmax indices than get qm_fmax and n2p2 fmax component
+    qm_fmax_component_idx = get_fmax_idx(row.forces)
+    qm_fmax_component = get_fmax_componentFrom_idx(row.forces,
+                                                   qm_fmax_component_idx)
+
+    n2p2_energy = atoms.get_potential_energy()
+    n2p2_forces = atoms.get_forces()
+    n2p2_fmax_component = get_fmax_componentFrom_idx(n2p2_forces, qm_fmax_component_idx)
+
+    diffE = qm_energy - n2p2_energy
+    diffEpa = diffE / len(atoms)
+
+    diffFamxComp = n2p2_fmax_component - qm_fmax_component
+    print("{},{},{},{}".format(row.name, diffE, diffEpa, diffFamxComp), file=fl_obj)
    #   print("------------")
    #   print("Structure 1:")
    #   print("------------")
@@ -91,21 +174,24 @@ MODEL_DIR = args.MODEL_DIR
 RESULT_DIR = args.RESULT_DIR
 data_path = args.data_path
 
+
 def main():
 
-    prepareCalc(best_epoch=7)
-    os.chdir(RESULT_DIR)
+    #  prepareCalc(best_epoch=57)
+    #  os.chdir(RESULT_DIR)
     #  db_path = "../../../../deepMOF/HDNNP/prepare_data/workingOnDataBase/"\
     #      + "nonEquGeometriesEnergyForcesWithORCAFromMD_testSet.db"
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
+    calculator = n2p2Calculator(model_dir=MODEL_DIR, best_epoch=57)
     db = connect(data_path)
     db = db.select()
     fl_obj = open("results.csv", "w")
-    fl_obj.write("Name,DifEnergy(eV)")
+    fl_obj.write("Name,DifEnergy(eV),DifEnergyPa(eV),diffFmaxComp(eV/A)\n")
     for i, row in enumerate( db ):
-        runPredict(row, fl_obj)
-        if i == 100:
+        runPredict_test(row, calculator, fl_obj)
+        if i == 3:
             break
+
 
 main()
