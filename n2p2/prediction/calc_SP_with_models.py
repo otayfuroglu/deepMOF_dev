@@ -1,5 +1,5 @@
 #
-from calculationWithASE import N2P2Calculator
+from n2p2AseInterFace import n2p2Calculator
 import pandas as pd
 from schnetpack import AtomsData
 from schnetpack import Properties
@@ -46,73 +46,17 @@ RESULT_DIR = args.RESULT_DIR
 device = "cuda"
 
 
-if mode == "train" or mode == "test":
-    data = AtomsData(args.data_path)
-elif mode == "xyz_files":
-    xyzDIR = "/truba_scratch/otayfuroglu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/IRMOF7_linker_torsion36x36"
-    file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
-    print("Working on xyz files which in ", xyzDIR.split("/")[-1])
+def prepareCalc(best_epoch):
 
+    os.system(f"cp {MODEL_DIR}/input.nn {RESULT_DIR}/")
+    os.system(f"cp {MODEL_DIR}/scaling.data {RESULT_DIR}/")
 
+    weights_files = [item for item in os.listdir(MODEL_DIR) if "weights" in item]
+    best_weights_files = [item for item in weights_files if int(item.split(".")[-2]) == best_epoch]
+    assert len(best_weights_files) != 0, "Erro: NOT FOUND best epoch number"
 
-if mode == "xyz_files":
-    column_names_energy = [
-        "FileNames",
-        "n2p2_SP_energies",
-        "n2p2_SP_energiesPerAtom",
-    ]
-
-    column_names_fmax = [
-        "FileNames"
-        "n2p2_SP_fmax",
-    ]
-
-    csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
-    csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
-
-    df_data_energy = pd.DataFrame(columns=column_names_energy)
-    df_data_fmax = pd.DataFrame(columns=column_names_fmax)
-
-    df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
-    df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
-
-
-else:
-    column_names_energy = [
-        "FileNames",
-        "qm_SP_energies",
-        "n2p2_SP_energies",
-        "Error",
-        "qm_SP_energiesPerAtom",
-        "n2p2_SP_energiesPerAtom",
-        "ErrorPerAtom",
-    ]
-
-    column_names_fmax = [
-        "FileNames",
-        "qm_SP_fmax",
-        "n2p2_SP_fmax",
-        "Error",
-    ]
-
-    column_names_fmax_component = [
-        "FileNames",
-        "qm_SP_fmax_component",
-        "n2p2_SP_fmax_component",
-        "Error",
-    ]
-
-    csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
-    csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
-    csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
-
-    df_data_energy = pd.DataFrame(columns=column_names_energy)
-    df_data_fmax = pd.DataFrame(columns=column_names_fmax)
-    df_data_fmax_component = pd.DataFrame(columns=column_names_fmax_component)
-
-    df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
-    df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
-    df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), float_format='%.6f')
+    for best_weights_file in best_weights_files:
+        os.system(f"cp {MODEL_DIR}/{best_weights_file} {RESULT_DIR}/{best_weights_file[:11]}.data")
 
 
 def get_fRMS(forces):
@@ -243,7 +187,7 @@ def get_fmax_componentFrom_idx(forces, fmax_component_idx):
 def getSPEneryForces(idx):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
 
-    calculator = N2P2Calculator(nnp_dir=args.MODEL_DIR)
+    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=57)
 
     file_names = [data.get_name(idx)]
     mol = data.get_atoms(idx)
@@ -259,15 +203,12 @@ def getSPEneryForces(idx):
                                                    qm_fmax_component_idx)
 
     mol.set_calculator(calculator)
-    try:
-        n2p2_energy = mol.get_potential_energy()
-        n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
-        n2p2_fmax_component = get_fmax_componentFrom_idx(mol.get_forces(),
+    write("%s.xyz"%file_names[0], mol)
+
+    n2p2_energy = mol.get_potential_energy()
+    n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
+    n2p2_fmax_component = get_fmax_componentFrom_idx(mol.get_forces(),
                                                            qm_fmax_component_idx)
-    except:
-        n2p2_energy = 0.0
-        n2p2_fmax = 0.0
-        n2p2_fmax_component = 0.0
 
     energy_err = qm_energy - n2p2_energy
     fmax_err = qm_fmax - n2p2_fmax
@@ -360,6 +301,8 @@ def run_multiprocessing(func, argument_list, num_processes):
 
 
 def main(n_procs):
+    prepareCalc(best_epoch=32)
+    os.chdir(RESULT_DIR)
     if mode == "train" or mode == "test":
         n_data = len(data)
         idxs = range(n_data)
@@ -376,5 +319,68 @@ def main(n_procs):
         run_multiprocessing(func=getSPEneryForcesFromFiles,
                                            argument_list=idxs,
                                            num_processes=n_procs)
-main(8)
+
+if __name__ == "__main__":
+
+    if mode == "train" or mode == "test":
+        data = AtomsData(args.data_path)
+    elif mode == "xyz_files":
+        xyzDIR = "/truba_scratch/otayfuroglu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/IRMOF7_linker_torsion36x36"
+        file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
+        print("Working on xyz files which in ", xyzDIR.split("/")[-1])
+    if mode == "xyz_files":
+        column_names_energy = [
+            "FileNames",
+            "n2p2_SP_energies",
+            "n2p2_SP_energiesPerAtom",
+        ]
+
+        column_names_fmax = [
+            "FileNames"
+            "n2p2_SP_fmax",
+        ]
+
+        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
+        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
+        df_data_energy = pd.DataFrame(columns=column_names_energy)
+        df_data_fmax = pd.DataFrame(columns=column_names_fmax)
+        df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
+        df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
+    else:
+        column_names_energy = [
+            "FileNames",
+            "qm_SP_energies",
+            "n2p2_SP_energies",
+            "Error",
+            "qm_SP_energiesPerAtom",
+            "n2p2_SP_energiesPerAtom",
+            "ErrorPerAtom",
+        ]
+
+        column_names_fmax = [
+            "FileNames",
+            "qm_SP_fmax",
+            "n2p2_SP_fmax",
+            "Error",
+        ]
+
+        column_names_fmax_component = [
+            "FileNames",
+            "qm_SP_fmax_component",
+            "n2p2_SP_fmax_component",
+            "Error",
+        ]
+
+        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
+        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
+        csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
+
+        df_data_energy = pd.DataFrame(columns=column_names_energy)
+        df_data_fmax = pd.DataFrame(columns=column_names_fmax)
+        df_data_fmax_component = pd.DataFrame(columns=column_names_fmax_component)
+
+        df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
+        df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
+        df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), float_format='%.6f')
+    main(8)
 
