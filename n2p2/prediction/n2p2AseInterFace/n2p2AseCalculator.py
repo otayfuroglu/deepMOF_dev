@@ -59,6 +59,7 @@ class n2p2Calculator(Calculator):
                 input_data.write(self._atoms2n2p2(atoms))
 
             p = pynnp.Prediction()
+            p.log.writeToStdout = False # n2p2 sdt ouptput is muted
             p.setup()
             p.readStructureFromFile()
             p.predict()
