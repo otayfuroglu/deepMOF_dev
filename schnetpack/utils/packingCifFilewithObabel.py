@@ -25,7 +25,7 @@ def cif_to_cif_babel(cif_path, out_format):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Give samefile.hdf5 file name")
+        description="help")
     parser.add_argument(
         "-cifPath", "--cifPath", type=str,
         required=True, help="give hdf5 file base")

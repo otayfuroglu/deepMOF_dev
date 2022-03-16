@@ -1,15 +1,11 @@
-#! /truba/home/yzorlu/miniconda3/bin/python -u
 #
-from calculationsWithAse_v2 import AseCalculations
-from schnetpack.environment import AseEnvironmentProvider
+from calculationsWithAse import AseCalculations
 
-from schnetpack.data.atoms import AtomsConverter
-from schnetpack.utils.spk_utils import DeprecationHelper
-from schnetpack import Properties
-from schnetpack.interfaces import SpkCalculator
-from schnetpack.utils import load_model
-from schnetpack.datasets import AtomsData
-import schnetpack
+#  from schnetpack.data.atoms import AtomsConverter
+#  from schnetpack.utils.spk_utils import DeprecationHelper
+#  from schnetpack import Properties
+#  from schnetpack.interfaces import SpkCalculator
+#  from schnetpack.datasets import AtomsData
 
 from ase import units
 from ase.calculators.calculator import Calculator, all_changes
@@ -23,10 +19,8 @@ import time
 from ase.optimize import BFGS, LBFGS, GPMin, QuasiNewton
 
 import numpy as np
-#  import torch
 import os, shutil
-import tqdm
-from writeTestOutput import writeTestOutput
+#  import tqdm
 
 def getWorksDir(calc_name):
 
@@ -36,13 +30,6 @@ def getWorksDir(calc_name):
     os.mkdir(WORKS_DIR)
 
     return WORKS_DIR
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-# in case multiprocesses, global device variable rise CUDA spawn error.
-#  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#  n_gpus = torch.cuda.device_count()
-#  print("Number of cuda devices --> %s" % n_gpus,)
-device = "cuda"
 
 
 
@@ -63,6 +50,7 @@ device = "cuda"
 
 
 def test():
+    from writeTestOutput import writeTestOutput
     name = file_base + "_siesta_meshCutoff_test"
     WORKS_DIR = getWorksDir(name)
     CW_DIR = os.getcwd()
@@ -90,15 +78,14 @@ def test():
 def run(file_base, molecule_path, calc_type, run_type):
 
     temp = 300
-    asePlatformDIR = BASE_DIR + "/schnetpack/asePlatform"
     name = file_base + "_%s_%s_%sK" % (calc_type, run_type, temp)
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
-    if not os.path.exists("run_worksdir"):
-        os.mkdir("run_worksdir")
+    if not os.path.exists("ase_worksdir"):
+        os.mkdir("ase_worksdir")
 
-    WORKS_DIR = getWorksDir(asePlatformDIR + "/run_worksdir/" + name)
+    WORKS_DIR = getWorksDir(BASE_DIR + "/schnetpack/works/runTest/ase_worksdir/" + name)
 
     os.chdir(WORKS_DIR)
 
@@ -109,7 +96,6 @@ def run(file_base, molecule_path, calc_type, run_type):
     P = [[0, 0, -1], [0, -1, 0], [-1, 0, 0]]
     calculation.makeSupercell(P)
 
-
     #  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     #  n_gpus = torch.cuda.device_count()
     #  print("Number of cuda devices --> %s" % n_gpus,)
@@ -118,11 +104,26 @@ def run(file_base, molecule_path, calc_type, run_type):
 
     if calc_type == "DFT":
         #  calculation.setQEspressoCalculatorV2(name, 20)
-        calculation.setSiestaCalculator(name=file_base, nproc=80)
+        calculation.setSiestaCalculator(name=file_base,
+                                        dispCorrection="dftd4",
+                                        nproc=56)
         calculation.setCalcName(name)
-    else:
+    elif calc_type == "model":
+        from schnetpack.environment import AseEnvironmentProvider
+        from schnetpack.utils import load_model
+        import schnetpack
+
+        import torch
+        os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+        # in case multiprocesses, global device variable rise CUDA spawn error.
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #  n_gpus = torch.cuda.device_count()
+        #  print("Number of cuda devices --> %s" % n_gpus,)
+        #  device = "cuda"
+
+
         model_path = os.path.join(MODEL_DIR, "best_model")
-        model_schnet = load_model(model_path)
+        model_schnet = load_model(model_path, map_location=device)
         if "stress" in properties:
             print("Stress calculations are active")
             schnetpack.utils.activate_stress_computation(model_schnet)
@@ -182,7 +183,7 @@ def run(file_base, molecule_path, calc_type, run_type):
 
         traj_name = "%s_%s_EOS.traj" % (file_base, calc_type)
         traj = Trajectory(traj_name, "w")
-        scaleFs = np.linspace(0.98, 1.10, 12)
+        scaleFs = np.linspace(0.95, 1.10, 8)
         print(len(scaleFs))
         for scaleF in scaleFs:
             calculation.molecule.set_cell(cell * scaleF, scale_atoms=True)
@@ -211,12 +212,9 @@ def p_run(idx):
     mof_num = idx
 
     #  for bulk MOFs
-    if mof_num == 10:
-        file_base = "obabel_IRMOF%s" %mof_num
-    else:
-        file_base = "mercury_IRMOF%s" %mof_num
+    file_base = "IRMOF%s" %mof_num
 
-    MOL_DIR = BASE_DIR + "/prepare_data/geomFiles/IRMOFSeries/cif_files"
+    MOL_DIR = BASE_DIR + "/geom_files/IRMOFSeries/cif_files/"
     molecule_path = os.path.join(MOL_DIR, "%s.cif" %file_base)
 
     #  for fragments
@@ -237,17 +235,19 @@ if __name__ == "__main__":
     from multiprocessing import Pool
 
     #  mof_nums = [10, 4, 6, 7, 1]
-    mof_nums = [10]
+    mof_nums = [1, 4, 6, 7, 10]
     #  file_base = "mof5_mercury"
     #  mof_num = "1"
-    calc_type = "model"
-    #  run_type = "EOS"
-    run_type = "optLattice"
+    calc_type = "DFT"
+    #  calc_type = "model"
+    run_type = "EOS"
+    #  run_type = "opt"
 
-    BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/"
+    BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev/"
     MODEL_DIR = BASE_DIR \
             + "/schnetpack" \
-            + "/runTraining" \
+            + "/works" \
+            + "/runTrain" \
             + "/schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_"\
             + "withoutStress_aseEnv_test_IRMOFseries1_4_6_7_10_merged_173014_ev"
     #  + "/hdnnBehler_l3n100_rho001_r20a5_lr0001_bs1_IRMOFseries%s_merged_72886_ev" %mof_num\
