@@ -1,8 +1,6 @@
 #
 from n2p2AseInterFace import n2p2Calculator
 import pandas as pd
-from schnetpack import AtomsData
-from schnetpack import Properties
 import torch
 #  from ase.db import connect
 #  from scipy import stats
@@ -186,7 +184,7 @@ def getSPEneryForces(idx):
         os.mkdir(proc_dir)
     os.chdir(proc_dir)
 
-    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=57)
+    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=17)
 
     row = data.get(idx+1)  # +1 because of index starts 1
     file_names = row.name
