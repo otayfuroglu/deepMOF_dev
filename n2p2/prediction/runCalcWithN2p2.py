@@ -183,14 +183,15 @@ def main():
     #      + "nonEquGeometriesEnergyForcesWithORCAFromMD_testSet.db"
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
-    calculator = n2p2Calculator(model_dir=MODEL_DIR, best_epoch=57)
+    os.chdir(RESULT_DIR)
+    calculator = n2p2Calculator(model_dir=MODEL_DIR, best_epoch=23)
     db = connect(data_path)
     db = db.select()
     fl_obj = open("results.csv", "w")
     fl_obj.write("Name,DifEnergy(eV),DifEnergyPa(eV),diffFmaxComp(eV/A)\n")
     for i, row in enumerate( db ):
         runPredict_test(row, calculator, fl_obj)
-        if i == 3:
+        if i == 30:
             break
 
 
