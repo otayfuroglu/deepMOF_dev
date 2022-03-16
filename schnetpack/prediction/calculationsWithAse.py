@@ -30,7 +30,7 @@ from ase.md.velocitydistribution import (
     ZeroRotation,
 )
 from ase import units
-#  from ase.calculators.dftd3 import DFTD3
+from ase.calculators.dftd3 import DFTD3
 #  from ase.calculators.mixing import SumCalculator
 #  from dftd4.ase import DFTD4
 
@@ -119,8 +119,7 @@ class AseCalculations(object):
 
         self.molecule.set_calculator(calculator)
 
-    def setSiestaCalculator(self, name, nproc):
-
+    def setSiestaCalculator(self, name, dispCorrection, nproc):
         from ase.units import Ry
         from ase.calculators.siesta import Siesta
         os.environ["ASE_SIESTA_COMMAND"] = "mpirun -np %s $SIESTA_PATH < PREFIX.fdf > PREFIX.out" %nproc
@@ -128,10 +127,10 @@ class AseCalculations(object):
         dft_calculator = Siesta(
             label=name,
             xc="PBE",
-            mesh_cutoff=700 * Ry,
+            mesh_cutoff=300 * Ry,
             energy_shift=0.01 * Ry,
-            basis_set='SZ',
-            kpts=[2, 2, 2],
+            basis_set='DZP',
+            kpts=[4, 4, 4],
             fdf_arguments={"DM.MixingWeight": 0.25,
                            "DM.NumberPulay" : 1,
                            "MaxSCFIterations": 100,
@@ -139,12 +138,18 @@ class AseCalculations(object):
         )
 
         #for D3 correction
-        #  calculator = DFTD3(dft=dft_calculator)
+        print("Used Grimm's %s dispersion correction. " %dispCorrection)
+        if dispCorrection.lower() == "dftd3":
+            calculator = DFTD3(xc="pbe", dft=dft_calculator)
 
-        #for D4 correction
-        #  calculator = SumCalculator([dft_calculator, DFTD4(method="PBE")])
-        #  calculator = DFTD4(method="PBE")
-        self.molecule.set_calculator(dft_calculator)
+        elif dispCorrection.lower() == "dftd4":
+            from ase.calculators.mixing import SumCalculator
+            from dftd4.ase import DFTD4
+
+            calculator = SumCalculator([DFTD4(method="PBE"), dft_calculator])
+        else:
+            calculator = dft_calculator
+        self.molecule.set_calculator(calculator)
 
     def setOrcaCalculator(self, label, n_cpu, initial_gbw=["", ""]):
         from ase.calculators.orca import ORCA
