@@ -64,6 +64,7 @@ class n2p2Calculator(Calculator):
             p.readStructureFromFile()
             p.predict()
             s = p.structure
+
             self.model_energy = s.energy
 
             self.model_forces = np.zeros([len(atoms),3])
@@ -90,6 +91,12 @@ class n2p2Calculator(Calculator):
         out_str += 'comment created by ASE \n'
 
         n = len(atoms)
+
+        if any(atoms.pbc):
+            cell = atoms.get_cell()
+            cell_template = 'lattice {:10.6f} {:10.6f} {:10.6f}\n'
+            for c in cell:
+                out_str += cell_template.format(c[0], c[1], c[2])
 
         atom_template = 'atom {:10.6f} {:10.6f} {:10.6f} {:2s} {:10.6f} {:10.6f} {:10.6f} {:10.6f} {:10.6f}\n'
         forces = np.zeros([n,3])
