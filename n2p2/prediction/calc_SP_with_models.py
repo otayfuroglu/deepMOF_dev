@@ -36,6 +36,9 @@ parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
 parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                     type=str, required=True,
                     help="..")
+parser.add_argument("-best_epoch", "--best_epoch",
+                    type=int, required=True,
+                    help="..")
 args = parser.parse_args()
 
 #  mof_num = args.mof_num
@@ -184,7 +187,7 @@ def getSPEneryForces(idx):
         os.mkdir(proc_dir)
     os.chdir(proc_dir)
 
-    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=17)
+    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=args.best_epoch)
 
     row = data.get(idx+1)  # +1 because of index starts 1
     file_names = row.name
