@@ -28,6 +28,9 @@ parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
 parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                     type=str, required=True,
                     help="..")
+parser.add_argument("-best_epoch", "--best_epoch",
+                    type=int, required=True,
+                    help="..")
 args = parser.parse_args()
 
 
@@ -184,15 +187,15 @@ def main():
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
         #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
     os.chdir(RESULT_DIR)
-    calculator = n2p2Calculator(model_dir=MODEL_DIR, best_epoch=23)
+    calculator = n2p2Calculator(model_dir=MODEL_DIR, best_epoch=args.best_epoch)
     db = connect(data_path)
     db = db.select()
     fl_obj = open("results.csv", "w")
     fl_obj.write("Name,DifEnergy(eV),DifEnergyPa(eV),diffFmaxComp(eV/A)\n")
-    for i, row in enumerate( db ):
+    for i, row in enumerate(db):
         runPredict_test(row, calculator, fl_obj)
         if i == 30:
             break
-
+    fl_obj.close()
 
 main()
