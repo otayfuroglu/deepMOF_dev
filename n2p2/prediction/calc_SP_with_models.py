@@ -18,6 +18,7 @@ import os, sys, warnings
 index_warning = 'Converting sparse IndexedSlices'
 warnings.filterwarnings('ignore', index_warning)
 
+import subprocess
 import argparse
 
 parser = argparse.ArgumentParser(description="Give something ...")
@@ -275,6 +276,17 @@ def getSPEneryForcesFromFiles(idx):
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
 
 
+def idxsFromN2p2Data(data, name_list):
+
+    idxs = []
+    for i, row in enumerate(data.select()):
+        name = row.name
+        if  name in name_list:
+            idxs.append(i)
+            name_list.remove(name)
+    return idxs
+
+
 def run_multiprocessing(func, argument_list, num_processes):
 
     pool = Pool(processes=num_processes)
@@ -290,9 +302,19 @@ def run_multiprocessing(func, argument_list, num_processes):
 
 def run_multiproc(n_procs):
     if mode == "train" or mode == "test":
-        n_data = len(data)
-        idxs = range(n_data)
-        idxs = range(200)
+        #  n_data = len(data)
+        nameList = RESULT_DIR + "/nameFromData.csv"
+
+        # get name list from file with awk
+        out = subprocess.check_output("awk '{for(i=1;i<=NF;i++)\
+                                      if ($i==\"comment\") print $(i+1)}'\
+                                      %s/%s.data" %(RESULT_DIR, mode),
+                                      shell=True)
+        # split for "\n" (new line key)
+        name_list = str(out).split("\\n")
+        idxs = idxsFromN2p2Data(data, name_list)
+        #  idxs = range(n_data)
+        #  idxs = range(200)
         print("Nuber of %s data points: %d" %(mode, len(idxs)))
         #  result_list_tqdm = []
         run_multiprocessing(func=getSPEneryForces,
@@ -371,7 +393,7 @@ if __name__ == "__main__":
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
         df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
 
-    run_multiproc(40)
+    run_multiproc(28)
 
     # remove tmp_ precessor working directory
     os.system(f"rm -r {RESULT_DIR}/tmp_*")
