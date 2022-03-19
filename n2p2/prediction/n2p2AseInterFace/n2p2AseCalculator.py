@@ -21,7 +21,6 @@ class n2p2Calculator(Calculator):
     def __init__(
         self,
         model_dir,
-        result_dir,
         best_epoch,
         energy=None,
         forces=None,
@@ -32,7 +31,6 @@ class n2p2Calculator(Calculator):
         Calculator.__init__(self, **kwargs)
 
         self.model_dir = model_dir
-        self.result_dir = result_dir
         self._prepareModel(best_epoch)
 
 
@@ -116,10 +114,8 @@ class n2p2Calculator(Calculator):
         return out_str
 
     def _prepareModel(self, best_epoch):
-        os.system(f"cp {self.model_dir}/input.nn {self.result_dir}")
-        os.system(f"cp {self.model_dir}/scaling.data {self.result_dir}")
-        os.system(f"cp {self.model_dir}/test.data {self.result_dir}")
-        os.system(f"cp {self.model_dir}/train.data {self.result_dir}")
+        os.system(f"cp {self.model_dir}/input.nn ./")
+        os.system(f"cp {self.model_dir}/scaling.data ./")
         weights_files = [item for item in os.listdir(self.model_dir) if "weights" in item]
         best_weights_files = [item for item in weights_files if int(item.split(".")[-2]) == best_epoch]
         assert len(best_weights_files) != 0, "Erro: NOT FOUND best epoch number"
