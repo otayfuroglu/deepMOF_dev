@@ -188,8 +188,6 @@ def getSPEneryForces(idx):
         os.mkdir(proc_dir)
     os.chdir(proc_dir)
 
-    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=args.best_epoch)
-
     row = data.get(idx+1)  # +1 because of index starts 1
     file_names = row.name
     #  write("test_atom_%d.xyz" %idx, mol)
@@ -330,6 +328,12 @@ def run_multiproc(n_procs):
 
 
 if __name__ == "__main__":
+
+    calculator = n2p2Calculator(
+        model_dir=args.MODEL_DIR,
+        result_dir=args.RESULT_DIR,
+        best_epoch=args.best_epoch)
+
 
     if mode == "train" or mode == "test":
         data = connect(args.data_path)
