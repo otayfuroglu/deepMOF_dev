@@ -40,6 +40,9 @@ parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
 parser.add_argument("-best_epoch", "--best_epoch",
                     type=int, required=True,
                     help="..")
+parser.add_argument("-nprocs", "--nprocs",
+                    type=int, required=True,
+                    help="..")
 args = parser.parse_args()
 
 #  mof_num = args.mof_num
@@ -392,7 +395,7 @@ if __name__ == "__main__":
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
         df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
 
-    run_multiproc(28)
+    run_multiproc(args.nprocs)
 
     # remove tmp_ precessor working directory
     os.system(f"rm -r {RESULT_DIR}/tmp_*")
