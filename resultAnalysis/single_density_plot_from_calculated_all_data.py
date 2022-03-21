@@ -27,13 +27,6 @@ sns.set_style("ticks", rc={"grid.linestyle": "--"})
 #  plt.style.use('seaborn-ticks')
 
 
-BASE_DIR = "/home/omert/Desktop/deepMOF_local/deepMOF/HDNNP"
-#  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
-model_type = "batch24_alldata"
-NAME_BASE = "irmofseries"
-n_frags = 9
-
-
 def normalizeData(data):
     return preprocessing.minmax_scale(data, feature_range=(-100, -0))
 
@@ -144,7 +137,7 @@ def plot_error_norm_density(val_type, prop, calc_type, df_data):
         df_data.iloc[:, 7] = y
     fig, axs = _plot_error_norm(i, fig, axs, df_mof=df_data, density=True)
     #  plt.show()
-    plt.savefig("%s/schnetpack/results/ErrorsCounts_%s_%s_%s" %(BASE_DIR, prop, val_type, calc_type), dpi=600)
+    plt.savefig("%s/ErrorsCounts_%s_%s_%s" %(RESULT_DIR, prop, val_type, calc_type), dpi=600)
 #  plot_error("E", df_data)
 
 def plot_error_norm(val_type, prop, calc_type, df_data):
@@ -193,7 +186,7 @@ def plot_error_norm(val_type, prop, calc_type, df_data):
             fig, axs = _plot_error_norm(i, fig, axs, df_mof)
 
     #  plt.show()
-    plt.savefig("%s/schnetpack/results/Errors%s_%s_%s" %(BASE_DIR, prop, val_type, calc_type), dpi=600)
+    plt.savefig("%s/Errors%s_%s_%s" %(RESULT_DIR, prop, val_type, calc_type), dpi=600)
 #  plot_error("E", df_data)
 def plot_linear_reg_count_norm(val_type, prop, calc_type, df_data):
 
@@ -394,7 +387,7 @@ def plot_linear_reg_count(val_type, prop, calc_type, df_data):
     #  plt.show()
     #  fig.colorbar(data_show, ax=axs)
     #  plt.savefig("%s/%s_lineerRegressionCount%s_%s_%s" %(RESULT_DIR, mof_name, prop, val_type, calc_type), dpi=600)
-    plt.savefig("%s/schnetpack/results/lineerRegression%s_%s_%s" %(BASE_DIR, prop, val_type, calc_type), dpi=600)
+    plt.savefig("%s/lineerRegression%s_%s_%s" %(RESULT_DIR, prop, val_type, calc_type), dpi=600)
 
 
 def plot_histograms(val_type, prop, calc_type, df_data):
@@ -434,12 +427,19 @@ def plot_histograms(val_type, prop, calc_type, df_data):
     #  plt.savefig("%s/%s_Histograms%s_%s_%s" %(RESULT_DIR, mof_name, prop, val_type, calc_type), dpi=600)
     #  plt.savefig("%s/%s_Histograms%s_%s_%s" %(RESULT_DIR, frag_name, prop, val_type, calc_type), dpi=600)
     #  plt.savefig("%s_Histograms%s_%s_%s" %(mof_name, prop, val_type, calc_type), dpi=600)
-    plt.savefig("%s/schnetpack/results/HistogramsDensity%s_%s_%s" %(BASE_DIR, prop, val_type, calc_type), dpi=600)
+    plt.savefig("%s/HistogramsDensity%s_%s_%s" %(RESULT_DIR, prop, val_type, calc_type), dpi=600)
     plt.close()
 
 if __name__ == "__main__":
 
     IDX_MOFs = [1, 4, 6, 7, 10]
+    BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
+    #  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
+    model_type = "batch24_alldata"
+    NAME_BASE = "irmofseries"
+    n_frags = 9
+
+
 
     i = 0
     for calc_type in [ "", ]: #"Ensemble",]:
@@ -448,7 +448,7 @@ if __name__ == "__main__":
                 dfs = []
                 #  for single_mof_idx in IDX_MOFs:
                     #  RESULT_DIR = "%s/schnetpack/results/IRMOF%s/%s" % (BASE_DIR, single_mof_idx, model_type)
-                RESULT_DIR = "%s/schnetpack/results/%s" % (BASE_DIR, model_type)
+                RESULT_DIR = "%s/n2p2/works/runTest/%s" % (BASE_DIR, model_type)
                 csv_file_name = "%s/qm_sch_SP%s_%s_%s.csv" %(RESULT_DIR, calc_type, prop, val_type)
                 #  column_names = ["FileNames", "qm_SP_energies", "schnet_SP_energies", "Error", "ErrorPerAtom"]
                 df_data = pd.read_csv(csv_file_name)
