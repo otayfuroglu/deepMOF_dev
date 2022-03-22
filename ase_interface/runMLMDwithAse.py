@@ -1,0 +1,165 @@
+#
+from calculationsWithAse import AseCalculations
+from ase import units
+from ase.calculators.calculator import Calculator, all_changes
+from ase.io.trajectory import Trajectory
+from ase.io.xyz import read_xyz,  write_xyz
+from ase.io import read, write
+from ase.optimize import BFGS, LBFGS, GPMin, QuasiNewton
+
+import time
+import numpy as np
+import os, shutil
+#  import tqdm
+
+def getWorksDir(calc_name):
+
+    WORKS_DIR = calc_name
+    if os.path.exists(WORKS_DIR):
+        shutil.rmtree(WORKS_DIR)
+    os.mkdir(WORKS_DIR)
+
+    return WORKS_DIR
+
+
+def run(file_name, molecule_path, calc_type, temp, cell):
+
+    file_base = file_name.split(".")[0]
+    name = file_base + "_%s_%sK" % (calc_type, temp)
+    CW_DIR = os.getcwd()
+
+    # main directory for caculation runOpt
+    if not os.path.exists("ase_worksdir"):
+        os.mkdir("ase_worksdir")
+
+    WORKS_DIR = getWorksDir(RESULT_DIR + f"/ase_worksdir/{name}")
+
+    os.chdir(WORKS_DIR)
+
+    calculation = AseCalculations(WORKS_DIR)
+    calculation.setCalcName(name)
+
+    calculation.load_molecule_fromFile(molecule_path)
+    P = [[0, 0, -cell], [0, -cell, 0], [-cell, 0, 0]]
+    calculation.makeSupercell(P)
+
+    if calc_type.lower() in ["schnetpack", "ani"]:
+        import torch
+        # in case multiprocesses, global device variable rise CUDA spawn error.
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        n_gpus = torch.cuda.device_count()
+        print("Number of cuda devices --> %s" % n_gpus,)
+
+
+
+
+    if calc_type == "schnetpack":
+        from schnetpack.environment import AseEnvironmentProvider
+        from schnetpack.utils import load_model
+        import schnetpack
+
+        model_path = os.path.join(MODEL_DIR, "best_model")
+        model_schnet = load_model(model_path, map_location=device)
+        if "stress" in properties:
+            print("Stress calculations are active")
+            schnetpack.utils.activate_stress_computation(model_schnet)
+
+        calculation.setSchnetCalcultor(
+            model_schnet,
+            properties,
+            environment_provider=AseEnvironmentProvider(cutoff=5.5),
+            device=device,
+        )
+    elif calc_type == "ani":
+        calculation.setAniCalculator(model_type="ani2x", device=device, dispCorrection=None)
+
+    calculation.init_md(
+      name=name,
+      time_step=0.5,
+      temp_init=100.0,
+      # temp_bath should be None for NVE and NPT
+      #  temp_bath=temp,
+      # temperature_K for NPT
+      temperature_K=temp,
+      interval=50,
+    )
+
+    calculation.optimize(fmax=0.0005)
+    calculation.run_md(1000000)
+
+    #  setting strain for pressure deformation simultaions
+
+    #  lattice direction a
+    #  abc = calculation.molecule.cell.lengths()
+    #  a = abc[0]
+
+    #  for i in range(149):
+    #      print("\nStep %s\n" %i)
+    #      a -= 0.003 * a
+    #      abc[0] = a
+    #      calculation.molecule.set_cell(abc)
+    #      calculation.run_md(5000)
+
+
+def p_run(idxs):
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(idxs % 2)
+
+    #  db_path = os.path.join(DB_DIR, "nonEquGeometriesEnergyForcesWithORCAFromMD.db")
+    #data = AtomsData(path_to_db)
+    #db_atoms = data.get_atoms(0)
+
+    if n_file > 1:
+        file_name = file_names[idxs]
+        temp = temp_list[0]
+    else:
+        file_name = file_names[0]
+        temp = temp_list[idxs]
+
+    molecule_path = os.path.join(MOL_DIR, file_name)
+    run(file_name, molecule_path, calc_type, temp, cell)
+
+
+if __name__ == "__main__":
+    from multiprocessing import Pool
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Give something ...")
+    parser.add_argument("-calc_type", "--calc_type",
+                        type=str, required=True,
+                        help="..")
+    parser.add_argument("-temp_list", "--temp_list", nargs='+',
+                       default=[], type=int)
+    parser.add_argument("-cell", "--cell",
+                        type=int, required=True,
+                        help="..")
+    parser.add_argument("-BASE_DIR", "--BASE_DIR",
+                        type=str, required=True,
+                        help="..")
+    parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
+                        type=str, required=True,
+                        help="..")
+    parser.add_argument("-MOL_DIR", "--MOL_DIR",
+                        type=str, required=True,
+                        help="..")
+    args = parser.parse_args()
+
+    calc_type = args.calc_type
+    temp_list = args.temp_list
+    cell = args.cell
+    BASE_DIR = args.BASE_DIR
+    RESULT_DIR = args.RESULT_DIR
+    MOL_DIR = args.MOL_DIR
+    properties = ["energy", "forces", "stress"]  # properties used for training
+
+
+    #  temp_list = [100, 150]
+    file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+    n_file = len(file_names)
+    if n_file > 1:
+        idxs = range(n_file)
+        nprocs = n_file
+    else:
+        idxs = range(len(temp_list))
+        nprocs = len(temp_list)
+    with Pool(nprocs) as pool:
+       pool.map(p_run, idxs)
