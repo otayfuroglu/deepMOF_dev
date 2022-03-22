@@ -188,14 +188,29 @@ class AseCalculations(object):
 
         self.molecule.set_calculator(calculator)
 
-    def setAniCalculator(self, model_type="ani2x", device="cuda"):
+    def setAniCalculator(self, model_type="ani2x", device="cuda", dispCorrection=None):
         import torchani
         if "ani1x" == model_type:
-            self.molecule.set_calculator(torchani.models.ANI1x().to(device).ase())
+            ani_calculator = torchani.models.ANI1x().to(device).ase()
         elif "ani1ccx" == model_type:
-            self.molecule.set_calculator(torchani.models.ANI1ccx().to(device).ase())
+            ani_calculator = torchani.models.ANI1ccx().to(device).ase()
         elif "ani2x" == model_type:
-            self.molecule.set_calculator(torchani.models.ANI2x().to(device).ase())
+            ani_calculator = torchani.models.ANI2x().to(device).ase()
+
+
+        #for D3 correction
+        print("Used Grimm's %s dispersion correction. " %dispCorrection)
+        if dispCorrection is None:
+            calculator = ani_calculator
+        elif dispCorrection.lower() == "dftd3":
+            calculator = DFTD3(xc="pbe", dft=ani_calculator)
+
+        elif dispCorrection.lower() == "dftd4":
+            from ase.calculators.mixing import SumCalculator
+            from dftd4.ase import DFTD4
+
+            calculator = SumCalculator([DFTD4(method="PBE"), ani_calculator])
+        self.molecule.set_calculator(calculator)
 
 
     def setQMMMcalculator(self, qm_region, qm_calcultor, mm_calcultor):
