@@ -9,6 +9,7 @@ def prepareModel():
     best_weights_files = [item for item in weights_files if int(item.split(".")[-2]) == best_epoch]
     assert len(best_weights_files) != 0, "Erro: NOT FOUND best epoch number"
     for best_weights_file in best_weights_files:
+        print(f"Chosen weights file as best parameters --> ",best_weights_file)
         os.system(f"cp {model_dir}/{best_weights_file} {result_dir}/{best_weights_file[:11]}.data")
 
 if __name__ == "__main__":
