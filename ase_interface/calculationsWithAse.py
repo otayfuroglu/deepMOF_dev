@@ -309,7 +309,7 @@ class AseCalculations(object):
                                 #  restart="%s.pkl" % optimization_path,
                                )
         optimizer.run(fmax, steps)
-        self.save_molecule()
+        #  self.save_molecule()
 
     def vibration(self, delta=0.01, nfree=2):
         from ase.vibrations import Vibrations
