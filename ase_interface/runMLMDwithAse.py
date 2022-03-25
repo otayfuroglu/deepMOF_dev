@@ -58,7 +58,7 @@ def run(file_name, molecule_path, calc_type, temp, cell):
         from schnetpack.utils import load_model
         import schnetpack
 
-        model_path = os.path.join(MODEL_DIR, "best_model")
+        model_path = os.path.join(args.MODEL_DIR, "best_model")
         model_schnet = load_model(model_path, map_location=device)
         if "stress" in properties:
             print("Stress calculations are active")
@@ -78,7 +78,7 @@ def run(file_name, molecule_path, calc_type, temp, cell):
       time_step=0.5,
       temp_init=100.0,
       # temp_bath should be None for NVE and NPT
-      #  temp_bath=temp,
+      temp_bath=temp,
       # temperature_K for NPT
       temperature_K=temp,
       interval=50,
@@ -131,6 +131,9 @@ if __name__ == "__main__":
                        default=[], type=int)
     parser.add_argument("-cell", "--cell",
                         type=int, required=True,
+                        help="..")
+    parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
+                        type=str, required=True,
                         help="..")
     parser.add_argument("-BASE_DIR", "--BASE_DIR",
                         type=str, required=True,
