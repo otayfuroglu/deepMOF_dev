@@ -50,9 +50,6 @@ def run(file_name, molecule_path, calc_type, temp, cell):
         n_gpus = torch.cuda.device_count()
         print("Number of cuda devices --> %s" % n_gpus,)
 
-
-
-
     if calc_type == "schnetpack":
         from schnetpack.environment import AseEnvironmentProvider
         from schnetpack.utils import load_model
