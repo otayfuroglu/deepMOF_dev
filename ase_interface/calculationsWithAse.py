@@ -309,7 +309,7 @@ class AseCalculations(object):
                                 #  restart="%s.pkl" % optimization_path,
                                )
         optimizer.run(fmax, steps)
-        #  self.save_molecule()
+        self.save_molecule()
 
     def vibration(self, delta=0.01, nfree=2):
         from ase.vibrations import Vibrations
@@ -360,14 +360,29 @@ class AseCalculations(object):
         # setup dynamics
         if temperature_K:
             print("NPT ensemble.. Pressure set to %s bar" %pressure)
-            self.dynamics = NPTBerendsen(
-                self.molecule,
-                timestep=time_step * units.fs,
-                temperature_K=temperature_K,
-                taut=100 * units.fs,
-                pressure_au=pressure * 1.01325 * units.bar,
-                taup=1000 * units.fs,
-                compressibility=4.57e-5 / units.bar)
+            #  self.dynamics = NPTBerendsen(
+            #      self.molecule,
+            #      timestep=time_step * units.fs,
+            #      temperature_K=temperature_K,
+            #      taut=100 * units.fs,
+            #      pressure_au=pressure * 1.01325 * units.bar,
+            #      taup=1000 * units.fs,
+            #      compressibility=4.57e-5 / units.bar)
+
+            externalstress = 1.0*units.Pascal  # (-1.7, -1.7, -1.7, 0, 0, 0)*GPa
+            ttime = 100*units.fs
+            ptime = 300*units.fs
+            #  bulk_modulus = 35*units.GPa
+            #  pfactor = (ptime**2)*bulk_modulus
+
+            self.dynamics = NPT(self.molecule,
+                                5*units.fs,
+                                temperature_K=temperature_K,
+                                externalstress=externalstress,
+                                ttime=ttime,
+                                #  pfactor=pfactor
+                               )
+
         elif temp_bath:
             self.dynamics = Langevin(
                 self.molecule,
@@ -400,7 +415,7 @@ class AseCalculations(object):
 
     def _init_velocities(
         self,
-        temp_init=300,
+        temp_init=100,
         remove_translation=True,
         remove_rotation=True,
     ):
