@@ -23,7 +23,7 @@ md_type = "md"
 BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/schnetpack"
 maker_types = ["v", "8", "s", "o", "x"]
 colors = ["b", "m", "y", "g", "c"]
-initial_skip = int(4e5)
+initial_skip = int(1e4)
 
 def plot_energy(df):
     time_axis = df["Time"]
@@ -85,6 +85,7 @@ def plot_volume(df):
     plt.savefig("%s/volume_%s.png" % (RESULTS_DIR, job_name), db=600)
     #  plt.show()
 
+
 def plot_vib_spectra(df):
     freqencies = df["Freqencies"]
     intensities = df["Intensities"]
@@ -99,17 +100,24 @@ def plot_vib_spectra(df):
     plt.savefig("%s/power_spectrum_%s.png" % (RESULTS_DIR, job_name), db=600)
     #  plt.show()
 
-for idx, mof_num in enumerate([4]):
 
-    job_name = "mercury_IRMOF%d_300K_%s_NPT_111cell_allNNP_without5" %(mof_num, md_type)
-    sub_jobname = ""
-    RESULTS_DIR = BASE_DIR + "/mdAnalysis/results/%s" %(sub_jobname)
-    properties = ["energy", "forces"]
+file_bases = ["filled_09000N3"]
+for idx, file_base in enumerate( file_bases ):
+    for temp in range(150, 451, 50):
+        print(file_base)
+        md_type = "md"
+        BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev"
+        job_name = "%s_%dK_%s_ani" %(file_base, temp, md_type)
+        resut_file_name = "%s_%s.hdf5"  %(file_base, md_type)
+        sub_jobname = ""
+        MD_DIR = BASE_DIR + "/ani/works/runMD/" + sub_jobname + "/" + job_name
 
-    df_energies = pd.read_csv("%s/timeEnergyTempVolume_%s.csv" % (RESULTS_DIR, job_name), skiprows=range(1, initial_skip))
-    print(len(df_energies))
-    plot_energy(df_energies)
-    plot_temperature(df_energies)
-    plot_volume(df_energies)
-    #  df_power_spectrum = pd.read_csv("%s/freqencyIntensityPower_%s.csv" % (RESULTS_DIR, job_name))
-    #  plot_vib_spectra(df_power_spectrum)
+        RESULTS_DIR = MD_DIR
+
+        df_energies = pd.read_csv("%s/%s/timeEnergyTempVolume_%s.csv" % (MD_DIR, sub_jobname, job_name), skiprows=range(1, initial_skip))
+        print(len(df_energies))
+        plot_energy(df_energies)
+        plot_temperature(df_energies)
+        plot_volume(df_energies)
+        #  df_power_spectrum = pd.read_csv("%s/freqencyIntensityPower_%s.csv" % (RESULTS_DIR, job_name))
+        #  plot_vib_spectra(df_power_spectrum)
