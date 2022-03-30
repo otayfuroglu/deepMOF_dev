@@ -1,4 +1,4 @@
-#! /truba/home/yzorlu/miniconda3/bin/python -u
+#
 
 from ase.io.trajectory import Trajectory
 from ase.visualize import view
@@ -112,18 +112,20 @@ def getVolumes(data):
 
     return volumes # , volumes_mean
 
-for mof_num in [7]:
-    for temp in range(150, 151, 25):
-        print("IRMOF-%s" %mof_num)
+file_bases = ["filled_09000N3"]
+for file_base in file_bases:
+    for temp in range(150, 451, 50):
+        print(file_base)
         md_type = "md"
-        BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/schnetpack"
-        job_name = "mercury_IRMOF%d_%dK_%s_NPT_111cell_allNNP_without5" %(mof_num, temp, md_type)
-        file_name = "mercury_IRMOF%d_%s.hdf5"  %(mof_num, md_type)
-        sub_jobname = "tec_md"
-        MD_DIR = BASE_DIR + "/runMD/" + sub_jobname + "/" + job_name
+        BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev"
+        job_name = "%s_%dK_%s_ani" %(file_base, temp, md_type)
+        resut_file_name = "%s_%s.hdf5"  %(file_base, md_type)
+        sub_jobname = ""
+        MD_DIR = BASE_DIR + "/ani/works/runMD/" + sub_jobname + "/" + job_name
+
         skip_initial = 0
 
-        log_file_path = os.path.join(MD_DIR, file_name)
+        log_file_path = os.path.join(MD_DIR, resut_file_name)
         #  data = HDF5Loader(log_file_path)
         equilibrated_data = HDF5Loader(log_file_path, skip_initial=skip_initial)
         properties = ["energy", "forces"]
@@ -137,7 +139,7 @@ for mof_num in [7]:
         #  df["EnergyMean"] = df["Energy"].expanding().mean()
         df["Temperature"] = getTemperature(equilibrated_data)
         df["Volume"] = getVolumes(equilibrated_data)
-        df.to_csv("%s/mdAnalysis/results/%s/timeEnergyTempVolume_%s.csv" % (BASE_DIR, sub_jobname, job_name))
+        df.to_csv("%s/%s/timeEnergyTempVolume_%s.csv" % (MD_DIR, sub_jobname, job_name))
 
         #  df = pd.DataFrame()
         #  df["Freqencies"], df["Intensities"] = getVibSpectra(equilibrated_data,resolution=8192)
