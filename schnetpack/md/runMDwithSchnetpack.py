@@ -5,7 +5,7 @@ import os
 from schnetpack.md import System
 from schnetpack.md import MaxwellBoltzmannInit
 from schnetpack.md.integrators import VelocityVerlet, NPTVelocityVerlet
-from schnetpack.md.calculators import SchnetPackCalculator
+from schnetpack.md.calculators import SchnetPackCalculator, ANICalculator
 from schnetpack.md.calculators import EnsembleSchnetPackCalculator
 from schnetpack import Properties
 from schnetpack.md import Simulator
@@ -19,6 +19,7 @@ from schnetpack.md.utils import HDF5Loader
 
 from ase.io import read
 import torch
+import torchani
 import argparse
 import ntpath
 
@@ -38,6 +39,9 @@ parser.add_argument("-temp", "--temp",
 parser.add_argument("-init_temp", "--init_temp",
                     type=int, required=True,
                     help="give sysyem temperature temperature")
+parser.add_argument("-calc_type", "--calc_type",
+                    type=str, required=True,
+                    help="give md ore active mode")
 parser.add_argument("-calc_mode", "--calc_mode",
                     type=str, required=True,
                     help="give md ore active mode")
@@ -58,38 +62,6 @@ parser.add_argument("-restart", "--restart",
                     help="")
 
 
-args = parser.parse_args()
-
-# random seed for numpy and torch
-seed = None  # random seed according to time
-set_random_seed(seed)
-
-# Gnerate a directory of not present
-# Get the parent directory of SchNetPack
-molecule_path=args.mol_path
-md_type=args.md_type
-print(md_type)
-n_steps=args.n_steps
-
-# set restart option
-restart = False
-if args.restart == "yes":
-    restart = True
-
-_, name = ntpath.split(molecule_path)
-name = name[:-4]
-
-WORKS_DIR = os.getcwd() + "/" + name + "_%dK_" % args.temp + md_type + args.descrip_word
-MODELS_DIR = [
-    args.MODEL1_DIR,
-    #  + args.MODEL2_DIR,
-]
-print(MODELS_DIR)
-
-# units for all calculator
-position_conversion = "Angstrom"
-force_conversion = "eV / Angstrom"
-stress_conversion="eV / Angstrom / Angstrom / Angstrom"
 
 
 def optStructure(atoms, model):
@@ -97,22 +69,25 @@ def optStructure(atoms, model):
     from schnetpack.interfaces import SpkCalculator
     from schnetpack.environment import AseEnvironmentProvider
 
-    calculator = SpkCalculator(
-        model,
-        device=device,
-        #  collect_triples=True,
-        environment_provider=AseEnvironmentProvider(cutoff=6.0),
-        energy=properties[0],
-        forces=properties[1],
-        #  stress=stress,
-        energy_units="eV",
-        forces_units="eV/Angstrom",
-        stress_units="eV/Angstrom/Angstrom/Angstrom",
-    )
+    if calc_type == "schnetpack":
+        calculator = SpkCalculator(
+            model,
+            device=device,
+            #  collect_triples=True,
+            environment_provider=AseEnvironmentProvider(cutoff=6.0),
+            energy=properties[0],
+            forces=properties[1],
+            #  stress=stress,
+            energy_units="eV",
+            forces_units="eV/Angstrom",
+            stress_units="eV/Angstrom/Angstrom/Angstrom",
+        )
+    elif calc_type == "ani":
+        calculator = torchani.models.ANI2x().ase()
 
     atoms.set_calculator(calculator)
     opt = LBFGS(atoms)
-    opt.run(fmax=0.015)
+    opt.run(fmax=0.01)
 
     return atoms
 
@@ -157,19 +132,32 @@ def setCalculator(calc_mode, models, properties, stress_handle, cutoff):
             stress_conversion=stress_conversion,
         )
     if calc_mode == "md":
-        md_calculator = SchnetPackCalculator(
-            models[0],
-            required_properties=properties,
-            force_handle=properties[1],
-            neighbor_list=ASENeighborList,
-            #  neighbor_list=TorchNeighborList,
-            stress_handle=stress_handle,
-            cutoff=cutoff,
-            position_conversion=position_conversion,
+        if calc_type == "schnetpack":
+            md_calculator = SchnetPackCalculator(
+                models[0],
+                required_properties=properties,
+                force_handle=properties[1],
+                neighbor_list=ASENeighborList,
+                #  neighbor_list=TorchNeighborList,
+                stress_handle=stress_handle,
+                cutoff=cutoff,
+                position_conversion=position_conversion,
 
-            force_conversion=force_conversion,
-            stress_conversion=stress_conversion,
-        )
+                force_conversion=force_conversion,
+                stress_conversion=stress_conversion,
+            )
+        elif calc_type == "ani":
+            md_calculator = ANICalculator(
+                models[0],
+                device,
+                required_properties=[Properties.energy, Properties.forces],
+                force_handle=Properties.forces,
+                position_conversion="Angstrom",
+                force_conversion="hartree / Angstrom",
+                stress_handle=Properties.stress,
+                property_conversion={},
+                detach=True,
+            )
 
     return md_calculator
 
@@ -226,7 +214,7 @@ def setSimulator(md_type, system_temperature, ensemble, restart=True):
             )
 
     elif md_type == "md":
-        time_step = 0.2  # fs
+        time_step = 0.5  # fs
         if ensemble == "NVT":
             #  print("set of the VelocityVerlet Integrator")
             termos = thermostats.LangevinThermostat(bath_temperature,
@@ -255,7 +243,7 @@ def setSimulator(md_type, system_temperature, ensemble, restart=True):
         log_file,
         buffer_size,
         data_streams=data_streams,
-        every_n_steps=5,
+        every_n_steps=10,
     )
 
     # Checkpoints
@@ -292,6 +280,36 @@ def setSimulator(md_type, system_temperature, ensemble, restart=True):
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+    # random seed for numpy and torch
+    seed = None  # random seed according to time
+    set_random_seed(seed)
+    # Gnerate a directory of not present
+    # Get the parent directory of SchNetPack
+    molecule_path=args.mol_path
+    md_type=args.md_type
+    print(md_type)
+    n_steps=args.n_steps
+    # set restart option
+    restart = False
+    if args.restart == "yes":
+        restart = True
+    _, name = ntpath.split(molecule_path)
+    name = name[:-4]
+    WORKS_DIR = os.getcwd() + "/" + name + "_%dK_" % args.temp + md_type + args.descrip_word
+    MODELS_DIR = [
+        args.MODEL1_DIR,
+        #  + args.MODEL2_DIR,
+    ]
+    print(MODELS_DIR)
+    # units for all calculator
+    position_conversion = "Angstrom"
+    force_conversion = "eV / Angstrom"
+    stress_conversion="eV / Angstrom / Angstrom / Angstrom"
+
+    calc_mode = args.calc_mode.lower()
+    calc_type = args.calc_type.lower()
+    print(calc_mode)
 
     if md_type == "rpmd":
         n_replicas = 4
@@ -312,12 +330,12 @@ if __name__ == "__main__":
     print("Number of cuda devices --> %s" % n_gpus,)
     print("Forces Handle from --> ", properties[1])
 
-    models_path = [os.path.join(MODEL_DIR, "best_model") for MODEL_DIR in MODELS_DIR]
-    models = [torch.load(model_path, map_location=device).to(device) for model_path in models_path]
+    if calc_type == "schnetpack":
+        models_path = [os.path.join(MODEL_DIR, "best_model") for MODEL_DIR in MODELS_DIR]
+        models = [torch.load(model_path, map_location=device).to(device) for model_path in models_path]
+    if calc_type == "ani":
+        models = [torchani.models.ANI2x(periodic_table_index=True).to(device)]
 
-
-    calc_mode = args.calc_mode
-    print(calc_mode)
 
     # set md calculator
     md_calculator = setCalculator(calc_mode, models, properties, stress_handle="stress", cutoff=5.5)
@@ -346,10 +364,10 @@ if __name__ == "__main__":
 
     initializer.initialize_system(system)
 
-    simulator = setSimulator(md_type, system_temperature, ensemble="NVT", restart=False)
-    simulator.simulate(n_steps=1000000)
-    #  simulator = setSimulator(md_type, system_temperature, ensemble="NPT", restart=restart)
-    #  simulator.simulate(n_steps)
+    #  simulator = setSimulator(md_type, system_temperature, ensemble="NVT", restart=False)
+    #  simulator.simulate(n_steps=1000000)
+    simulator = setSimulator(md_type, system_temperature, ensemble="NPT", restart=restart)
+    simulator.simulate(n_steps)
 
     # setting strain for pressure deformation simultaions
 
