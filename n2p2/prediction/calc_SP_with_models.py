@@ -290,19 +290,6 @@ def idxsFromN2p2Data(data, name_list):
     return idxs
 
 
-def run_multiprocessing(func, argument_list, num_processes):
-
-    pool = Pool(processes=num_processes)
-
-    result_list_tqdm = []
-
-    # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
-    for result in tqdm.tqdm(pool.imap_unordered(func=func, iterable=argument_list), total=len(argument_list)):
-        result_list_tqdm.append(result)
-
-    #  return result_list_tqdm
-
-
 def run_multiproc(n_procs):
     if mode == "train" or mode == "test":
 
@@ -312,6 +299,7 @@ def run_multiproc(n_procs):
                                       if ($i==\"comment\") print $(i+1)}'\
                                       %s/%s.data" %(RESULT_DIR, mode),
                                       shell=True)
+        print(f"collection of {mode} data from ase .db file by idxs")
         # split for "\n" (new line key)
         name_list = str(out).split("\\n")
         idxs = idxsFromN2p2Data(data, name_list)
@@ -329,6 +317,19 @@ def run_multiproc(n_procs):
         run_multiprocessing(func=getSPEneryForcesFromFiles,
                                            argument_list=idxs,
                                            num_processes=n_procs)
+
+
+def run_multiprocessing(func, argument_list, num_processes):
+
+    pool = Pool(processes=num_processes)
+
+    result_list_tqdm = []
+
+    # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
+    for result in tqdm.tqdm(pool.imap_unordered(func=func, iterable=argument_list), total=len(argument_list)):
+        result_list_tqdm.append(result)
+
+    #  return result_list_tqdm
 
 
 if __name__ == "__main__":
