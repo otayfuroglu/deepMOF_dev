@@ -30,7 +30,7 @@ def calc_rmse(xarray, yarray):
 if __name__ == "__main__":
 
     BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
-    model_type = "batch24_alldata"
+    model_type = "results_best_epoch_46"
     nn_type = "n2p2"
     #  IDX_MOFs = [1, 4, 6, 7, 10]
 
@@ -50,7 +50,11 @@ if __name__ == "__main__":
             prop = key
             csv_file_name = "%s/qm_sch_SP_%s_%s.csv" %(RESULT_DIR, prop, val_type)
             #  column_names = ["FileNames", "qm_SP_energies", "schnet_SP_energies", "Error", "ErrorPerAtom"]
-            df_data = pd.read_csv(csv_file_name)
+            try:
+                df_data = pd.read_csv(csv_file_name)
+            except:
+                print("There is not %s data" % val_type)
+                continue
                 #  dfs.append(df_data)
 
             #  df_data = pd.concat(dfs)
