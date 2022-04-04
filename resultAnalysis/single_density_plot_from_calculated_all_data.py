@@ -435,7 +435,7 @@ if __name__ == "__main__":
     IDX_MOFs = [1, 4, 6, 7, 10]
     BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
     #  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
-    model_type = "batch24_alldata"
+    model_type = "results_best_epoch_46"
     NAME_BASE = "irmofseries"
     n_frags = 9
 
