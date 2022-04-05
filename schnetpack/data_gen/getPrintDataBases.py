@@ -458,7 +458,7 @@ dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseri
 
 if args.calcMode == "mergeDataBases":
     db_path = "%s/workingOnDataBase/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" %BASE_DIR
-elif args.calcMode == "print_data" or args.calcMode == "calculatedFiles2csv":
+elif args.calcMode == "print_data" or args.calcMode == "calculatedFiles2csv" or args.calcMode == "energiesFmax2csv":
     db_path = args.dbPath
 else:
     db_path = "%s/dataBases/%s" %(BASE_DIR, dbName)
