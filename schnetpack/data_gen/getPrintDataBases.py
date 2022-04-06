@@ -195,17 +195,18 @@ class GetPrintDB:
         #  atoms, properties = db.get_properties(0)
         #  properties = [propert for propert in
         #                properties.keys() if "_" not in propert]
-        properties = ["energy", "forces", "dipole_moment"]
+        #  properties = ["energy", "forces", "dipole_moment"]
+        properties = ["energy", "forces"]
 
         # to from csv file
-        self.notInListFileBase = pd.read_csv("./irmofseries%s_file_names_not_inDATA.csv" %mof_num)["FileNames"].to_list()
+        self.notInListFileBase = pd.read_csv("./removeFileNamesFronDB.csv")["FileNames"].to_list()
         #  self.notInListFragBase = ["irmofseries5"]
         #  self.notInFragNum = ["f1", "f2", "f3", "f4", "f5"]
         #  self.notInListFragBase = ["irmofseries1", "irmofseries6", "irmofseries7",
         #      + "irmofseies8", "irmofseries12", "irmofseries14", "irmofseries16"]
 
         # NOTE: set false if you don't know what you do
-        remove = True
+        remove = False
 
         file_base = self.db.get_name(i)
         frag_base = file_base.split("_")[0]
@@ -451,7 +452,8 @@ args = parser.parse_args()
 
 mof_num = "5"
 BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data"
-dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %mof_num
+#  dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %mof_num
+dbName = "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
 
 # False test datbase
 #  dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev_testData.db" %mof_num
@@ -461,7 +463,7 @@ if args.calcMode == "mergeDataBases":
 elif args.calcMode == "print_data" or args.calcMode == "calculatedFiles2csv" or args.calcMode == "energiesFmax2csv":
     db_path = args.dbPath
 else:
-    db_path = "%s/dataBases/%s" %(BASE_DIR, dbName)
+    db_path = "%s/workingOnDataBase/%s" %(BASE_DIR, dbName)
 
 getprint = GetPrintDB(db_path, BASE_DIR)
 
