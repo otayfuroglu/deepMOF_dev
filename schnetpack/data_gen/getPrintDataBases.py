@@ -180,7 +180,7 @@ class GetPrintDB:
         #  atoms, properties = db.get_properties(0)
         #  properties = [propert for propert in
         #                properties.keys() if "_" not in propert]
-        properties = ["energy", "forces", "dipole_moment"]
+        #  properties = ["energy", "forces", "dipole_moment"]
         new_db = AtomsData(new_db_path,
                            available_properties=properties)
         antiKeyword = "mof5_f4_outOfSFGeom_600K_24923"
@@ -196,7 +196,6 @@ class GetPrintDB:
         #  properties = [propert for propert in
         #                properties.keys() if "_" not in propert]
         #  properties = ["energy", "forces", "dipole_moment"]
-        properties = ["energy", "forces"]
 
         # to from csv file
         self.notInListFileBase = pd.read_csv("./removeFileNamesFronDB.csv")["FileNames"].to_list()
@@ -269,7 +268,7 @@ class GetPrintDB:
         #  atoms, properties = db.get_properties(0)
         #  properties = [propert for propert in
         #                properties.keys() if "_" not in propert]
-        properties = ["energy", "forces", "dipole_moment"]
+        #  properties = ["energy", "forces", "dipole_moment"]
         new_db = AtomsData(new_db_path,
                            available_properties=properties)
         lenDB = len(self.db)
@@ -293,7 +292,7 @@ class GetPrintDB:
         new_db.add_systems(atoms_list, name_list, property_list)
 
     def _mergeDataBases(self, idx):
-        properties = ["energy", "forces"]  # , "dipole_moment"]
+        #  properties = ["energy", "forces"]  # , "dipole_moment"]
         second_db = self._getSchDBWithPath(second_db_path, properties)
         file_base = second_db.get_name(idx)
         property_values = []
@@ -313,7 +312,7 @@ class GetPrintDB:
         if os.path.exists(merged_db_path):
             os.remove(merged_db_path)
 
-        properties = ["energy", "forces"]  # , "dipole_moment"]
+        #  properties = ["energy", "forces"]  # , "dipole_moment"]
         # copy db which has above properties
         shutil.copy2(self.db_path, merged_db_path)
 
@@ -390,7 +389,7 @@ class GetPrintDB:
 
         file_base = self.db.get_name(i)
         mol = self.db.get_atoms(i)
-        properties = ["energy", "forces", "dipole_moment"]
+        #  properties = ["energy", "forces", "dipole_moment"]
 
         #  for propert in properties:
         # NOTE: Due to precision lose, instead of np.float32  we use np.float64
@@ -422,7 +421,7 @@ class GetPrintDB:
 
         self._setUnit(UNIT)
 
-        properties = ["energy", "forces", "dipole_moment"]
+        #  properties = ["energy", "forces", "dipole_moment"]
         new_db = AtomsData(new_db_path,
                            available_properties=properties)
         lenDB = len(self.db)
@@ -450,6 +449,7 @@ parser.add_argument("-dbPath", "--dbPath", type=str, required=False)
 
 args = parser.parse_args()
 
+properties = ["energy", "forces"]
 mof_num = "5"
 BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data"
 #  dbName = "nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %mof_num
