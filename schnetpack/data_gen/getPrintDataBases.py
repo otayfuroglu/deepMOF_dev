@@ -139,56 +139,51 @@ class GetPrintDB:
         df["Fmax"] = fmax_comps
         df.to_csv(out_csv_path, index=None)
 
-    def _getPartOfDB(self, properties, partOf_keyword, antiKeyword, N=None):
+    def _getPartOfDB(self, idx):
         self._loadSchDB()
 
-        if N is None:
-            N = len(self.db)
+        file_base = self.db.get_name(idx)
+        if partOf_keyword not in file_base or antiKeyword in file_base:
+            return None
 
+        property_values = []
+        for propert in properties:
+            mol = self.db.get_atoms(idx)
+            target_propert = self.db[idx][propert]
+            target_propert = np.array(target_propert, dtype=np.float)
+            property_values.append(target_propert)
+        # combine two lists into a dictionary
+        property_dict = dict(zip(properties, property_values))
+
+        #  return atoms_list, name_list, property_list
+        return mol, file_base, property_dict
+
+    def partOfDB2NewDB(self, num_processes, new_db_path):
+        self._loadSchDB()
+        if os.path.exists(new_db_path):
+            os.remove(new_db_path)
+        new_db = AtomsData(new_db_path,
+                           available_properties=properties)
+
+        lenDB = len(self.db)
         property_list = []
         atoms_list = []
         name_list = []
-        counter = 0
 
-        for i in tqdm.trange(len(self.db)):
-            file_base = self.db.get_name(i)
-            if partOf_keyword not in file_base or antiKeyword in file_base:
-                print(file_base)
-                continue
-
-            property_values = []
-            for propert in properties:
-                mol = self.db.get_atoms(i)
-                target_propert = self.db[i][propert]
-                target_propert = np.array(target_propert, dtype=np.float)
-                property_values.append(target_propert)
-            # combine two lists into a dictionary
-            property_dict = dict(zip(properties, property_values))
-            atoms_list.append(mol)
-            name_list.append(file_base)
-            property_list.append(property_dict)
-            counter += 1
-            if counter % 100 == 0:
-                print("Counter: ", counter)
-            if counter == N:
-                return atoms_list, name_list, property_list
-        return atoms_list, name_list, property_list
-
-    def partOfDB2NewDB(self, new_db_path):
-        if os.path.exists(new_db_path):
-            os.remove(new_db_path)
-        #  atoms, properties = db.get_properties(0)
-        #  properties = [propert for propert in
-        #                properties.keys() if "_" not in propert]
-        #  properties = ["energy", "forces", "dipole_moment"]
-        new_db = AtomsData(new_db_path,
-                           available_properties=properties)
-        antiKeyword = "mof5_f4_outOfSFGeom_600K_24923"
-        for partOf_keyword in ["mof5_f"]:  # "mof5_new_f2", "mof5_new_f3"]:
-            atoms_list, name_list, property_list = self._getPartOfDB(
-                properties, partOf_keyword,
-                antiKeyword)
-            new_db.add_systems(atoms_list, name_list, property_list)
+        # for random selection from given databases
+        #  idxs = np.random.randint(0, lenDB, 25000).tolist()
+        idxs = range(lenDB)
+        # implementation of  multiprocessor in tqdm.
+        # Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
+        pool = Pool(processes=num_processes)
+        for result in tqdm.tqdm(
+            pool.imap_unordered(func=self._getPartOfDB, iterable=idxs),
+            total=len(idxs)):
+            if result:
+                atoms_list.append(result[0])
+                name_list.append(result[1])
+                property_list.append(result[2])
+        new_db.add_systems(atoms_list, name_list, property_list)
 
     def _selectDB(self, i):
         self._loadSchDB()
@@ -480,8 +475,11 @@ if args.calcMode == "mergeDataBases":
     getprint.mergeDataBases(100, second_db_path, merged_db_path)
 
 if args.calcMode == "partOfDB2NewDB":
-    new_db_path = "%s/dataBases/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_v0.db" % BASE_DIR
-    getprint.partOfDB2NewDB(new_db_path)
+    partOf_keyword = "mof5_f1"
+    antiKeyword = "None"
+    #  new_db_path = "%s/dataBases/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_v0.db" % BASE_DIR
+    new_db_path = "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_%s.db" % partOf_keyword
+    getprint.partOfDB2NewDB(num_processes=100, new_db_path=new_db_path)
 
 if args.calcMode == "energiesFmax2csv":
     out_csv_path = "./energiesFmax_irmofseries%s_ev.csv" %mof_num
