@@ -68,8 +68,7 @@ def getMolListRD(conf_dir):
 
 def getClusterRMSDFromFiles(conf_dir, n_processes=100):
 
-
-    print("Loading Molecules...")
+    print("Loading Molecules ...")
     global mol_list
     mol_list = getMolListOB(conf_dir)
     #  mol_list = getMolListRD(conf_dir)
@@ -80,17 +79,16 @@ def getClusterRMSDFromFiles(conf_dir, n_processes=100):
         print("Clustering do not applied.. There is just one conformer")
         return 0
 
-
-    print("Clsutering process...")
     with  multiprocessing.Pool(processes=n_processes) as pool:
         results = pool.starmap(calc_rmsdWithOB, product(range(n_mol), repeat=2))
 
+    print("Calculating pair distance matrix ...")
     dist_matrix=np.empty(shape=(n_mol, n_mol))
     for result in results:
         dist_matrix[result[0], result[1]] = result[2]
     #  print(dist_matrix[0][1])
 
-    #  n_group = int(2*n_mol/3)
+    print("Clsutering process...")
     n_group = int(n_mol * n_gruop_ratio)
     print("Nuber of cluster: ", n_group)
     whitened = whiten(dist_matrix)
