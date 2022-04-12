@@ -79,10 +79,10 @@ def getClusterRMSDFromFiles(conf_dir, n_processes=100):
         print("Clustering do not applied.. There is just one conformer")
         return 0
 
+    print("Calculating pair distance matrix ...")
     with  multiprocessing.Pool(processes=n_processes) as pool:
         results = pool.starmap(calc_rmsdWithOB, product(range(n_mol), repeat=2))
 
-    print("Calculating pair distance matrix ...")
     dist_matrix=np.empty(shape=(n_mol, n_mol))
     for result in results:
         dist_matrix[result[0], result[1]] = result[2]
