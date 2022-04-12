@@ -2,6 +2,7 @@
 from multiprocessing import Pool
 from ase.db import connect
 from ase import units
+from ase.io import write
 # from ase.io import read
 from schnetpack import AtomsData
 import os
@@ -193,7 +194,7 @@ class GetPrintDB:
         #  properties = ["energy", "forces", "dipole_moment"]
 
         # to from csv file
-        self.notInListFileBase = pd.read_csv("./removeFileNamesFronDB.csv")["FileNames"].to_list()
+        self.notInListFileBase = pd.read_csv("./removeFileNamesFromDB.csv")["FileNames"].to_list()
         #  self.notInListFragBase = ["irmofseries5"]
         #  self.notInFragNum = ["f1", "f2", "f3", "f4", "f5"]
         #  self.notInListFragBase = ["irmofseries1", "irmofseries6", "irmofseries7",
@@ -362,12 +363,26 @@ class GetPrintDB:
         #  for k, v in example.items():
         #      print('-', k, ':', v.shape)
 
-    def optainCoordFile(self, db_path, idx):
-        from ase.io import write
+    def _writeCoordFile(self, idx):
         self._loadSchDB()
         file_base = self.db.get_name(idx)
-        atoms = self.db.get_atoms(idx)
-        write("%s.xyz" % file_base, atoms)
+        if file_base is not None:
+            atoms = self.db.get_atoms(idx)
+            write("%s/%s.%s" %(file_dir, file_base, file_ext), atoms)
+
+    def writeCoordFiles(self, num_processes):
+
+        self._loadSchDB()
+        lenDB = len(self.db)
+        idxs = range(lenDB)
+
+        # implementation of  multiprocessor in tqdm.
+        # Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
+        pool = Pool(processes=num_processes)
+        results = []
+        for result in tqdm.tqdm(pool.imap_unordered(func=self._writeCoordFile, iterable=idxs),
+                                total=len(idxs)):
+            results.append(result)
 
     def _getEneryForcesFromAseDB(self, file_base):
         self._loadAseDB()
@@ -440,10 +455,13 @@ class GetPrintDB:
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-calcMode", "--calcMode", type=str, required=False,
                     help="enter target function name exactly")
+parser.add_argument("-n_procs", type=int, required=True)
 parser.add_argument("-dbPath", "--dbPath", type=str, required=False)
+parser.add_argument("-key_word", type=str, required=False)
 
 args = parser.parse_args()
 
+num_processes = args.n_procs
 properties = ["energy", "forces"]
 mof_num = "5"
 BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP/prepare_data"
@@ -455,7 +473,11 @@ dbName = "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6
 
 if args.calcMode == "mergeDataBases":
     db_path = "%s/workingOnDataBase/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" %BASE_DIR
-elif args.calcMode == "print_data" or args.calcMode == "calculatedFiles2csv" or args.calcMode == "energiesFmax2csv":
+elif (args.calcMode == "print_data"
+      or args.calcMode == "calculatedFiles2csv"
+      or args.calcMode == "energiesFmax2csv"
+      or args.calcMode == "writeCoordFiles"
+     ):
     db_path = args.dbPath
 else:
     db_path = "%s/workingOnDataBase/%s" %(BASE_DIR, dbName)
@@ -472,22 +494,22 @@ if args.calcMode == "mergeDataBases":
     # you must to assing fewer prorpeties db to main db (self.db)
     second_db_path = "%s/dataBases/nonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries%s_ev.db" %(BASE_DIR, mof_num)
     merged_db_path = "%s/workingOnDataBase/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries%s_merged_50000_ev.db" %(BASE_DIR, mof_num)
-    getprint.mergeDataBases(100, second_db_path, merged_db_path)
+    getprint.mergeDataBases(num_processes, second_db_path, merged_db_path)
 
 if args.calcMode == "partOfDB2NewDB":
-    partOf_keyword = "mof5_f1"
+    partOf_keyword = args.key_word
     antiKeyword = "None"
     #  new_db_path = "%s/dataBases/nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_v0.db" % BASE_DIR
     new_db_path = "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_%s.db" % partOf_keyword
-    getprint.partOfDB2NewDB(num_processes=100, new_db_path=new_db_path)
+    getprint.partOfDB2NewDB(num_processes, new_db_path=new_db_path)
 
 if args.calcMode == "energiesFmax2csv":
     out_csv_path = "./energiesFmax_irmofseries%s_ev.csv" %mof_num
-    getprint.energiesFmax2csv(num_processes=100, out_csv_path=out_csv_path)
+    getprint.energiesFmax2csv(num_processes, out_csv_path=out_csv_path)
 
 if args.calcMode == "selectedDB2DB":
     new_db_path = "%s/workingOnDataBase/selected_%s" %(BASE_DIR, dbName)
-    getprint.selectedDB2DB(num_processes=100, new_db_path=new_db_path)
+    getprint.selectedDB2DB(num_processes, new_db_path=new_db_path)
 
 if args.calcMode == "print_data":
     print("mof_num: ", mof_num)
@@ -496,4 +518,12 @@ if args.calcMode == "print_data":
 if args.calcMode == "hartree2UnitDB":
     UNIT = "ev"
     new_db_path = "%s/workingOnDataBase/TESTnonEquGeometriesEnergyForecesDMomentWithORCA_TZVP_fromScalingIRMOFseries_%s_v2.db" % (BASE_DIR, UNIT)
-    getprint.hartree2UnitDB(num_processes=100, new_db_path=new_db_path, UNIT=UNIT)
+    getprint.hartree2UnitDB(num_processes, new_db_path=new_db_path, UNIT=UNIT)
+
+if args.calcMode == "writeCoordFiles":
+    file_ext = "pdb"
+    file_dir = db_path.split(".")[0]
+    if not os.path.exists(file_dir):
+        os.mkdir(file_dir)
+    getprint.writeCoordFiles(num_processes)
+
