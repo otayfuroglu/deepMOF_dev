@@ -13,28 +13,31 @@ myGenerator = SymFuncParamGenerator( elements=['H', 'C', 'O', 'Zn'],
                                     r_cutoff = 6.0)
 
 
-myGenerator.symfunc_type = 'weighted_radial'
-myGenerator.generate_radial_params(rule='gastegger2018',
-                                   mode='shift', nb_param_pairs=20, r_lower=1.0)
+#  myGenerator.symfunc_type = 'weighted_radial'
+#  myGenerator.generate_radial_params(rule='gastegger2018',
+myGenerator.symfunc_type = 'radial'
+myGenerator.generate_radial_params(rule='imbalzano2018',
+                                   mode='shift', nb_param_pairs=20, r_lower=1.3)
 
 f = open('sym_func_params.txt', 'w')
 myGenerator.write_settings_overview(fileobj=f)
 myGenerator.write_parameter_strings(fileobj=f)
 
-zetas = [1, 6]
-myGenerator.symfunc_type = 'weighted_angular'
+zetas = [1]
 myGenerator.zetas = zetas
-myGenerator.generate_radial_params(rule='gastegger2018',
-                                   mode='center', nb_param_pairs=5, r_lower=1.0)
+#  myGenerator.symfunc_type = 'weighted_angular'
+#  myGenerator.generate_radial_params(rule='gastegger2018',
+myGenerator.symfunc_type = 'angular_narrow'
+myGenerator.generate_radial_params(rule='imbalzano2018',
+                                   mode='center', nb_param_pairs=3, r_lower=1.3)
 myGenerator.write_settings_overview(fileobj=f)
 myGenerator.write_parameter_strings(fileobj=f)
 
-#  myGenerator.symfunc_type = 'angular_wide'
-#  myGenerator.zetas = zetas
-#  myGenerator.generate_radial_params(rule='imbalzano2018',
-#                                     mode='center', nb_param_pairs=3, r_lower=1.5)
-#  myGenerator.write_settings_overview(fileobj=f)
-#  myGenerator.write_parameter_strings(fileobj=f)
+myGenerator.symfunc_type = 'angular_wide'
+myGenerator.generate_radial_params(rule='imbalzano2018',
+                                   mode='center', nb_param_pairs=3, r_lower=1.3)
+myGenerator.write_settings_overview(fileobj=f)
+myGenerator.write_parameter_strings(fileobj=f)
 
 
 
