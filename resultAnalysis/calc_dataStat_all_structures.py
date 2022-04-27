@@ -30,18 +30,18 @@ def calc_rmse(xarray, yarray):
 if __name__ == "__main__":
 
     BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
-    model_type = "results_best_epoch_46"
+    model_type = "results_best_epoch_25"
     nn_type = "n2p2"
     #  IDX_MOFs = [1, 4, 6, 7, 10]
 
     #  print("IR-MOF-%s" %mof_num)
     #  RESULT_DIR = "/home/omert/Desktop/deepMOF/deepMOF/HDNNP/schnetpack/results/IRMOF%s" % mof_num
     #  tresholds = {"E": 0.05, "F": 0.25, "FC": 0.5}
-    tresholds = {"E": 0.005, "FC": 0.5}
+    tresholds = {"E": 0.005, "FC": 0.5, "FAll": 0.5}
     for val_type in ["train", "test"]:
         print("%s:" %val_type)
         #  labels = {"E": "energiesPerAtom", "F":"fmax", "FC": "fmax_component"}
-        labels = {"E": "energiesPerAtom", "FC": "fmax_component"}
+        labels = {"E": "energiesPerAtom", "FC": "fmax_component", "FAll": "F_all_Error"}
         for key, value in labels.items():
             #  dfs = []
             #  for single_mof_idx in IDX_MOFs:
@@ -59,16 +59,23 @@ if __name__ == "__main__":
 
             #  df_data = pd.concat(dfs)
             treshold = tresholds[key]
-            x = df_data["qm_SP_%s" %value].to_numpy()
-            y = df_data["%s_SP_%s" %(nn_type, value)].to_numpy()
-            errors = calc_error(x, y)
+            if key != "FAll":
+                x = df_data["qm_SP_%s" %value].to_numpy()
+                y = df_data["%s_SP_%s" %(nn_type, value)].to_numpy()
+                errors = calc_error(x, y)
+            else:
+                errors = df_data[value].to_numpy()
             n_greater = errors[np.where(errors > treshold)].shape[0]
-            percent_n_greater = 100 * n_greater / len(x)
-            print("Total numer of data points: %d" %len(x))
+            percent_n_greater = 100 * n_greater / len(errors)
+            print("Total numer of data points: %d" %len(errors))
             print("Prob %s: Nuber of values which is greather than %.4f --> %d (%.2f%%)"\
                   %(key, treshold, n_greater, percent_n_greater))
 
-            print("Prob %s: RMSE --> %.4f" %(key, calc_rmse(x, y)))
+            if key != "FAll":
+                print("Prob %s: RMSE --> %.4f" %(key, calc_rmse(x, y)))
+            else:
+                print("Prob %s: RMSE --> %.4f" %(key, np.sqrt((errors**2).mean())))
+
             print("Prob %s: maxError --> %.4f" %(key, max(errors)))
             print()
     print("*" * 50)
