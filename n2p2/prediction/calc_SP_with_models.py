@@ -79,7 +79,7 @@ def get_fRMS(forces):
     else:
         forces = forces.squeeze(0)
 
-    return torch.sqrt(((forces -forces.mean(axis=0))**2).mean())
+    return torch.sqrt(((forces - forces.mean(axis=0))**2).mean())
 
 
 def get_fmax_atomic(forces):
@@ -210,13 +210,16 @@ def getSPEneryForces(idx):
     mol.set_calculator(calculator)
 
     n2p2_energy = mol.get_potential_energy()
-    n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
-    n2p2_fmax_component = get_fmax_componentFrom_idx(mol.get_forces(),
+    n2p2_forces = mol.get_forces()
+    n2p2_fmax = (n2p2_forces**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
+    n2p2_fmax_component = get_fmax_componentFrom_idx(n2p2_forces,
                                                            qm_fmax_component_idx)
 
     energy_err = qm_energy - n2p2_energy
     fmax_err = qm_fmax - n2p2_fmax
     fmax_component_err = qm_fmax_component - n2p2_fmax_component
+    # calculate error for all forces on atoms
+    fall_err = torch.flatten(torch.from_numpy(row.forces) - n2p2_forces)
 
 
     energy_values = [file_names,
@@ -244,9 +247,13 @@ def getSPEneryForces(idx):
     df_data_fmax.loc[0] = fmax_values
     df_data_fmax_component.loc[0] = fmax_component_values
 
+    df_data_fall = pd.DataFrame(columns=["F_all_Error"]) # reset df
+    df_data_fall["F_all_Error"] = fall_err.numpy()
+
     df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), mode="a", header=False, float_format='%.6f')
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
     df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), mode="a", header=False, float_format='%.6f')
+    df_data_fall.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fall), mode="a", header=False, float_format='%.6f')
 
 
 def getSPEneryForcesFromFiles(idx):
@@ -281,12 +288,17 @@ def getSPEneryForcesFromFiles(idx):
 
 def idxsFromN2p2Data(data, name_list):
 
-    idxs = []
-    for i, row in enumerate(data.select()):
-        name = row.name
-        if  name in name_list:
-            idxs.append(i)
-            name_list.remove(name)
+    if not os.path.exists(f"{RESULT_DIR}/{mode}_idxs.csv"):
+        idxs = []
+        for i, row in enumerate(data.select()):
+            name = row.name
+            if  name in name_list:
+                idxs.append(i)
+                name_list.remove(name)
+        df = pd.DataFrame(idxs, columns=["idxs"])
+        df.to_csv(f"{RESULT_DIR}/{mode}_idxs.csv")
+    else:
+        idxs = pd.read_csv(f"{RESULT_DIR}/{mode}_idxs.csv")["idxs"].to_list()
     return idxs
 
 
@@ -364,14 +376,17 @@ if __name__ == "__main__":
         csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
         csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
         csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
+        csv_file_name_fall = "qm_sch_SP_Fall_%s.csv" %(mode)
 
         df_data_energy = pd.DataFrame(columns=column_names_energy)
         df_data_fmax = pd.DataFrame(columns=column_names_fmax)
         df_data_fmax_component = pd.DataFrame(columns=column_names_fmax_component)
+        df_data_fall = pd.DataFrame(columns=["F_all_Error"])
 
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
         df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
         df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), float_format='%.6f')
+        df_data_fall.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fall), float_format='%.6f')
 
     elif mode == "xyz_files":
         xyzDIR = "/truba_scratch/otayfuroglu/deepMOF/HDNNP/prepare_data/geomFiles/IRMOFSeries/IRMOF7_linker_torsion36x36"
