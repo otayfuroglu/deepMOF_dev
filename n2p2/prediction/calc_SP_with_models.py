@@ -376,7 +376,7 @@ if __name__ == "__main__":
         csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
         csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
         csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
-        csv_file_name_fall = "qm_sch_SP_Fall_%s.csv" %(mode)
+        csv_file_name_fall = "SP_FAll_%s.csv" %(mode)
 
         df_data_energy = pd.DataFrame(columns=column_names_energy)
         df_data_fmax = pd.DataFrame(columns=column_names_fmax)
