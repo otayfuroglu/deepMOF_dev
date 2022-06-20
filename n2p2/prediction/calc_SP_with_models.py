@@ -247,7 +247,10 @@ def getSPEneryForces(idx):
     df_data_fmax.loc[0] = fmax_values
     df_data_fmax_component.loc[0] = fmax_component_values
 
-    df_data_fall = pd.DataFrame(columns=["F_all_Error"]) # reset df
+    df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
+    df_data_fall["FileNames"] = [file_names] * len(row.forces.flatten())
+    df_data_fall["qm_SP_F_all"] = row.forces.flatten()
+    df_data_fall["n2p2_SP_F_all"] = n2p2_forces.flatten()
     df_data_fall["F_all_Error"] = fall_err.numpy()
 
     df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), mode="a", header=False, float_format='%.6f')
@@ -381,7 +384,7 @@ if __name__ == "__main__":
         df_data_energy = pd.DataFrame(columns=column_names_energy)
         df_data_fmax = pd.DataFrame(columns=column_names_fmax)
         df_data_fmax_component = pd.DataFrame(columns=column_names_fmax_component)
-        df_data_fall = pd.DataFrame(columns=["F_all_Error"])
+        df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
 
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
         df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
