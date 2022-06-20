@@ -11,11 +11,15 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+import matplotlib
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
+matplotlib.use("Agg")
+
 from sklearn import preprocessing
 from scipy.stats import norm, gaussian_kde
-import mpl_scatter_density # adds projection='scatter_density'
+#  import mpl_scatter_density # adds projection='scatter_density'
 
 from multiprocessing import Pool
 
@@ -74,11 +78,14 @@ def _plot_error_norm(i, fig, axs, df_mof, density=False):
 
     if density:
 
-        n_proc = 10
+        n_proc = 56
 
         p_y = np.array_split(y, n_proc)
         pool = Pool(processes=n_proc)
-        c = pool.map(calc_kernel, p_y)
+        results = pool.map(calc_kernel, p_y)
+        c = np.concatenate(results)
+
+        #  c =  gaussian_kde(y)(y)
 
         # for the number of  train data scaling
         if prop == "FC":
@@ -449,7 +456,7 @@ def plot_histograms(val_type, prop, calc_type, df_data):
 if __name__ == "__main__":
 
     IDX_MOFs = [1, 4, 6, 7, 10]
-    BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
+    BASE_DIR = "/truba_scratch/yzorlu/deepMOF_dev"
     #  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
     model_type = "results_best_epoch_66"
     NAME_BASE = "irmofseries"
