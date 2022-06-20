@@ -78,14 +78,13 @@ def _plot_error_norm(i, fig, axs, df_mof, density=False):
 
     if density:
 
-        n_proc = 56
+        #  n_proc = 56
+        #  p_y = np.array_split(y, n_proc)
+        #  pool = Pool(processes=n_proc)
+        #  results = pool.map(calc_kernel, p_y)
+        #  c = np.concatenate(results)
 
-        p_y = np.array_split(y, n_proc)
-        pool = Pool(processes=n_proc)
-        results = pool.map(calc_kernel, p_y)
-        c = np.concatenate(results)
-
-        #  c =  gaussian_kde(y)(y)
+        c =  gaussian_kde(y)(y)
 
         # for the number of  train data scaling
         if prop == "FC":
@@ -456,7 +455,7 @@ def plot_histograms(val_type, prop, calc_type, df_data):
 if __name__ == "__main__":
 
     IDX_MOFs = [1, 4, 6, 7, 10]
-    BASE_DIR = "/truba_scratch/yzorlu/deepMOF_dev"
+    BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
     #  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
     model_type = "results_best_epoch_66"
     NAME_BASE = "irmofseries"
@@ -467,7 +466,7 @@ if __name__ == "__main__":
     i = 0
     for calc_type in [ "", ]: #"Ensemble",]:
         for val_type in ["test"]:
-            for prop in ["FAll"]: # "F"
+            for prop in ["E", "FC"]: # "F"
                 dfs = []
                 #  for single_mof_idx in IDX_MOFs:
                     #  RESULT_DIR = "%s/schnetpack/results/IRMOF%s/%s" % (BASE_DIR, single_mof_idx, model_type)
@@ -478,9 +477,9 @@ if __name__ == "__main__":
                     #  dfs.append(df_data)
 
                 #  df_data = pd.concat(dfs)
-                #  plot_linear_reg_count(val_type, prop, calc_type, df_data)
+                plot_linear_reg_count(val_type, prop, calc_type, df_data)
                 #  plot_error_norm(val_type, prop, calc_type, df_data)
                 plot_error_norm_density(val_type, prop, calc_type, df_data)
-                #  plot_histograms(val_type, prop, calc_type, df_data)
+                plot_histograms(val_type, prop, calc_type, df_data)
                 i += 1
 
