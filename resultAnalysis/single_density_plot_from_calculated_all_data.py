@@ -17,6 +17,8 @@ from sklearn import preprocessing
 from scipy.stats import norm, gaussian_kde
 import mpl_scatter_density # adds projection='scatter_density'
 
+from multiprocessing import Pool
+
 import os, warnings
 index_warning = 'Converting sparse IndexedSlices'
 warnings.filterwarnings('ignore', index_warning)
@@ -29,6 +31,11 @@ sns.set_style("ticks", rc={"grid.linestyle": "--"})
 
 def normalizeData(data):
     return preprocessing.minmax_scale(data, feature_range=(-100, -0))
+
+
+def calc_kernel(p_y):
+    return gaussian_kde(p_y)(p_y)
+
 
 def _plot_error_norm(i, fig, axs, df_mof, density=False):
 
@@ -49,14 +56,14 @@ def _plot_error_norm(i, fig, axs, df_mof, density=False):
         #  axs[i].text(x.max(), 0.03, "mof5_f%s: %d adet" %((i+1),len(df_mof)),
         #              color="k", ha="right", va="center", size=10)
 
-    if prop == "F" or prop == "FC":
+    if prop == "F" or prop == "FC" or prop == "FAll":
         x = df_mof.iloc[:, 2]
         y = df_mof.iloc[:, 4]
         axs.set_ylim(-5, 5)
         if val_type == "train":
             axs.set_xlim(-45, 45)
         elif val_type == "test":
-            axs.set_xlim(-25, 25)
+            axs.set_xlim(-45, 45)
 
         # add horizontal line
         axs.axhline(y=0.5, color="k", linewidth=1.0, linestyle='dashed') #, label='p=[0.005 - 0.005]')
@@ -66,9 +73,18 @@ def _plot_error_norm(i, fig, axs, df_mof, density=False):
     #  axs[i].legend()
 
     if density:
-        c = gaussian_kde(y)(y)
-        c = c * 80
-        density = axs.scatter(x=x, y=y, c=c, cmap="rainbow", s=3, marker="o", edgecolor=None)
+
+        n_proc = 10
+
+        p_y = np.array_split(y, n_proc)
+        pool = Pool(processes=n_proc)
+        c = pool.map(calc_kernel, p_y)
+
+        # for the number of  train data scaling
+        if prop == "FC":
+            c = c * 80
+
+        density = axs.scatter(x=x, y=y, c=c, cmap="turbo", s=3, marker="o", edgecolor=None)
         fig.colorbar(density, label="Counts")
     else:
         axs.scatter(x=x, y=y, c=colors[i], s=3, marker=maker_types[i], alpha=0.8, label="F%d" % (i+1))
@@ -435,7 +451,7 @@ if __name__ == "__main__":
     IDX_MOFs = [1, 4, 6, 7, 10]
     BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
     #  model_type = "schnet_l3_basis96_filter64_interact3_gaussian20_rho001_lr00001_bs1_cutoff_60_withoutStress_aseEnv_IRMOFseries1_4_6_7_10_merged_173014_ev"
-    model_type = "results_best_epoch_46"
+    model_type = "results_best_epoch_66"
     NAME_BASE = "irmofseries"
     n_frags = 9
 
@@ -444,7 +460,7 @@ if __name__ == "__main__":
     i = 0
     for calc_type in [ "", ]: #"Ensemble",]:
         for val_type in ["test"]:
-            for prop in ["E", "FC"]: # "F"
+            for prop in ["FAll"]: # "F"
                 dfs = []
                 #  for single_mof_idx in IDX_MOFs:
                     #  RESULT_DIR = "%s/schnetpack/results/IRMOF%s/%s" % (BASE_DIR, single_mof_idx, model_type)
