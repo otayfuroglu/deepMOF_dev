@@ -30,7 +30,7 @@ def calc_rmse(xarray, yarray):
 if __name__ == "__main__":
 
     BASE_DIR = "/home/omert/Desktop/deepMOF_dev"
-    model_type = "results_best_epoch_25"
+    model_type = "results_best_epoch_66"
     nn_type = "n2p2"
     #  IDX_MOFs = [1, 4, 6, 7, 10]
 
