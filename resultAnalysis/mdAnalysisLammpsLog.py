@@ -11,6 +11,17 @@ matplotlib.use("Agg")
 sns.set_context("paper", rc={"grid.linewidth": 0.8})
 sns.set_style("ticks", rc={"grid.linestyle": "--"})
 
+
+import argparse
+
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-log", type=str, required=True)
+parser.add_argument("-skip", type=int, required=True)
+args = parser.parse_args()
+
+colors = ["k",  "b", "midnightblue", "darkred", "firebrick", "b", "r", "dimgray", "orange", "m", "y", "g", "c"]
+
+
 def plot_energy(data):
     # Get potential energies and check the shape
     labels = ["Pot. Energy", "Kin. Energy"]
@@ -42,7 +53,7 @@ def plot_energy(data):
     ax2.legend(loc="upper center", prop={'size': 8.5}, bbox_to_anchor=(0.41, 0.40),
               fancybox=False, shadow=False, labelcolor=colors[1], frameon=False)
 
-    plt.savefig("enegy.png")
+    plt.savefig("enegy_%s.png" %log_base)
 
 def plot_temperature(data):
     # Read the temperature
@@ -60,7 +71,7 @@ def plot_temperature(data):
     plt.xlabel('Time (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("temp.png")
+    plt.savefig("temp_%s.png" %log_base)
     #  plt.show()
 
 
@@ -80,7 +91,7 @@ def plot_loading(data, n_frame_atoms):
     plt.xlabel('Time (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("loading.png")
+    plt.savefig("loading_%s.png" %log_base)
     #  plt.show()
 
 
@@ -100,11 +111,13 @@ def plot_volume(data):
     plt.xlabel('t (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("volume.png")
+    plt.savefig("volume_%s.png" %log_base)
     #  plt.show()
 
-log = lammps_logfile.File("log.lammps")
-colors = ["k",  "b", "midnightblue", "darkred", "firebrick", "b", "r", "dimgray", "orange", "m", "y", "g", "c"]
+
+log_path = args.log
+log_base = log_path.split(".")[0]
+log = lammps_logfile.File(log_path)
 
 data = pd.DataFrame()
 for label in log.get_keywords():
@@ -113,7 +126,7 @@ for label in log.get_keywords():
 
 plot_energy(data)
 n_frame_atoms = data["Atoms"][0]
-initial_skip = 100
+initial_skip = args.skip
 #  print(len(data))
 data = data[initial_skip:]
 plot_loading(data, n_frame_atoms)
