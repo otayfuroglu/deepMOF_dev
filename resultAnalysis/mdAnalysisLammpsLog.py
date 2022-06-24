@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import os
 
 import matplotlib
 matplotlib.use("Agg")
@@ -116,7 +117,7 @@ def plot_volume(data):
 
 
 log_path = args.log
-log_base = log_path.split(".")[0]
+log_base = os.path.basename(log_path).split(".")[0]
 log = lammps_logfile.File(log_path)
 
 data = pd.DataFrame()
