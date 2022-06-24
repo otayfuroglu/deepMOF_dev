@@ -54,7 +54,7 @@ def plot_energy(data):
     ax2.legend(loc="upper center", prop={'size': 8.5}, bbox_to_anchor=(0.41, 0.40),
               fancybox=False, shadow=False, labelcolor=colors[1], frameon=False)
 
-    plt.savefig("enegy_%s.png" %log_base)
+    plt.savefig("%s_energy.png" %log_base)
 
 def plot_temperature(data):
     # Read the temperature
@@ -72,7 +72,7 @@ def plot_temperature(data):
     plt.xlabel('Time (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("temp_%s.png" %log_base)
+    plt.savefig("%s_temp.png" %log_base)
     #  plt.show()
 
 
@@ -92,7 +92,7 @@ def plot_loading(data, n_frame_atoms):
     plt.xlabel('Time (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("loading_%s.png" %log_base)
+    plt.savefig("%s_loading.png" %log_base)
     #  plt.show()
 
 
@@ -112,7 +112,7 @@ def plot_volume(data):
     plt.xlabel('t (fs)')
     plt.legend()
     plt.tight_layout()
-    plt.savefig("volume_%s.png" %log_base)
+    plt.savefig("%s_volume.png" %log_base)
     #  plt.show()
 
 
