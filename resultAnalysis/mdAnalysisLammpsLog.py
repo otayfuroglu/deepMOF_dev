@@ -17,6 +17,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-log", type=str, required=True)
+parser.add_argument("-stepsize", type=float, required=True)
 parser.add_argument("-skip", type=int, required=True)
 args = parser.parse_args()
 
@@ -120,7 +121,7 @@ log_path = args.log
 log_base = os.path.basename(log_path).split(".")[0]
 log = lammps_logfile.File(log_path)
 
-step_size = 0.5 # fs
+step_size = args.stepsize # fs
 
 data = pd.DataFrame()
 for label in log.get_keywords():
