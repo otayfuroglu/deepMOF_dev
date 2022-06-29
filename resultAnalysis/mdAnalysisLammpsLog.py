@@ -30,7 +30,7 @@ def plot_energy(data):
     k_energies = data["KinEng"]
 
     # Get the time axis
-    time_axis = data["Step"]
+    time_axis = data["Step"] * step_size
 
     #  plt.show()
     #  Plot the energies
@@ -63,7 +63,7 @@ def plot_temperature(data):
     # Compute the cumulative mean
     temperature_mean = np.cumsum(temperature) / (np.arange(len(temperature))+1)
     # Get the time axis
-    time_axis = data["Step"]
+    time_axis = data["Step"] * step_size
 
     plt.figure(figsize=(8, 4))
     plt.plot(time_axis, temperature, label='T')
@@ -83,7 +83,7 @@ def plot_loading(data, n_frame_atoms):
     # Compute the cumulative mean
     n_loading_mean = np.cumsum(n_loading) / (np.arange(len(n_loading))+1)
     # Get the time axis
-    time_axis = data["Step"]
+    time_axis = data["Step"] * step_size
 
     plt.figure(figsize=(8, 4))
     plt.plot(time_axis, n_loading, label='Number of Molecule')
@@ -103,7 +103,7 @@ def plot_volume(data):
     # Compute the cumulative mean
     volume_mean = np.cumsum(volume) / (np.arange(len(volume))+1)
     # Get the time axis
-    time_axis = data["Step"]
+    time_axis = data["Step"] * step_size
 
     plt.figure(figsize=(8, 4))
     plt.plot(time_axis, volume, label=r"Volume")
@@ -119,6 +119,8 @@ def plot_volume(data):
 log_path = args.log
 log_base = os.path.basename(log_path).split(".")[0]
 log = lammps_logfile.File(log_path)
+
+step_size = 0.5 # fs
 
 data = pd.DataFrame()
 for label in log.get_keywords():
