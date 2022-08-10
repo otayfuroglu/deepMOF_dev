@@ -136,3 +136,5 @@ data = data[initial_skip:]
 plot_loading(data, n_frame_atoms)
 plot_temperature(data)
 plot_volume(data)
+
+
