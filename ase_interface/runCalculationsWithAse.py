@@ -52,7 +52,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
 
 
     # set calculator type
-    if calc_type == "DFT":
+    if calc_type.lower() == "dft":
         #  calculation.setQEspressoCalculatorV2(name, 20)
         calculation.setSiestaCalculator(name=file_base,
                                         dispCorrection="dftd4",
@@ -60,7 +60,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
         calculation.setCalcName(name)
 
 
-    elif calc_type == "schnetpack":
+    elif calc_type.lower() == "schnetpack":
         from schnetpack.environment import AseEnvironmentProvider
         from schnetpack.utils import load_model
         import schnetpack
@@ -77,16 +77,19 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
             environment_provider=AseEnvironmentProvider(cutoff=5.5),
             device=device,
         )
-    elif calc_type == "ani":
+
+    elif calc_type.lower() == "ani":
         calculation.setAniCalculator(model_type="ani2x", device=device)
 
+    elif calc_type.lower() == "n2p2":
+        calculation.setN2P2Calculator(args.MODEL_DIR, best_epoch=66)
 
     # set calculation type
-    if run_type == "opt":
+    if run_type.lower() == "opt":
         calculation.optimize()
         os.chdir(CW_DIR)
 
-    elif run_type == "vibration":
+    elif run_type.lower() == "vibration":
         #  WORKS_DIR = WORKS_DIR.replace("vibration", "opt").replace("DFT", "model")
         #  opt_molpath= "%s/Optimization.xyz" %WORKS_DIR
         #  calculation.load_molecule_fromFile(molecule_path=opt_molpath)
@@ -94,7 +97,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
         calculation.vibration(nfree=4)
         os.chdir(CW_DIR)
 
-    elif run_type == "md":
+    elif run_type.lower() == "md":
 
         calculation.init_md(
           name=name,
@@ -123,7 +126,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
         #      calculation.molecule.set_cell(abc)
         #      calculation.run_md(5000)
 
-    elif run_type == "EOS":
+    elif run_type.lower() == "eos":
 
         cell = calculation.molecule.get_cell()
 
@@ -131,7 +134,8 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
         traj_name = "%s_%s_EOS.traj" % (file_base, calc_type)
         traj = Trajectory(traj_name, "w")
         scaleFs = np.linspace(0.95, 1.10, 8)
-        print(len(scaleFs))
+        print("Starting EOS calculations")
+        print("Number of scaling factor values:", len(scaleFs))
         for scaleF in scaleFs:
             calculation.molecule.set_cell(cell * scaleF, scale_atoms=True)
             calculation.get_potential_energy()
@@ -140,7 +144,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
         os.chdir(CW_DIR)
 
 
-    elif run_type == "optLattice":
+    elif run_type.lower() == "optlattice":
         name = file_base + "_calc_lattice_const"
         from ase.constraints import StrainFilter, UnitCellFilter
 
@@ -188,7 +192,7 @@ if __name__ == "__main__":
                         type=int, required=True,
                         help="..")
     parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
-                        type=str, required=True,
+                        type=str, required=False,
                         help="..")
     parser.add_argument("-BASE_DIR", "--BASE_DIR",
                         type=str, required=True,
@@ -199,6 +203,9 @@ if __name__ == "__main__":
     parser.add_argument("-MOL_DIR", "--MOL_DIR",
                         type=str, required=True,
                         help="..")
+    parser.add_argument("-file_name", "--file_name",
+                        type=str, required=False,
+                        help="..")
     args = parser.parse_args()
 
     run_type = args.run_type
@@ -208,11 +215,16 @@ if __name__ == "__main__":
     BASE_DIR = args.BASE_DIR
     RESULT_DIR = args.RESULT_DIR
     MOL_DIR = args.MOL_DIR
+    file_name = args.file_name
     properties = ["energy", "forces", "stress"]  # properties used for training
 
 
     #  temp_list = [100, 150]
-    file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+    if file_name:
+        file_names = [file_name]
+    else:
+        file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+
     n_file = len(file_names)
     if n_file > 1:
         idxs = range(n_file)
