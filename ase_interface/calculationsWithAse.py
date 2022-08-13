@@ -213,6 +213,15 @@ class AseCalculations(object):
         self.molecule.set_calculator(calculator)
 
 
+    def setN2P2Calculator(self, model_dir, best_epoch):
+        import sys
+        sys.path.insert(1, "/truba_scratch/yzorlu/deepMOF_dev") #TODO makeshift
+        from  n2p2.prediction.n2p2AseInterFace import n2p2Calculator
+
+        calculator = n2p2Calculator(model_dir, best_epoch)
+        self.molecule.set_calculator(calculator)
+
+
     def setQMMMcalculator(self, qm_region, qm_calcultor, mm_calcultor):
         from ase.calculators.qmmm import SimpleQMMM
         self.molecule.set_calculator(SimpleQMMM(
