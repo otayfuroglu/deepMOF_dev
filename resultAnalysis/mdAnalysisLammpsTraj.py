@@ -22,6 +22,7 @@ def calcGasNum(atoms, gas_id):
     return len([idx for idx in atoms.get_atomic_numbers()
                      if idx == gas_id])
 
+
 def create_pd_row(label_val):
     df = pd.DataFrame()
     for label, val in label_val.items():
@@ -54,7 +55,6 @@ if __name__ == "__main__":
         "5": 1.00794,
     }
 
-    pres_list = [1, 10, 20, 35, 50]
     gas_id = args.gasid
     gas_type = args.gastype
     traj_dir = args.traj_dir
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     dfs = []
     traj_files = [traj_file for traj_file in os.listdir(traj_dir) if ".lammpstrj" in traj_file]
     for traj_file in traj_files:
+        print("Processing", traj_file)
         traj = read("%s/%s" %(traj_dir, traj_file), format="lammps-dump-text", index=":")
         f_start = args.skip
         f_end = len(traj)
@@ -84,6 +85,7 @@ if __name__ == "__main__":
         # get pressure from file name
         press =int(traj_file[traj_file.index(gas_type.upper()):traj_file.index("Bar")]
                    .replace("_", "").replace(gas_type.upper(), ""))
+        print(press)
 
         n_frame = f_end - f_start
         fram_mass = calcFramMass(traj[0], **atom_mass)
