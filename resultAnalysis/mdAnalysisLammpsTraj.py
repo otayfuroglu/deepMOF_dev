@@ -34,7 +34,7 @@ def create_pd_row(label_val):
 def run(traj_file):
     print("Processing", traj_file)
     # get pressure from file name
-    press =int(traj_file.lower()[traj_file.lower().index(gas_type):traj_file.lower().index("bar")]
+    press =int(traj_file.lower()[traj_file.lower().index(gas_type.lower()):traj_file.lower().index("bar")]
                .replace("_", "").replace(gas_type.lower(), ""))
 
     traj = read("%s/%s" %(traj_dir, traj_file), format="lammps-dump-text", index=":")
