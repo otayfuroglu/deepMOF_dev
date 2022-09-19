@@ -1,0 +1,26 @@
+trajpath:
+  # "../../latticeBulkModulusWithClassic/IRMOF1_1Bar_300K.lammpstrj"
+  "../../classicRigidAdorpsionH2onIRMOF1inNPT_298/IRMOF1_H2_1Bar_298K.lammpstrj"
+outformat:
+  "cif"
+skip:
+  50
+interval:
+  20
+rmsd_threshold:
+  2.0
+
+# for NNP smiulations
+# atomnum_pairs:
+#   - "1": 30 # 1 lammps atmos to Zn
+#   - "2": 8 # 2 lammps atmos to O
+#   - "3": 6 # 3 lammps atmos to C
+#   - "4": 1 # 4 lammps atmos to H
+
+# for Classic smiulations
+atomnum_pairs:
+  - "1": 30 # 1 lammps atmos to Zn
+  - "2": 8 # 2 lammps atmos to O
+  - "3": 8 # 2 lammps atmos to O
+  - "4": 6 # 3 lammps atmos to C
+  - "5": 1 # 4 lammps atmos to H
