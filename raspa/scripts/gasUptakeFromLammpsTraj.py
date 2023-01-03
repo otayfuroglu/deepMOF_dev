@@ -51,9 +51,9 @@ def getUptake(cif_file_path, pressure, helium_void_fraction):
         unit_cells=(1,1,1),
         #  unit_cells=(2,2,2),
         framework_name="streamed", # if not streaming, this will load the structure at `$RASPA_DIR/share/raspa/structures`.
-        cycles=2000,
+        cycles=1000,
         #  init_cycles="auto",
-        init_cycles=1000,
+        init_cycles=500,
         #  forcefield="GenericMOFs",
         forcefield="CrystalGenerator",
         input_file_type="cif")
@@ -104,11 +104,12 @@ class MyPool(multiprocessing.pool.Pool):
 
 
 if "__main__" == __name__:
+    import argparse
 
     BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev/"
     mof_num = "1"
-    temperature = 298
-    descrip_word = "CrytalGen_ClassicStructure_2x2x2_mostFreqConf"
+    temperature = 77
+    descrip_word = "CrytalGen_NNPStructure_2x2x2_mostFreqConf"
     molecule = "H2"
     labels = [
         "Pressure", "AbsoluteUptake (mg/g)", "AbsoluteUptakes (cm^3 (STP)/cm^3)",
@@ -129,7 +130,7 @@ if "__main__" == __name__:
     idx = 750
     #  atoms = ase_traj[idx]
     #  cif_file_path = f"IRMOF{mof_num}_1Bar_298K_i{idx}Classic.cif"
-    cif_file_path = "./filled_IRMOF1.cif"
+    cif_file_path = "./IRMOF1_1Bar_300K_represent.cif"
     #  write(cif_file_path, atoms)
 
     helium_void_fraction = get_helium_void_fraction(cif_file_path)
