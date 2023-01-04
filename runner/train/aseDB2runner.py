@@ -37,11 +37,14 @@ def aseDBrunner_v2(db, fl_name="input.data", N=0):
     fl.close()
 
 
-db_path = "../../geom_files/"\
+#  db_path = "../../geom_files/"\
+#      + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
+#      #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
+db_path = "../../../deepMOF/HDNNP/prepare_data/workingOnDataBase/"\
     + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
-    #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
 db = connect(db_path)
-aseDBrunner_v2(db, N=1000)
-#  randAseDB2n2p2(db, 30000)
+
+# if you set N >0 which is number of data point as intger, will execute rondum selection
+aseDBrunner_v2(db, N=0)
 
 
