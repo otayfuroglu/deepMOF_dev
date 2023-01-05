@@ -16,9 +16,10 @@ def getWriteRowInfo(row, fl):
         symbol, 0.0, 0.0,
         forces[0], forces[1], forces[2])]
         for position, symbol, forces in zip(
-            (row.positions * ANG2BOHR).tolist(), row.symbols, (row.forces * (EV2HARTREE/ANG2BOHR)).tolist())]
-            #  row.positions.tolist(), row.symbols, row.forces.tolist())]
-    atoms_prep_list += [["energy ", row.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
+            #  (row.positions * ANG2BOHR).tolist(), row.symbols, (row.forces * (EV2HARTREE/ANG2BOHR)).tolist())]
+            row.positions.tolist(), row.symbols, row.forces.tolist())]
+    #  atoms_prep_list += [["energy ", row.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
+    atoms_prep_list += [["energy ", row.energy], ["charge 0.0"], ["end"]]
     for line in atoms_prep_list:
         for item in line:
             fl.write(str(item))
@@ -45,6 +46,7 @@ db_path = "../../../deepMOF/HDNNP/prepare_data/workingOnDataBase/"\
 db = connect(db_path)
 
 # if you set N >0 which is number of data point as intger, will execute rondum selection
-aseDBrunner_v2(db, N=0)
+aseDBrunner_v2(db, N=1000)
+#  aseDBrunner_v2(db, N=0)
 
 
