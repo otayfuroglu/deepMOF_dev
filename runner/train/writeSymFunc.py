@@ -78,14 +78,20 @@ with open("sym_func.txt", "w") as fl:
         "Zn-Zn-Zn-2":[[-1], [1, 2, 4]],
     }
 
+    passed_sets = []
     for element_pair, lamdas_zetas in element_pairs_lamdas_zetas.items():
-        fl.write("# " + element_pair + "\n")
         elements = element_pair.split("-")
         lamdas = lamdas_zetas[0]
         zetas = lamdas_zetas[1]
+
+        if set(elements[1:]) in passed_sets:
+            continue
+        passed_sets.append(set(elements[1:]))
+        fl.write("# " + element_pair + "\n")
+
         for lamda in lamdas:
             for zeta in zetas:
                 fl.write('symfunction_short {:<4}{:<3}{:<3}{:<7}{:<10.4f}{:<10.1f}{:<10.1f}{:<15.6f}\n'.format(
-                    elements[0], sym_func_type, elements[1], elements[1], etha, lamda, zeta, r_cutoff))
+                    elements[0], sym_func_type, elements[1], elements[2], etha, lamda, zeta, r_cutoff))
             fl.write("\n")
 
