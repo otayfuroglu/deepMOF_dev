@@ -78,7 +78,7 @@ n_db = len(db)
 #  conf_type = "mof5_f1"
 conf_type = False
 #  conf_type = "irmofseries7_f1"
-N = 10000
+N = 1000
 
 # if you set N >0 which is number of data point as intger
 # will execute rondum selection
@@ -88,7 +88,7 @@ energies = []
 with open(fl_name, "w") as fl:
     with Pool(processes=56) as pool:
         if N != 0:
-            while len(energies) <= N:
+            while len(energies) < N:
                 iterable = random.sample(range(1, n_db+1), N)
                 run_func()
         else:
