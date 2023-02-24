@@ -33,7 +33,7 @@ symbols = []
 charges = []
 forces = []
 
-with open("input.data.300") as lines:
+with open(runner_data) as lines:
     for line in lines:
         if "lattice" in line:
             lattice += [[float(item)*BOHR2ANG for item in line.split()[1:]]]
