@@ -1,12 +1,14 @@
 from ase.db import connect
 import tqdm
+import argparse
 
 
 def aseDB2n2p2(db):
     db = db.select()
     fl = open("input.data", "w")
     for row in tqdm.tqdm(db):
-        atoms_prep_list = [["begin"], ["comment ", row.name]]
+        #  atoms_prep_list = [["begin"], ["comment ", row.name]]
+        atoms_prep_list = [["begin"],]
         atom_template = 'atom {:10.6f} {:10.6f} {:10.6f} {:2s} {:10.6f} {:10.6f} {:10.6f} {:10.6f} {:10.6f}'
         atoms_prep_list += [[atom_template.format(
             position[0], position[1], position[2],
@@ -46,10 +48,16 @@ def randAseDB2n2p2(db, N):
     fl.close()
 
 
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-db", type=str, required=True)
+parser.add_argument("-N", type=int, default=0, required=False)
+args = parser.parse_args()
 
-db_path = "../../../deepMOF/HDNNP/prepare_data/workingOnDataBase/"\
-    + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling_IRMOFseries1_4_6_7_10_merged_50000_ev.db"
-    #  + "nonEquGeometriesEnergyForcesWithORCA_TZVP_fromScaling.db" # for  just MOF5
-db = connect(db_path)
-#  aseDB2n2p2(db)
-randAseDB2n2p2(db, 30000)
+
+db = connect(args.db)
+N = args.N
+
+if N == 0:
+    aseDB2n2p2(db)
+else:
+    randAseDB2n2p2(db, N)
