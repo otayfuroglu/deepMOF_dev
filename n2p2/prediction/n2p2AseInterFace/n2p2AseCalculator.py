@@ -5,6 +5,9 @@ from .ase_units import Units
 import numpy as np
 import os, shutil
 
+from ase import units
+
+
 
 class n2p2Calculator(Exception):
     pass
@@ -25,7 +28,8 @@ class n2p2Calculator(Calculator):
         energy=None,
         forces=None,
         energy_units="eV",
-        forces_units="eV/Angstrom",
+        length_units="Angstrom",
+        #  forces_units="eV/Angstrom",
         **kwargs
     ):
         Calculator.__init__(self, **kwargs)
@@ -39,7 +43,8 @@ class n2p2Calculator(Calculator):
 
         # Convert to ASE internal units (energy=eV, length=A)
         self.energy_units = Units.unit2unit(energy_units, "eV")
-        self.forces_units = Units.unit2unit(forces_units, "eV/Angstrom")
+        self.length_units = Units.unit2unit("Angstrom", length_units)
+        self.forces_units = Units.unit2unit("/".join([energy_units, length_units]), "eV/Angstrom")
 
     def calculate(self, atoms=None, properties=["energy"], system_changes=all_changes):
         """
@@ -93,7 +98,7 @@ class n2p2Calculator(Calculator):
         n = len(atoms)
 
         if any(atoms.pbc):
-            cell = atoms.get_cell()
+            cell = atoms.get_cell() * self.length_units
             cell_template = 'lattice {:10.6f} {:10.6f} {:10.6f}\n'
             for c in cell:
                 out_str += cell_template.format(c[0], c[1], c[2])
@@ -102,8 +107,9 @@ class n2p2Calculator(Calculator):
         forces = np.zeros([n,3])
         for a in atoms:
             #  force = forces[a.index]
-            out_str += atom_template.format(a.position[0], a.position[1], a.position[2],
-                                            #  a.symbol, 0.0, 0.0, force[0], force[1], force[2])
+            position = a.position * self.length_units
+            out_str += atom_template.format(position[0], position[1], position[2],
+                                            #  a.symbol, 0.0, 0.0, force[0], force[2], force[3])
                                             a.symbol, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         energy = 0
