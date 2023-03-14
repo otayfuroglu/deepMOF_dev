@@ -74,14 +74,18 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Give something ...")
     parser.add_argument("-traj", type=str, required=True)
+    parser.add_argument("-skip", type=int, default=0, required=False)
+    parser.add_argument("-stepsize", type=int, default=1, required=False)
     parser.add_argument("-N", type=int, default=0, required=False)
     args = parser.parse_args()
 
     atom_type_number_pair = {1:13, 2:3, 3:1} # Al, Li, H
-    traj = read(args.traj, format="lammps-dump-text", index=":")
+    index = slice(args.skip, -1, args.stepsize) # sliced index for lammps traj
+    traj = read(args.traj, format="lammps-dump-text", index=index)
     atomic_numbers = [atom_type_number_pair[key] for key in traj[0].get_atomic_numbers()]
 
     N = args.N
+    stepsize = args.stepsize
     if N == 0:
         aseDb2Runner(traj, atomic_numbers)
     else:
