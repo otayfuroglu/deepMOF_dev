@@ -55,6 +55,7 @@ with open(runner_data) as lines:
 
             calculator = SinglePointCalculator(atoms, energy=energy * HARTREE2EV,
                                                forces=forces, charges=charges)
+            atoms.calc = calculator
             #  data["energy"] = energy * HARTREE2EV
             #  data["forces"] = forces
             #  data["charges"] = charges
