@@ -24,6 +24,26 @@ args = parser.parse_args()
 colors = ["k",  "b", "midnightblue", "darkred", "firebrick", "b", "r", "dimgray", "orange", "m", "y", "g", "c"]
 
 
+def plot_pot_energy(data):
+    # Read the temperature
+    po_energy = data["PotEng"]
+
+    # Compute the cumulative mean
+    po_energy_mean = np.cumsum(po_energy) / (np.arange(len(po_energy))+1)
+    # Get the time axis
+    time_axis = data["Step"] * step_size
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(time_axis, po_energy, label='Energy')
+    plt.plot(time_axis, po_energy_mean, label='Energy (avg.)')
+    plt.ylabel('Energy (eV)')
+    plt.xlabel('Time (fs)')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("%s_pot_energy.png" %log_base)
+    #  plt.show()
+
+
 def plot_energy(data):
     # Get potential energies and check the shape
     labels = ["Pot. Energy", "Kin. Energy"]
@@ -129,6 +149,7 @@ for label in log.get_keywords():
 #  df.to_csv("test.csv")
 
 plot_energy(data)
+plot_pot_energy(data)
 n_frame_atoms = data["Atoms"][0]
 initial_skip = args.skip
 #  print(len(data))
