@@ -19,6 +19,7 @@ import numpy as np
 
 from multiprocessing import Pool
 import itertools
+import argparse
 #
 
 
@@ -46,7 +47,10 @@ def get_1NN2NN_distances(nn, struc, center_atom_i):
                 distances += [struc.get_distance(center_atom_i, site_i)]
         #  if len(distances) == 0:
             #  distances.append(0)
-        nn_distances.append(min(distances))
+        try:
+            nn_distances.append(min(distances))
+        except:
+            return 0.0
     return nn_distances
 
 
@@ -54,6 +58,8 @@ def get_coord_num(nn, struc, center_atom_i):
     coord_num = 0
     site_idexes = []
     nn_distances = get_1NN2NN_distances(nn, struc, center_atom_i)
+    if nn_distances == 0.0:
+        return None
     #  if nn_distances[1] == 0:
     #      return get_coord_numByWeigth(struc)
     for shel_i in [1, 2]:
@@ -98,19 +104,7 @@ def lammsTrj2AseDb(lammps_trj, db_path):
 
 
 def task(idx):
-    lammps_trj_path = "../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
-    db_path = f"{lammps_trj_path.split('/')[-1].replace('.lammpstrj', '')}.db"
-    db = connect(db_path)
-    #  proc_id = os.getpid()
     Path(f"tmp/task_{idx}").mkdir(parents=True, exist_ok=True)
-
-    #  idxes = slice(0, 49000, 100)
-    #  if idx == 0:
-        #  global lammps_trj
-        #  global nn, atom_type_symbol_pair
-    nn = CrystalNN(search_cutoff=12)
-    #  atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
-        #  lammps_trj = read("../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj", format="lammps-dump-text", index=idxes, parallel=True)
 
     cwd = os.getcwd()
     os.chdir(f"tmp/task_{idx}")
@@ -143,28 +137,34 @@ def task(idx):
 
     #  struc = Structure(lattice=atoms.cell, species=atoms.get_chemical_symbols(), coords=atoms.get_positions())
 
-if __name__ == '__main__':
-    #  nn = MinimumDistanceNN()
-    #  nn = BrunnerNN_real(cutoff=12)
-    #  nn = BrunnerNN_reciprocal()
-    #  nn = CrystalNN(search_cutoff=12)
-        #  atoms = read(f"./Top20/LiAlH4/isolated/{fl_name}")
-    coord_nums = []
-    idxes = slice(0, 49000, 100)
-    #  atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
-    lammps_trj_path = "../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
-    db_path = f"{lammps_trj_path.split('/')[-1].replace('.lammpstrj', '')}.db"
-    if not os.path.exists(db_path):
-        lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
-        lammsTrj2AseDb(lammps_trj, db_path)
 
-    db = connect(db_path)
-    len_db = db.count()
-    with Pool(32) as pool:
-        # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
-        for result in tqdm.tqdm(pool.imap_unordered(func=task, iterable=range(len_db)), total=len_db):
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-trj_path", type=str, required=True, help="..")
+args = parser.parse_args()
+lammps_trj_path = args.trj_path
+#  nn = MinimumDistanceNN()
+#  nn = BrunnerNN_real(cutoff=12)
+#  nn = BrunnerNN_reciprocal()
+#  nn = CrystalNN(search_cutoff=12)
+
+nn = CrystalNN(search_cutoff=12)
+coord_nums = []
+idxes = slice(0, -1, 50)
+#  atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
+#  lammps_trj_path = "../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
+db_path = f"{lammps_trj_path.split('/')[-1].replace('.lammpstrj', '')}.db"
+if not os.path.exists(db_path):
+    lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
+    lammsTrj2AseDb(lammps_trj, db_path)
+
+db = connect(db_path)
+len_db = db.count()
+with Pool(32) as pool:
+    # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
+    for result in tqdm.tqdm(pool.imap_unordered(func=task, iterable=range(len_db)), total=len_db):
+        if result:
             coord_nums.append(result)
 
-    import matplotlib.pyplot as plt
-    plt.plot(range(len(coord_nums)), np.array(coord_nums))
-    plt.show()
+import matplotlib.pyplot as plt
+plt.plot(range(len(coord_nums)), np.array(coord_nums))
+plt.savefig("coord_num.png")
