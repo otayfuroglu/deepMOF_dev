@@ -53,5 +53,5 @@ if __name__ == "__main__":
             atoms = lammps2atoms(lammps_atoms, atomic_numbers)
             write_extxyz("input.ext.xyz", atoms, append=True)
     else:
-        fl_path = f"input.ext.xyz.rand{N}"
+        fl_path = f"rand{N}.input.ext.xyz"
         rndLammps2AseDB(fl_path, traj, atomic_numbers)
