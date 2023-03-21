@@ -1,7 +1,6 @@
 
 #  from ase.io.lammpsrun import read_lammps_dump_text
-from ase.io import read
-from ase.io.extxyz import write_extxyz
+from ase.io import read, write
 from ase import units
 import numpy as np
 
@@ -29,7 +28,7 @@ def rndLammps2AseDB(fl_path, traj, atomic_numbers):
             # remove random value for efficiency
             rand_list.remove(i)
             atoms = lammps2atoms(lammps_atoms, atomic_numbers)
-            write_extxyz(fl_path, atoms, append=True)
+            write(fl_path, atoms, format="extxyz", append=True)
 
 if __name__ == "__main__":
 
@@ -51,7 +50,7 @@ if __name__ == "__main__":
         for i, lammps_atoms in enumerate(tqdm.tqdm(traj)):
             # flammps tpye to atom nummer
             atoms = lammps2atoms(lammps_atoms, atomic_numbers)
-            write_extxyz("input.ext.xyz", atoms, append=True)
+            write("input.ext.xyz", atoms, format="extxyz", append=True)
     else:
         fl_path = f"rand{N}.input.ext.xyz"
         rndLammps2AseDB(fl_path, traj, atomic_numbers)
