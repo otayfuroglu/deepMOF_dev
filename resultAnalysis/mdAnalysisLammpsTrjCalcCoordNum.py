@@ -89,6 +89,9 @@ def get_coord_numAse(center_atom_i):
         print(atoms.positions[i] + np.dot(offset, atoms.get_cell()))
     pass
 
+def lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair):
+    symbols = [atom_type_symbol_pair[key] for key in lammps_atoms.get_atomic_numbers()]
+    return Atoms(symbols=symbols, positions=lammps_atoms.positions, cell=lammps_atoms.cell)
 
 def lammsTrj2AseDb(lammps_trj, db_path):
 
@@ -97,9 +100,7 @@ def lammsTrj2AseDb(lammps_trj, db_path):
     db = connect(db_path)
     atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
     for lammps_atoms in lammps_trj:
-        symbols = [atom_type_symbol_pair[key] for key in lammps_atoms.get_atomic_numbers()]
-        atoms = Atoms(symbols=symbols, positions=lammps_atoms.positions, cell=lammps_atoms.cell)
-        #  atoms.cell = lammps_atoms.cell
+        atoms = lammps2AseAtoms(atoms, atom_type_symbol_pair)   #  atoms.cell = lammps_atoms.cell
         db.write(atoms)
 
 
@@ -109,7 +110,9 @@ def task(idx):
     cwd = os.getcwd()
     os.chdir(f"tmp/task_{idx}")
 
-    atoms = db.get_atoms(idx+1)
+    #  atoms = db.get_atoms(idx+1)
+    lammps_atoms = lammps_trj[idx]
+    atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
     Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
     center_atom_i = Al_index[0]
 
@@ -149,19 +152,20 @@ lammps_trj_path = args.trj_path
 
 nn = CrystalNN(search_cutoff=12)
 coord_nums = []
-idxes = slice(0, -1, 50)
-#  atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
+idxes = slice(0, -1, 10)
+atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 #  lammps_trj_path = "../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
-db_path = f"{lammps_trj_path.split('/')[-1].replace('.lammpstrj', '')}.db"
-if not os.path.exists(db_path):
-    lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
-    lammsTrj2AseDb(lammps_trj, db_path)
+lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
+#  db_path = f"{lammps_trj_path.split('/')[-1].replace('.lammpstrj', '')}.db"
+#  if not os.path.exists(db_path):
+#      lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
+#      lammsTrj2AseDb(lammps_trj, db_path)
 
-db = connect(db_path)
-len_db = db.count()
-with Pool(32) as pool:
+#  db = connect(db_path)
+len_trj = len(lammps_trj)
+with Pool(20) as pool:
     # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
-    for result in tqdm.tqdm(pool.imap_unordered(func=task, iterable=range(len_db)), total=len_db):
+    for result in tqdm.tqdm(pool.imap_unordered(func=task, iterable=range(len_trj)), total=len_trj):
         if result:
             coord_nums.append(result)
 
