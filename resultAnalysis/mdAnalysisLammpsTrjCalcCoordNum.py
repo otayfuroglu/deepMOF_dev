@@ -17,12 +17,15 @@ import os
 import tqdm
 import numpy as np
 
+from numba import jit, float32
+
 from multiprocessing import Pool
 import itertools
 import argparse
 #
 
 
+@jit(float32(float32, float32, float32))
 def f_cut(d_kl, Tx, Vx):
     #  print(d_kl, Tx, Vx)
 
@@ -51,24 +54,18 @@ def get_1NN2NN_distances(nn, struc, center_atom_i):
             nn_distances.append(min(distances))
         except:
             return 0.0
-    return nn_distances
+    return site_idexes, nn_distances
 
 
 def get_coord_num(nn, struc, center_atom_i):
     coord_num = 0
-    site_idexes = []
-    nn_distances = get_1NN2NN_distances(nn, struc, center_atom_i)
+    site_idexes, nn_distances = get_1NN2NN_distances(nn, struc, center_atom_i)
     if nn_distances == 0.0:
         return None
-    #  if nn_distances[1] == 0:
-    #      return get_coord_numByWeigth(struc)
     for shel_i in [1, 2]:
-        for site in nn.get_nn_shell_info(struc, center_atom_i, shel_i):
-            site_i = site["site_index"]
-            if not site_i in site_idexes:
-                site_idexes.append(site_i)
-                distance = struc.get_distance(center_atom_i, site_i)
-                coord_num += f_cut(d_kl=distance, Tx=nn_distances[0], Vx=nn_distances[1])
+        for site_i in site_idexes:
+            distance = struc.get_distance(center_atom_i, site_i)
+            coord_num += f_cut(d_kl=distance, Tx=nn_distances[0], Vx=nn_distances[1])
     return coord_num
 
 
@@ -92,6 +89,7 @@ def get_coord_numAse(center_atom_i):
 def lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair):
     symbols = [atom_type_symbol_pair[key] for key in lammps_atoms.get_atomic_numbers()]
     return Atoms(symbols=symbols, positions=lammps_atoms.positions, cell=lammps_atoms.cell)
+
 
 def lammsTrj2AseDb(lammps_trj, db_path):
 
