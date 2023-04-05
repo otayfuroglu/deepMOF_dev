@@ -53,7 +53,7 @@ def get_1NN2NN_distances(nn, struc, center_atom_i):
         try:
             nn_distances.append(min(distances))
         except:
-            return 0.0
+            return 0, 0.0
     return site_idexes, nn_distances
 
 
@@ -62,10 +62,15 @@ def get_coord_num(nn, struc, center_atom_i):
     site_idexes, nn_distances = get_1NN2NN_distances(nn, struc, center_atom_i)
     if nn_distances == 0.0:
         return None
+
+    passed_site_idexes = []# to get under control duplication and self correlation
     for shel_i in [1, 2]:
         for site_i in site_idexes:
-            distance = struc.get_distance(center_atom_i, site_i)
-            coord_num += f_cut(d_kl=distance, Tx=nn_distances[0], Vx=nn_distances[1])
+            #  print(site_i)
+            if not site_i in passed_site_idexes: # to get under control duplication and self correlation
+                passed_site_idexes.append(site_i)
+                distance = struc.get_distance(center_atom_i, site_i)
+                coord_num += f_cut(d_kl=distance, Tx=nn_distances[0], Vx=nn_distances[1])
     return coord_num
 
 
@@ -141,6 +146,8 @@ def task(idx):
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-trj_path", type=str, required=True, help="..")
+parser.add_argument("-interval", type=int, required=False, default=1, help="..")
+parser.add_argument("-nproc", type=int, required=True, help="..")
 args = parser.parse_args()
 lammps_trj_path = args.trj_path
 #  nn = MinimumDistanceNN()
@@ -150,7 +157,7 @@ lammps_trj_path = args.trj_path
 
 nn = CrystalNN(search_cutoff=12)
 coord_nums = []
-idxes = slice(0, -1, 10)
+idxes = slice(0, -1, args.interval)
 atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 #  lammps_trj_path = "../alanates/cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
 lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
@@ -161,7 +168,7 @@ lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, paral
 
 #  db = connect(db_path)
 len_trj = len(lammps_trj)
-with Pool(20) as pool:
+with Pool(args.nproc) as pool:
     # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
     for result in tqdm.tqdm(pool.imap_unordered(func=task, iterable=range(len_trj)), total=len_trj):
         if result:
