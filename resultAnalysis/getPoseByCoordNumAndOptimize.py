@@ -18,6 +18,7 @@ import tqdm
 import numpy as np
 
 from numba import jit, float32
+import argparse
 
 
 
@@ -117,7 +118,6 @@ def lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair):
 
 
 def get_pose():
-    interval = 100
     idxes = slice(0, -1, interval)
     atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
     lammps_trj_path = "../cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
@@ -138,6 +138,14 @@ def get_pose():
         print(coord_num)
         break
 
+
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-trj_path", type=str, required=True, help="..")
+parser.add_argument("-interval", type=int, required=False, default=1, help="..")
+args = parser.parse_args()
+
+lammps_trj_path = args.trj_path
+interval = args.interval
 get_pose()
 
 
