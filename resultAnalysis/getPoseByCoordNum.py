@@ -118,14 +118,18 @@ def lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair):
 
 
 def get_pose():
+    interval = 1000
     idxes = slice(0, -1, interval)
     atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
-    lammps_trj_path = "../cscs/nnp_train_on16kdata_nvt_02timestep_1500K_2ns/alanates_1Bar_1500K.lammpstrj"
+    lammps_trj_path = "../scicore/nnp_train_on26kdata_npt_02timestep_500K_v2_triTdamp100Pdamp100/alanates_1Bar_500K.lammpstrj"
     lammps_trj = read(lammps_trj_path, format="lammps-dump-text", index=idxes, parallel=True)
 
     nn = CrystalNN(search_cutoff=12)
     center_atom_i = 2 # for Al atom index
-    for lammps_atoms in lammps_trj:
+    k, l = 0, 0
+    fl = open(f"coord_nums.csv", "w")
+    opt_fl = open(f"opt_coord_nums.csv", "w")
+    for i, lammps_atoms in enumerate(lammps_trj):
         atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
         #  Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
 
@@ -136,16 +140,28 @@ def get_pose():
         #  struc.make_supercell([2, 2, 2])
         coord_num = get_coord_num(nn, struc, center_atom_i)
         print(coord_num)
-        break
+
+        if k <= 20 and coord_num > 5.3:
+            print(f"polymeric_{i},{coord_num}", file=fl)
+            #  write(f"./selectedByCoordNum/polymeric_{i}.cif", atoms)
+            #NOTE add vasp opt
+            print(f"opt_polymeric_{i},{coord_num}", file=opt_fl)
+            k += 1
+        elif l <= 20 and coord_num < 4.5:
+            print(f"isolated_{i},{coord_num}", file=fl)
+            #  write(f"./selectedByCoordNum/isolated_{i}.cif", atoms)
+            #NOTE add vasp opt
+            print(f"opt_isolated_{i},{coord_num}", file=opt_fl)
+            l += 1
 
 
-parser = argparse.ArgumentParser(description="Give something ...")
-parser.add_argument("-trj_path", type=str, required=True, help="..")
-parser.add_argument("-interval", type=int, required=False, default=1, help="..")
-args = parser.parse_args()
-
-lammps_trj_path = args.trj_path
-interval = args.interval
+#  parser = argparse.ArgumentParser(description="Give something ...")
+#  parser.add_argument("-trj_path", type=str, required=True, help="..")
+#  parser.add_argument("-interval", type=int, required=False, default=1, help="..")
+#  args = parser.parse_args()
+#
+#  lammps_trj_path = args.trj_path
+#  interval = args.interval
 get_pose()
 
 
