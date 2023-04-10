@@ -102,14 +102,12 @@ df = pd.read_csv(args.csv_path)
 coord_type = args.coord_type
 if coord_type == "polymeric":
     df = df.loc[df["CoordNum"] > 5.9].reset_index()
-    shift = int(len(df)/20) # for long interval selection
-    idx = int(df["Frames"][(shift -1)* args.IDX].split("_")[-1])
-    coord_num = df["CoordNum"][(shift -1)* args.IDX]
+    idx = int(df["Frames"][args.IDX].split("_")[-1])
+    coord_num = df["CoordNum"][args.IDX]
 elif coord_type == "isolated":
-    df = df.loc[df["CoordNum"] < 4.4].reset_index()
-    shift = int(len(df)/20) # for long interval selection
-    idx = int(df["Frames"][(shift -1)* args.IDX].split("_")[-1])
-    coord_num = df["CoordNum"][(shift -1)* args.IDX]
+    df = df.loc[df["CoordNum"] < 4.5].reset_index()
+    idx = int(df["Frames"][args.IDX].split("_")[-1])
+    coord_num = df["CoordNum"][args.IDX]
 else:
     print("Enter coord_type correctly")
     quit(1)
@@ -119,7 +117,8 @@ atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 lammps_trj = read(args.trj_path, format="lammps-dump-text", index=":", parallel=True)
 
 fl = open(f"{coord_type}_coord_nums.csv", "a")
-print(f"{coord_type}_{idx},{coord_num}", file=fl)
+print(f"{coord_type}_{idx},{coord_num}", file=fl, flush=True)
+fl.close()
 
 opt_fl = open(f"opt_{coord_type}_coord_nums.csv", "a")
 selected_dir = "selectedByCoordNum"
@@ -153,7 +152,8 @@ opt_coord_num = get_coord_num(nn, atoms, center_atom_i)
 os.chdir(cwd)
 
 write(f"./selectedByCoordNum/opt_{coord_type}_{idx}.cif", atoms)
-print(f"opt_{coord_type}_{idx},{opt_coord_num}", file=opt_fl)
+print(f"opt_{coord_type}_{idx},{opt_coord_num}", file=opt_fl, flush=True)
+opt_fl.close()
 
 
 #  for i, lammps_atoms in enumerate(lammps_trj):
