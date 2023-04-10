@@ -17,7 +17,7 @@ import os
 import tqdm
 import numpy as np
 
-from numba import jit, float32
+#  from numba import jit, float32
 
 from multiprocessing import Pool
 import itertools
@@ -25,7 +25,7 @@ import argparse
 #
 
 
-@jit(float32(float32, float32, float32))
+#  @jit(float32(float32, float32, float32))
 def f_cut(d_kl, Tx, Vx):
     #  print(d_kl, Tx, Vx)
 
