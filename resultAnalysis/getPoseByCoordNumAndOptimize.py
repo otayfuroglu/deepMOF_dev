@@ -94,6 +94,7 @@ parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-trj_path", type=str, required=True, help="..")
 parser.add_argument("-csv_path", type=str, required=True, help="..")
 parser.add_argument("-coord_type", type=str, required=True, help="..")
+#  parser.add_argument("-skip", type=int, required=False, default=0, help="..")
 parser.add_argument("-IDX", type=int, required=True, default=1, help="..")
 args = parser.parse_args()
 
@@ -102,12 +103,14 @@ df = pd.read_csv(args.csv_path)
 coord_type = args.coord_type
 if coord_type == "polymeric":
     df = df.loc[df["CoordNum"] > 5.9].reset_index()
-    idx = int(df["Frames"][args.IDX].split("_")[-1])
-    coord_num = df["CoordNum"][args.IDX]
+    f_idx = int(len(df)/25) * args.IDX  # to select homojenuosly
+    idx = int(df["Frames"][f_idx].split("_")[-1])
+    coord_num = df["CoordNum"][f_idx]
 elif coord_type == "isolated":
     df = df.loc[df["CoordNum"] < 4.0].reset_index()
-    idx = int(df["Frames"][args.IDX].split("_")[-1])
-    coord_num = df["CoordNum"][args.IDX]
+    f_idx = int(len(df)/25) * args.IDX  # to select homojenuosly
+    idx = int(df["Frames"][f_idx].split("_")[-1])
+    coord_num = df["CoordNum"][f_idx]
 else:
     print("Enter coord_type correctly")
     quit(1)
@@ -148,9 +151,9 @@ nn = CrystalNN(search_cutoff=12)
 Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
 center_atom_i = Al_index[0]
 
-opt_coord_num = et_coord_num(nn, atoms, center_atom_i, replica=1)
+opt_coord_num = get_coord_num(nn, atoms, center_atom_i, replica=1)
 if opt_coord_num <= 1:
-    opt_coord_num = et_coord_num(nn, atoms, center_atom_i, replica=2)
+    opt_coord_num = get_coord_num(nn, atoms, center_atom_i, replica=2)
 
 os.chdir(cwd)
 
