@@ -57,12 +57,13 @@ def get_1NN2NN_distances(nn, struc, center_atom_i):
     return site_idexes, nn_distances
 
 
-def get_coord_num(nn, atoms, center_atom_i):
+def get_coord_num(nn, atoms, center_atom_i, replica):
 
     fl_name = "tmp"
     write(f"{fl_name}.cif", atoms)
     struc = Structure.from_file(f"{fl_name}.cif") #read in CIF as Pymatgen Structure
-    #  struc.make_supercell([2, 2, 2])
+    if replica > 1:
+        struc.make_supercell([replica, replica, replica])
 
     coord_num = 0
     site_idexes, nn_distances = get_1NN2NN_distances(nn, struc, center_atom_i)
@@ -126,7 +127,9 @@ def task(idx):
     center_atom_i = Al_index[0]
 
 
-    coord_num = get_coord_num(nn, atoms, center_atom_i)
+    coord_num = get_coord_num(nn, atoms, center_atom_i, replica=1)
+    if get_coord_num <=1:
+        coord_num = get_coord_num(nn, atoms, center_atom_i, replica=2)
     os.chdir(cwd)
     return f"frame_{idx}", coord_num
     #  print(coord_num)
