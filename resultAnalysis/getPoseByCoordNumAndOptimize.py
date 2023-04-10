@@ -148,7 +148,10 @@ nn = CrystalNN(search_cutoff=12)
 Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
 center_atom_i = Al_index[0]
 
-opt_coord_num = get_coord_num(nn, atoms, center_atom_i)
+opt_coord_num = et_coord_num(nn, atoms, center_atom_i, replica=1)
+if opt_coord_num <= 1:
+    opt_coord_num = et_coord_num(nn, atoms, center_atom_i, replica=2)
+
 os.chdir(cwd)
 
 write(f"./selectedByCoordNum/opt_{coord_type}_{idx}.cif", atoms)
