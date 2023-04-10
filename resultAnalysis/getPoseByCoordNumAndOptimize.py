@@ -105,7 +105,7 @@ if coord_type == "polymeric":
     idx = int(df["Frames"][args.IDX].split("_")[-1])
     coord_num = df["CoordNum"][args.IDX]
 elif coord_type == "isolated":
-    df = df.loc[df["CoordNum"] < 4.5].reset_index()
+    df = df.loc[df["CoordNum"] < 4.0].reset_index()
     idx = int(df["Frames"][args.IDX].split("_")[-1])
     coord_num = df["CoordNum"][args.IDX]
 else:
