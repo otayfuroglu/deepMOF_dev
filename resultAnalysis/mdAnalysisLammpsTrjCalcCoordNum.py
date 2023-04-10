@@ -131,7 +131,7 @@ def task(idx):
     if get_coord_num <=1:
         coord_num = get_coord_num(nn, atoms, center_atom_i, replica=2)
     os.chdir(cwd)
-    return f"frame_{idx}", coord_num
+    return f"frame_{idx*args.interval}", coord_num
     #  print(coord_num)
 
     #  if coord_num == 1:
