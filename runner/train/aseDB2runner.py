@@ -30,12 +30,13 @@ def aseDb2Runner(db):
             for position, symbol, charge, forces in zip(
                 (row.positions * ANG2BOHR).tolist(),
                 row.symbols,
-                row.data.charges,
+                row.initial_charges,
+                #  row.charges,
                 #  chgarges_list,
-                (np.array(row.data.forces) * (EV2HARTREE/ANG2BOHR)).tolist())]
+                (np.array(row.forces) * (EV2HARTREE/ANG2BOHR)).tolist())]
 
         atoms_prep_list += [["energy ",
-                             row.data.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
+                             row.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
 
         for line in atoms_prep_list:
             for item in line:
@@ -64,12 +65,13 @@ def rndAseDb2Runner(db):
                 for position, symbol, charge, forces in zip(
                     (np.array(row.positions) * ANG2BOHR).tolist(),
                     row.symbols,
-                    row.data.charges,
+                    row.initial_charges,
+                    #  row.charges,
                     #  chgarges_list,
-                    (np.array(row.data.forces) * (EV2HARTREE/ANG2BOHR)).tolist())]
+                    (np.array(row.forces) * (EV2HARTREE/ANG2BOHR)).tolist())]
 
             atoms_prep_list += [["energy ",
-                                 row.data.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
+                                 row.energy * EV2HARTREE], ["charge 0.0"], ["end"]]
 
             for line in atoms_prep_list:
                 for item in line:
