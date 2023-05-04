@@ -94,16 +94,18 @@ parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-trj_path", type=str, required=True, help="..")
 parser.add_argument("-skip", type=int, required=True, help="..")
 parser.add_argument("-interval", type=int, required=True, help="..")
+parser.add_argument("-cut", type=int, required=True, help="..")
 #  parser.add_argument("-skip", type=int, required=False, default=0, help="..")
 parser.add_argument("-IDX", type=int, required=True, default=1, help="..")
 args = parser.parse_args()
 
 skip = args.skip
+cut = args.cut
 interval = args.interval
 idx = args.IDX
 
 atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
-index = slice(skip, -1, interval)
+index = slice(skip, cut, interval)
 lammps_trj = read(args.trj_path, format="lammps-dump-text", index=index, parallel=True)
 
 
@@ -115,7 +117,7 @@ cwd = os.getcwd()
 
 # set VASP calc objects
 calc = Vasp()
-nsw = 0
+nsw = 100
 setVaspCalculator(calc)
 
 lammps_atoms = lammps_trj[idx]
@@ -128,9 +130,9 @@ atoms.calc = calc
 energy = atoms.get_potential_energy()
 
 
-write(f"../opt_{n_frame}.cif", atoms)
+write(f"../../opt_{n_frame}.cif", atoms)
 
-opt_fl = open(f"../opt_energies.csv", "a")
+opt_fl = open(f"../../opt_energies.csv", "a")
 print(f"n_frame,{energy}", file=opt_fl, flush=True)
 opt_fl.close()
 
