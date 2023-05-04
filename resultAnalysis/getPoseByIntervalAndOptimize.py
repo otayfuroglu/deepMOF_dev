@@ -98,23 +98,6 @@ parser.add_argument("-interval", type=int, required=True, help="..")
 parser.add_argument("-IDX", type=int, required=True, default=1, help="..")
 args = parser.parse_args()
 
-#  df = pd.read_csv(args.csv_path)
-#
-#  coord_type = args.coord_type
-#  if coord_type == "polymeric":
-#      df = df.loc[df["CoordNum"] > 5.9].reset_index()
-#      f_idx = int(len(df)/25) * args.IDX  # to select homojenuosly
-#      idx = int(df["Frames"][f_idx].split("_")[-1])
-#      coord_num = df["CoordNum"][f_idx]
-#  elif coord_type == "isolated":
-#      df = df.loc[df["CoordNum"] < 4.0].reset_index()
-#      f_idx = int(len(df)/25) * args.IDX  # to select homojenuosly
-#      idx = int(df["Frames"][f_idx].split("_")[-1])
-#      coord_num = df["CoordNum"][f_idx]
-#  else:
-#      print("Enter coord_type correctly")
-#      quit(1)
-
 skip = args.skip
 interval = args.interval
 idx = args.IDX
@@ -123,21 +106,16 @@ atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 index = slice(skip, -1, interval)
 lammps_trj = read(args.trj_path, format="lammps-dump-text", index=index, parallel=True)
 
-#  fl = open(f"{coord_type}_coord_nums.csv", "a")
-#  print(f"{coord_type}_{idx},{coord_num}", file=fl, flush=True)
-#  fl.close()
 
-#  opt_fl = open(f"opt_{coord_type}_coord_nums.csv", "a")
 n_frame = skip + idx * interval
 WORKS_DIR = f"selectedTrasitionStater/vasp_calc/{n_frame}"
-#  Path(f"{selected_dir}").mkdir(parents=True, exist_ok=True)
 Path(WORKS_DIR).mkdir(parents=True, exist_ok=True)
 
 cwd = os.getcwd()
 
 # set VASP calc objects
 calc = Vasp()
-nsw = 100
+nsw = 0
 setVaspCalculator(calc)
 
 lammps_atoms = lammps_trj[idx]
@@ -147,66 +125,16 @@ atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
 os.chdir(WORKS_DIR)
 atoms.pbc = [1, 1, 1]
 atoms.calc = calc
-atoms.get_potential_energy()
+energy = atoms.get_potential_energy()
 
-#  from mdAnalysisLammpsTrjCalcCoordNum import get_coord_num
-#
-#  nn = CrystalNN(search_cutoff=12)
-#
-#  Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
-#  center_atom_i = Al_index[0]
-#
-#  opt_coord_num = get_coord_num(nn, atoms, center_atom_i, replica=1)
-#  if opt_coord_num <= 1:
-#      opt_coord_num = get_coord_num(nn, atoms, center_atom_i, replica=2)
-
-os.chdir(cwd)
 
 write(f"../opt_{n_frame}.cif", atoms)
-#  print(f"opt_{coord_type}_{idx},{opt_coord_num}", file=opt_fl, flush=True)
-#  opt_fl.close()
 
+opt_fl = open(f"../opt_energies.csv", "a")
+print(f"n_frame,{energy}", file=opt_fl, flush=True)
+opt_fl.close()
 
-#  for i, lammps_atoms in enumerate(lammps_trj):
-#      atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
-#      #  Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
-#
-#
-#      #  fl_name = "test"
-#      #  write(f"{fl_name}.cif", atoms)
-#      #  struc = Structure.from_file(f"{fl_name}.cif") #read in CIF as Pymatgen Structure
-#      #  struc.make_supercell([2, 2, 2])
-#      coord_num = get_coord_num(nn, atoms, center_atom_i)
-#      #  print(coord_num)
-#
-#      if k <= 20 and coord_num > 5.4:
-#          print(f"polymeric_{i},{coord_num}", file=fl)
-#          write(f"./selectedByCoordNum/polymeric_{i}.cif", atoms)
-#
-#          os.chdir("vasp_calc")
-#          atoms.pbc = [1, 1, 1]
-#          atoms.calc = calc
-#          atoms.get_potential_energy()
-#          os.chdir(cwd)
-#
-#          coord_num = get_coord_num(nn, atoms, center_atom_i)
-#          print(f"opt_polymeric_{i},{coord_num}", file=opt_fl)
-#          k += 1
-#      elif l <= 20 and coord_num < 4.5:
-#          print(f"isolated_{i},{coord_num}", file=fl)
-#          write(f"./selectedByCoordNum/isolated_{i}.cif", atoms)
-#
-#          os.chdir("vasp_calc")
-#          atoms.pbc = [1, 1, 1]
-#          atoms.calc = calc
-#          atoms.get_potential_energy()
-#          os.chdir(cwd)
-#
-#          coord_num = get_coord_num(nn, atoms, center_atom_i)
-#          print(f"opt_isolated_{i},{coord_num}", file=opt_fl)
-#          l += 1
-#
-#      if k == 20 and l == 20:
-#          break
+#  os.chdir(cwd)
+
 
 
