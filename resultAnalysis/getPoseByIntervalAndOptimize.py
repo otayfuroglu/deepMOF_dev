@@ -137,7 +137,7 @@ cwd = os.getcwd()
 
 # set VASP calc objects
 calc = Vasp()
-nsw = 1
+nsw = 100
 setVaspCalculator(calc)
 
 lammps_atoms = lammps_trj[idx]
