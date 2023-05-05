@@ -110,33 +110,33 @@ lammps_trj = read(args.trj_path, format="lammps-dump-text", index=index, paralle
 
 
 n_frame = skip + idx * interval
-WORKS_DIR = f"selectedTrasitionStater/vasp_calc/{n_frame}"
-Path(WORKS_DIR).mkdir(parents=True, exist_ok=True)
+WORKS_DIR = f"selectedTrasitionState/vasp_calc/{n_frame}"
 
-cwd = os.getcwd()
+if not os.path.exists(WORKS_DIR):
+    Path(WORKS_DIR).mkdir(parents=True, exist_ok=True)
+    cwd = os.getcwd()
 
-# set VASP calc objects
-calc = Vasp()
-nsw = 100
-setVaspCalculator(calc)
+    # set VASP calc objects
+    calc = Vasp()
+    nsw = 100
+    setVaspCalculator(calc)
 
-lammps_atoms = lammps_trj[idx]
-atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
-#  write(f"./{selected_dir}/{coord_type}_{idx}.cif", atoms)
+    lammps_atoms = lammps_trj[idx]
+    atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
+    #  write(f"./{selected_dir}/{coord_type}_{idx}.cif", atoms)
 
-os.chdir(WORKS_DIR)
-atoms.pbc = [1, 1, 1]
-atoms.calc = calc
-energy = atoms.get_potential_energy()
+    os.chdir(WORKS_DIR)
+    atoms.pbc = [1, 1, 1]
+    atoms.calc = calc
+    energy = atoms.get_potential_energy()
 
 
-write(f"../../opt_{n_frame}.cif", atoms)
+    write(f"../../opt_{n_frame}.cif", atoms)
 
-opt_fl = open(f"../../opt_energies.csv", "a")
-print(f"n_frame,{energy}", file=opt_fl, flush=True)
-opt_fl.close()
+    opt_fl = open(f"../../opt_energies.csv", "a")
+    print(f"n_frame,{energy}", file=opt_fl, flush=True)
+    opt_fl.close()
 
-#  os.chdir(cwd)
-
+    #  os.chdir(cwd)
 
 
