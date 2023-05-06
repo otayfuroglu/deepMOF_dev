@@ -134,7 +134,7 @@ if not os.path.exists(WORKS_DIR):
     write(f"../../opt_{n_frame}.cif", atoms)
 
     opt_fl = open(f"../../opt_energies.csv", "a")
-    print(f"n_frame,{energy}", file=opt_fl, flush=True)
+    print(f"frame_{n_frame},{energy}", file=opt_fl, flush=True)
     opt_fl.close()
 
     #  os.chdir(cwd)
