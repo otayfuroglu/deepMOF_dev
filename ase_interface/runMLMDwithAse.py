@@ -10,6 +10,7 @@ from ase.optimize import BFGS, LBFGS, GPMin, QuasiNewton
 import time
 import numpy as np
 import os, shutil
+import argparse
 #  import tqdm
 
 def getWorksDir(calc_name):
@@ -22,10 +23,9 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def run(file_name, molecule_path, calc_type, temp, cell):
+def run(molecule_path, calc_type, temp, replica):
 
-    file_base = file_name.split(".")[0]
-    name = file_base + "_%s_%sK" % (calc_type, temp)
+    name = "%s_%sK" % (calc_type, temp)
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
@@ -34,16 +34,14 @@ def run(file_name, molecule_path, calc_type, temp, cell):
 
     WORKS_DIR = getWorksDir(RESULT_DIR + f"/ase_worksdir/{name}")
 
-    os.chdir(WORKS_DIR)
-
     calculation = AseCalculations(WORKS_DIR)
     calculation.setCalcName(name)
 
     calculation.load_molecule_fromFile(molecule_path)
-    P = [[0, 0, -cell], [0, -cell, 0], [-cell, 0, 0]]
+    P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
     calculation.makeSupercell(P)
 
-    if calc_type.lower() in ["schnetpack", "ani"]:
+    if calc_type.lower() in ["schnetpack", "ani", "nequip"]:
         import torch
         # in case multiprocesses, global device variable rise CUDA spawn error.
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -55,7 +53,7 @@ def run(file_name, molecule_path, calc_type, temp, cell):
         from schnetpack.utils import load_model
         import schnetpack
 
-        model_path = os.path.join(args.MODEL_DIR, "best_model")
+        #  model_path = os.path.join(args.MODEL_DIR, "best_model")
         model_schnet = load_model(model_path, map_location=device)
         if "stress" in properties:
             print("Stress calculations are active")
@@ -67,9 +65,18 @@ def run(file_name, molecule_path, calc_type, temp, cell):
             environment_provider=AseEnvironmentProvider(cutoff=5.5),
             device=device,
         )
+
     elif calc_type == "ani":
         calculation.setAniCalculator(model_type="ani2x", device=device, dispCorrection=None)
 
+    elif calc_type == "nequip":
+        calculation.setNequipCalculator(model_path, device)
+
+    temperature_K = None
+    if md_type == "npt":
+        temperature_K = temp
+
+    os.chdir(WORKS_DIR)
     calculation.init_md(
       name=name,
       time_step=0.5,
@@ -77,7 +84,7 @@ def run(file_name, molecule_path, calc_type, temp, cell):
       # temp_bath should be None for NVE and NPT
       temp_bath=temp,
       # temperature_K for NPT
-      temperature_K=temp,
+      temperature_K=temperature_K,
       interval=50,
     )
 
@@ -98,68 +105,56 @@ def run(file_name, molecule_path, calc_type, temp, cell):
     #      calculation.run_md(5000)
 
 
-def p_run(idxs):
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(idxs % 2)
-
-    #  db_path = os.path.join(DB_DIR, "nonEquGeometriesEnergyForcesWithORCAFromMD.db")
-    #data = AtomsData(path_to_db)
-    #db_atoms = data.get_atoms(0)
-
-    if n_file > 1:
-        file_name = file_names[idxs]
-        temp = temp_list[0]
-    else:
-        file_name = file_names[0]
-        temp = temp_list[idxs]
-
-    molecule_path = os.path.join(MOL_DIR, file_name)
-    run(file_name, molecule_path, calc_type, temp, cell)
+#  def p_run(idxs):
+#      os.environ["CUDA_VISIBLE_DEVICES"] = str(idxs % 2)
+#
+#      #  db_path = os.path.join(DB_DIR, "nonEquGeometriesEnergyForcesWithORCAFromMD.db")
+#      #data = AtomsData(path_to_db)
+#      #db_atoms = data.get_atoms(0)
+#
+#      if n_file > 1:
+#          file_name = file_names[idxs]
+#          temp = temp_list[0]
+#      else:
+#          file_name = file_names[0]
+#          temp = temp_list[idxs]
+#
+#      molecule_path = os.path.join(MOL_DIR, file_name)
+#      run(file_name, molecule_path, calc_type, temp, replica)
 
 
 if __name__ == "__main__":
-    from multiprocessing import Pool
-    import argparse
+    #  from multiprocessing import Pool
 
     parser = argparse.ArgumentParser(description="Give something ...")
-    parser.add_argument("-calc_type", "--calc_type",
-                        type=str, required=True,
-                        help="..")
-    parser.add_argument("-temp_list", "--temp_list", nargs='+',
-                       default=[], type=int)
-    parser.add_argument("-cell", "--cell",
-                        type=int, required=True,
-                        help="..")
-    parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
-                        type=str, required=True,
-                        help="..")
-    parser.add_argument("-BASE_DIR", "--BASE_DIR",
-                        type=str, required=True,
-                        help="..")
-    parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
-                        type=str, required=True,
-                        help="..")
-    parser.add_argument("-MOL_DIR", "--MOL_DIR",
-                        type=str, required=True,
-                        help="..")
+    parser.add_argument("-calc_type", type=str, required=True, help="..")
+    parser.add_argument("-md_type", type=str, required=True, help="..")
+    parser.add_argument("-temp", type=int, required=True, help="..")
+    parser.add_argument("-replica", type=int, required=True, help="..")
+    parser.add_argument("-model_path", type=str, required=True, help="..")
+    parser.add_argument("-mol_path", type=str, required=True, help="..")
+    parser.add_argument("-RESULT_DIR", type=str, required=True, help="..")
     args = parser.parse_args()
 
     calc_type = args.calc_type
-    temp_list = args.temp_list
-    cell = args.cell
-    BASE_DIR = args.BASE_DIR
+    md_type = args.md_type
+    temp = args.temp
+    replica = args.replica
+    model_path = args.model_path
+    molecule_path = args.mol_path
     RESULT_DIR = args.RESULT_DIR
-    MOL_DIR = args.MOL_DIR
     properties = ["energy", "forces", "stress"]  # properties used for training
 
+    run(molecule_path, calc_type, temp, replica)
 
     #  temp_list = [100, 150]
-    file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
-    n_file = len(file_names)
-    if n_file > 1:
-        idxs = range(n_file)
-        nprocs = n_file
-    else:
-        idxs = range(len(temp_list))
-        nprocs = len(temp_list)
-    with Pool(nprocs) as pool:
-       pool.map(p_run, idxs)
+    #  file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+    #  n_file = len(file_names)
+    #  if n_file > 1:
+    #      idxs = range(n_file)
+    #      nprocs = n_file
+    #  else:
+    #      idxs = range(len(temp_list))
+    #      nprocs = len(temp_list)
+    #  with Pool(nprocs) as pool:
+    #     pool.map(p_run, idxs)
