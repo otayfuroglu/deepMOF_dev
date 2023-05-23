@@ -212,7 +212,6 @@ class AseCalculations(object):
             calculator = SumCalculator([DFTD4(method="PBE"), ani_calculator])
         self.molecule.set_calculator(calculator)
 
-
     def setN2P2Calculator(self, model_dir, best_epoch):
         import sys
         sys.path.insert(1, "/truba_scratch/yzorlu/deepMOF_dev") #TODO makeshift
@@ -221,6 +220,16 @@ class AseCalculations(object):
         calculator = n2p2Calculator(model_dir, best_epoch)
         self.molecule.set_calculator(calculator)
 
+    def setNequipCalculator(self, model_path, device="cuda"):
+        from nequip.ase import NequIPCalculator
+
+        calculator = NequIPCalculator.from_deployed_model(
+            model_path=model_path,
+            device=device,
+            #  energy_units_to_eV=args.energy_units_to_eV,
+            #  length_units_to_A=args.length_units_to_A,
+        )
+        self.molecule.set_calculator(calculator)
 
     def setQMMMcalculator(self, qm_region, qm_calcultor, mm_calcultor):
         from ase.calculators.qmmm import SimpleQMMM
