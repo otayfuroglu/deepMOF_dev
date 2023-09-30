@@ -1,5 +1,5 @@
 
-file_name = "input.data"
+file_name = "f1.data"
 with open(f"{file_name.split('.')[0]}.xyz", "w") as fl:
     lines = open(file_name).readlines()
     fl.write(f"{len(lines)-5}\n")
