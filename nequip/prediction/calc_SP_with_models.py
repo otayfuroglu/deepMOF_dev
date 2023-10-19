@@ -190,20 +190,22 @@ def getSPEneryForces(idx):
     #  calculator = NequIPCalculator.from_deployed_model(model_path=args.model_path, device=device)
 
     #  data = connect(args.data_path)
-    row = data.get(idx+1)  # +1 because of index starts 1
+    #  row = data.get(idx+1)  # +1 because of index starts 1
     file_names = "frame_%d" %idx
     #  write("test_atom_%d.xyz" %idx, mol)
-    mol = row.toatoms()
+    mol = data[idx]
     n_atoms = len(mol)
 
-    qm_energy = row.energy
-    qm_fmax = row.fmax
+    qm_energy = mol.get_potential_energy()
+    qm_forces = mol.get_forces()
+    qm_fmax = (qm_forces**2).sum(1).max()**0.5
 
     # first get fmax indices than get qm_fmax and n2p2 fmax component
-    qm_fmax_component_idx = get_fmax_idx(row.forces)
-    qm_fmax_component = get_fmax_componentFrom_idx(row.forces,
+    qm_fmax_component_idx = get_fmax_idx(qm_forces)
+    qm_fmax_component = get_fmax_componentFrom_idx(qm_forces,
                                                    qm_fmax_component_idx)
 
+    mol.pbc = True
     mol.set_calculator(calculator)
 
     n2p2_energy = mol.get_potential_energy()
@@ -216,7 +218,8 @@ def getSPEneryForces(idx):
     fmax_err = qm_fmax - n2p2_fmax
     fmax_component_err = qm_fmax_component - n2p2_fmax_component
     # calculate error for all forces on atoms
-    fall_err = torch.flatten(torch.from_numpy(row.forces) - n2p2_forces)
+    fall_err = torch.flatten(torch.from_numpy(qm_forces) - n2p2_forces)
+    #  fall_err = qm_forces.flatten - n2p2_forces.flatten
 
 
     energy_values = [file_names,
@@ -245,8 +248,8 @@ def getSPEneryForces(idx):
     df_data_fmax_component.loc[0] = fmax_component_values
 
     df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
-    df_data_fall["FileNames"] = [file_names] * len(row.forces.flatten())
-    df_data_fall["qm_SP_F_all"] = row.forces.flatten()
+    df_data_fall["FileNames"] = [file_names] * len(qm_forces.flatten())
+    df_data_fall["qm_SP_F_all"] = qm_forces.flatten()
     df_data_fall["n2p2_SP_F_all"] = n2p2_forces.flatten()
     df_data_fall["F_all_Error"] = fall_err.numpy()
 
@@ -256,10 +259,10 @@ def getSPEneryForces(idx):
     df_data_fall.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fall), mode="a", header=False, float_format='%.6f')
 
 def run():
-    n_data = len(data)
-    idxs = range(n_data)
+    #  n_data = len(data)
+    #  idxs = range(n_data)
 
-    for idx in idxs:
+    for idx in tqdm.tqdm(idxs):
         getSPEneryForces(idx)
 
 
@@ -290,7 +293,10 @@ def run_multiprocessing(func, argument_list, num_processes):
 if __name__ == "__main__":
 
     #  set_start_method('spawn')
-    data = connect(args.data_path)
+    #  data = connect(args.data_path)
+    data = read(args.data_path, index=":")
+    n_data = len(data)
+    idxs = range(n_data)
 
     calculator = NequIPCalculator.from_deployed_model(model_path=args.model_path, device=device)
 
@@ -303,37 +309,37 @@ if __name__ == "__main__":
         "n2p2_SP_energiesPerAtom",
         "ErrorPerAtom",
     ]
-    
+
     column_names_fmax = [
         "FileNames",
         "qm_SP_fmax",
         "n2p2_SP_fmax",
         "Error",
     ]
-    
+
     column_names_fmax_component = [
         "FileNames",
         "qm_SP_fmax_component",
         "n2p2_SP_fmax_component",
         "Error",
     ]
-    
+
     csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
     csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
     csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
     csv_file_name_fall = "qm_sch_SP_FAll_%s.csv" %(mode)
-    
+
     df_data_energy = pd.DataFrame(columns=column_names_energy)
     df_data_fmax = pd.DataFrame(columns=column_names_fmax)
     df_data_fmax_component = pd.DataFrame(columns=column_names_fmax_component)
     df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
-    
+
     df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), float_format='%.6f')
     df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), float_format='%.6f')
     df_data_fall.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fall), float_format='%.6f')
 
-
+    #  run_multiprocessing(func=getSPEneryForces, argument_list=idxs, num_processes=arg.nprocs)
     #  run_multiproc(args.nprocs)
     run()
 
