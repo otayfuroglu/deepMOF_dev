@@ -5,6 +5,7 @@ from ase.geometry.analysis import Analysis
 
 from matplotlib import pyplot as plt
 import numpy as np
+import pandas as pd
 import argparse
 
 import seaborn as sns
@@ -52,7 +53,7 @@ def plot_loading(num_gases_list):
 elements_list = [("O", "C")]
 
 #  elements = ("Zn", "Zn")
-index = slice(0, 3900, 1)
+index = slice(0, 2500, 1)
 #  index = slice(0, -1, 1)
 
 a1, a2, a3, a4 = 4703, 4798, 4845, 4892
@@ -84,7 +85,7 @@ BASE_DIR = "/Users/omert/Desktop/deepMOF_dev/n2p2/works/runMD/"
 
 properties_mean = {}
 for prefix in ["", "classic"]:
-    lammps_trj_path = f"{BASE_DIR}/{prefix}FlexAdorpsionCH4onIRMOF10inNPT_300K/IRMOF10_CH4_100Bar_300K.lammpstrj"
+    lammps_trj_path = f"{BASE_DIR}/{prefix}flexAdorpsionH2onIRMOF10inNPT_77K/IRMOF10_H2_100Bar_77K.lammpstrj"
     #  lammps_trj_path = f"{BASE_DIR}/{prefix}FlexAdorpsionCH4onIRMOF10inNPT_300K/test.lammpstrj"
 
     if prefix == "classic":
@@ -124,7 +125,6 @@ for prefix in ["", "classic"]:
     properties_mean[f"angles_{prefix}"] = np.mean(np.array(angles).reshape(-1, mv_avg), axis=1)
     properties_mean[f"n_gases_{prefix}"] = np.mean(np.array(n_gases).reshape(-1, mv_avg), axis=1)
 
-import pandas as pd
 
 df = pd.DataFrame()
 for item in ["dihedeals", "distances", "angles", "n_gases"]:
