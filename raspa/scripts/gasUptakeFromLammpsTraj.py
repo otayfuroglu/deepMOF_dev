@@ -48,7 +48,7 @@ def getUptake(cif_file_path, pressure, helium_void_fraction):
         temperature=temperature, # in Kelvin
         pressure=pressure*1e5, # in Pascal
         helium_void_fraction=helium_void_fraction,
-        unit_cells=(1,1,1),
+        unit_cells=(2,2,2),
         #  unit_cells=(2,2,2),
         framework_name="streamed", # if not streaming, this will load the structure at `$RASPA_DIR/share/raspa/structures`.
         cycles=1000,
@@ -99,8 +99,18 @@ class NoDaemonProcess(multiprocessing.Process):
         pass
     daemon = property(_get_daemon, _set_daemon)
 
-class MyPool(multiprocessing.pool.Pool):
+#  class MyPool(multiprocessing.pool.Pool):
+#      Process = NoDaemonProcess
+
+class NoDaemonContext(type(multiprocessing.get_context())):
     Process = NoDaemonProcess
+
+# We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+# because the latter is only a wrapper function, not a proper class.
+class MyPool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super(MyPool, self).__init__(*args, **kwargs)
 
 
 if "__main__" == __name__:
@@ -109,7 +119,7 @@ if "__main__" == __name__:
     BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev/"
     mof_num = "1"
     temperature = 77
-    descrip_word = "CrytalGen_NNPStructure_2x2x2_mostFreqConf"
+    descrip_word = "CrytalGen_expStructure_2x2x2_v2"
     molecule = "H2"
     labels = [
         "Pressure", "AbsoluteUptake (mg/g)", "AbsoluteUptakes (cm^3 (STP)/cm^3)",
@@ -130,19 +140,24 @@ if "__main__" == __name__:
     idx = 750
     #  atoms = ase_traj[idx]
     #  cif_file_path = f"IRMOF{mof_num}_1Bar_298K_i{idx}Classic.cif"
-    cif_file_path = "./IRMOF1_1Bar_300K_represent.cif"
+    cif_file_path = f"./filled_IRMOF{mof_num}.cif"
+    #  cif_file_path = "./IRMOF1_1Bar_300K_represent.cif"
     #  write(cif_file_path, atoms)
 
     helium_void_fraction = get_helium_void_fraction(cif_file_path)
 
-    pressures = [1, 10, 20, 35, 50, 65, 80, 100, 120, 150, 180]
+    pressures = [1, 10, 20, 35, 50, 65, 80, 100]
 
-    for pressure in pressures:
-        prun(pressure)
+    #  for pressure in pressures:
+    #      prun(pressure)
 
-    #  pool = MyPool(processes=len(pressures))
+    pool = MyPool(processes=len(pressures))
+    pool.map(prun, pressures)
 
-    #  result_list_tqdm = []
+    result_list_tqdm = []
     #  # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
     #  for result in tqdm.tqdm(pool.imap_unordered(func=prun, iterable=pressures), total=len(pressures)):
     #      result_list_tqdm.append(result)
+
+
+
