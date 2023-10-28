@@ -22,7 +22,7 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def run(file_name, molecule_path, calc_type, run_type, temp, cell):
+def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
 
     file_base = file_name.split(".")[0]
     name = file_base + "_%s_%s_%sK" % (calc_type, run_type, temp)
@@ -84,6 +84,9 @@ def run(file_name, molecule_path, calc_type, run_type, temp, cell):
     elif calc_type.lower() == "n2p2":
         calculation.setN2P2Calculator(args.MODEL_DIR, best_epoch=66)
 
+
+    elif calc_type.lower() == "n2p2":
+        calculation.setNequipCalculator(args.MODEL_DIR, device="cuda")
     # set calculation type
     if run_type.lower() == "opt":
         calculation.optimize()
@@ -194,9 +197,6 @@ if __name__ == "__main__":
     parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
                         type=str, required=False,
                         help="..")
-    parser.add_argument("-BASE_DIR", "--BASE_DIR",
-                        type=str, required=True,
-                        help="..")
     parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                         type=str, required=True,
                         help="..")
@@ -212,25 +212,29 @@ if __name__ == "__main__":
     calc_type = args.calc_type
     temp_list = args.temp_list
     cell = args.cell
-    BASE_DIR = args.BASE_DIR
     RESULT_DIR = args.RESULT_DIR
     MOL_DIR = args.MOL_DIR
     file_name = args.file_name
     properties = ["energy", "forces", "stress"]  # properties used for training
 
 
-    #  temp_list = [100, 150]
-    if file_name:
-        file_names = [file_name]
-    else:
-        file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+    if calc_type.lower() == "nequip":
+        molecule_path = read(MOL_DIR)
+        run(file_name, molecule_path, calc_type, run_type, temp, cell)
 
-    n_file = len(file_names)
-    if n_file > 1:
-        idxs = range(n_file)
-        nprocs = n_file
     else:
-        idxs = range(len(temp_list))
-        nprocs = len(temp_list)
-    with Pool(nprocs) as pool:
-       pool.map(p_run, idxs)
+        #  temp_list = [100, 150]
+        if file_name:
+            file_names = [file_name]
+        else:
+            file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
+
+        n_file = len(file_names)
+        if n_file > 1:
+            idxs = range(n_file)
+            nprocs = n_file
+        else:
+            idxs = range(len(temp_list))
+            nprocs = len(temp_list)
+        with Pool(nprocs) as pool:
+           pool.map(p_run, idxs)
