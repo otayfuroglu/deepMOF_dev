@@ -80,11 +80,11 @@ mv_avg = 1
 #  lammps_trj_path = args.trj_path
 
 
-BASE_DIR = "/Users/omert/Desktop/deepMOF_dev/n2p2/works/runMD/"
+BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev/n2p2/works/runMD"
 
 properties_mean = {}
 for prefix in ["", "classic"]:
-    lammps_trj_path = f"{BASE_DIR}/{prefix}FlexAdorpsionCH4onIRMOF10inNPT_300K/IRMOF10_CH4_100Bar_300K.lammpstrj"
+    lammps_trj_path = f"{BASE_DIR}/{prefix}flexAdorpsionH2onIRMOF10inNPT_77K/IRMOF10_H2_100Bar_77K.lammpstrj"
     #  lammps_trj_path = f"{BASE_DIR}/{prefix}FlexAdorpsionCH4onIRMOF10inNPT_300K/test.lammpstrj"
 
     if prefix == "classic":
