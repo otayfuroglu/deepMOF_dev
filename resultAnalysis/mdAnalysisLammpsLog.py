@@ -33,13 +33,20 @@ def plot_pot_energy(data):
     # Get the time axis
     time_axis = data["Step"] * step_size
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(time_axis, po_energy, label='Energy')
-    plt.plot(time_axis, po_energy_mean, label='Energy (avg.)')
-    plt.ylabel('Energy (eV)')
-    plt.xlabel('Time (fs)')
-    plt.legend()
-    plt.tight_layout()
+
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot(111)
+
+    # for classic numbering format
+    ax.yaxis.get_major_formatter().set_scientific(False)
+    ax.yaxis.get_major_formatter().set_useOffset(False)
+
+    ax.plot(time_axis, po_energy, label='Energy')
+    #  ax.plot(time_axis, po_energy_mean, label='Energy (avg.)')
+    ax.set_ylabel('Energy (eV)')
+    ax.set_xlabel('Time (fs)')
+    ax.legend()
+    #  plt.tight_layout()
     plt.savefig("%s_pot_energy.png" %log_base)
     #  plt.show()
 
@@ -128,7 +135,7 @@ def plot_volume(data):
 
     plt.figure(figsize=(8, 4))
     plt.plot(time_axis, volume, label=r"Volume")
-    plt.plot(time_axis, volume_mean, label=r"Volume (avg.)")
+    #  plt.plot(time_axis, volume_mean, label=r"Volume (avg.)")
     plt.ylabel(r"Volume ($\mathring{A}^3$)")
     plt.xlabel('t (fs)')
     plt.legend()
@@ -148,12 +155,15 @@ for label in log.get_keywords():
     data[label] = log.get(label)
 #  df.to_csv("test.csv")
 
-plot_energy(data)
-plot_pot_energy(data)
 n_frame_atoms = data["Atoms"][0]
 initial_skip = args.skip
+
 #  print(len(data))
 data = data[initial_skip:]
+plot_energy(data)
+plot_pot_energy(data)
+
+#  print(len(data))
 plot_loading(data, n_frame_atoms)
 plot_temperature(data)
 plot_volume(data)
