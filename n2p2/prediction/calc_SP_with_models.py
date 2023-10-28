@@ -34,6 +34,12 @@ parser.add_argument("-data_path", "--data_path",
 parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
                     type=str, required=True,
                     help="..")
+parser.add_argument("-energy_u", "--energy_u",
+                    type=str, required=True,
+                    help="..")
+parser.add_argument("-length_u", "--length_u",
+                    type=str, required=True,
+                    help="..")
 parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                     type=str, required=True,
                     help="..")
@@ -191,35 +197,47 @@ def getSPEneryForces(idx):
         os.mkdir(proc_dir)
     os.chdir(proc_dir)
 
-    calculator = n2p2Calculator(model_dir=args.MODEL_DIR, best_epoch=args.best_epoch)
 
-    row = data.get(idx+1)  # +1 because of index starts 1
-    file_names = row.name
+    #  qm_= data.get(idx+1)  # +1 because of index starts 1
+    #  file_names = row.name
     #  write("test_atom_%d.xyz" %idx, mol)
-    mol = row.toatoms()
+    file_names = f"Frame_{idx}"
+    #  mol = row.toatoms()
+    mol = data[idx]
     n_atoms = len(mol)
 
-    qm_energy = row.energy
-    qm_fmax = row.fmax
+    qm_energy = mol.get_potential_energy()
+    qm_forces = mol.get_forces()
+    qm_fmax = (qm_forces**2).sum(1).max()**0.5
 
     # first get fmax indices than get qm_fmax and n2p2 fmax component
-    qm_fmax_component_idx = get_fmax_idx(row.forces)
-    qm_fmax_component = get_fmax_componentFrom_idx(row.forces,
+    qm_fmax_component_idx = get_fmax_idx(qm_forces)
+    qm_fmax_component = get_fmax_componentFrom_idx(qm_forces,
                                                    qm_fmax_component_idx)
 
-    mol.set_calculator(calculator)
+    try:
+        calculator = n2p2Calculator(model_dir=MODEL_DIR,
+                                    best_epoch=args.best_epoch,
+                                    energy_units=args.energy_u,
+                                    length_units=args.length_u,
+                                   )
 
-    n2p2_energy = mol.get_potential_energy()
-    n2p2_forces = mol.get_forces()
-    n2p2_fmax = (n2p2_forces**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
-    n2p2_fmax_component = get_fmax_componentFrom_idx(n2p2_forces,
+        mol.pbc = True
+        mol.set_calculator(calculator)
+
+        n2p2_energy = mol.get_potential_energy()
+        n2p2_forces = mol.get_forces()
+        n2p2_fmax = (n2p2_forces**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
+        n2p2_fmax_component = get_fmax_componentFrom_idx(n2p2_forces,
                                                            qm_fmax_component_idx)
+    except:
+        return
 
     energy_err = qm_energy - n2p2_energy
     fmax_err = qm_fmax - n2p2_fmax
     fmax_component_err = qm_fmax_component - n2p2_fmax_component
     # calculate error for all forces on atoms
-    fall_err = torch.flatten(torch.from_numpy(row.forces) - n2p2_forces)
+    fall_err = torch.flatten(torch.from_numpy(qm_forces) - n2p2_forces)
 
 
     energy_values = [file_names,
@@ -248,8 +266,8 @@ def getSPEneryForces(idx):
     df_data_fmax_component.loc[0] = fmax_component_values
 
     df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
-    df_data_fall["FileNames"] = [file_names] * len(row.forces.flatten())
-    df_data_fall["qm_SP_F_all"] = row.forces.flatten()
+    df_data_fall["FileNames"] = [file_names] * len(qm_forces.flatten())
+    df_data_fall["qm_SP_F_all"] = qm_forces.flatten()
     df_data_fall["n2p2_SP_F_all"] = n2p2_forces.flatten()
     df_data_fall["F_all_Error"] = fall_err.numpy()
 
@@ -308,17 +326,18 @@ def idxsFromN2p2Data(data, name_list):
 def run_multiproc(n_procs):
     if mode == "train" or mode == "test":
 
-        os.system(f"cp {MODEL_DIR}/{mode}.data {RESULT_DIR}")
-        # get name list from file with awk
-        out = subprocess.check_output("awk '{for(i=1;i<=NF;i++)\
-                                      if ($i==\"comment\") print $(i+1)}'\
-                                      %s/%s.data" %(RESULT_DIR, mode),
-                                      shell=True)
-        print(f"collection of {mode} data from ase .db file by idxs")
-        # split for "\n" (new line key)
-        name_list = str(out).split("\\n")
-        idxs = idxsFromN2p2Data(data, name_list)
-        #  idxs = range(n_data)
+        #  os.system(f"cp {MODEL_DIR}/{mode}.data {RESULT_DIR}")
+        #  # get name list from file with awk
+        #  out = subprocess.check_output("awk '{for(i=1;i<=NF;i++)\
+        #                                if ($i==\"comment\") print $(i+1)}'\
+        #                                %s/%s.data" %(RESULT_DIR, mode),
+        #                                shell=True)
+        #  print(f"collection of {mode} data from ase .db file by idxs")
+        #  # split for "\n" (new line key)
+        #  name_list = str(out).split("\\n")
+        #  idxs = idxsFromN2p2Data(data, name_list)
+        n_data = len(data)
+        idxs = range(n_data)
         #  idxs = range(200)
         print("Nuber of %s data points: %d" %(mode, len(idxs)))
         #  result_list_tqdm = []
@@ -350,7 +369,8 @@ def run_multiprocessing(func, argument_list, num_processes):
 if __name__ == "__main__":
 
     if mode == "train" or mode == "test":
-        data = connect(args.data_path)
+        #  data = connect(args.data_path)
+        data = read(args.data_path, index=":")
 
         column_names_energy = [
             "FileNames",
