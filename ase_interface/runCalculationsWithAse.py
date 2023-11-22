@@ -85,7 +85,7 @@ def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
         calculation.setN2P2Calculator(args.MODEL_DIR, best_epoch=66)
 
 
-    elif calc_type.lower() == "n2p2":
+    elif calc_type.lower() == "nequip":
         calculation.setNequipCalculator(args.MODEL_DIR, device="cuda")
     # set calculation type
     if run_type.lower() == "opt":
