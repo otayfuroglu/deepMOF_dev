@@ -1,3 +1,4 @@
+#
 from ase.io import read
 import tqdm
 import argparse
@@ -36,7 +37,7 @@ def randAseDB2n2p2(atoms_list, N):
                 symbol, 0.0, 0.0,
                 forces[0], forces[1], forces[2])]
                 for position, symbol, forces in zip(
-                    atoms.get_positions().tolist(), atoms.get_chemical_symbols(), atoms.get_forces().tolist())]
+                    atoms.get_positions.tolist(), atoms.get_chemical_symbols(), atoms.get_forces().tolist())]
             atoms_prep_list += [["energy ", atoms.get_potential_energy()], ["charge 0.0"], ["end"]]
             for line in atoms_prep_list:
                 for item in line:
