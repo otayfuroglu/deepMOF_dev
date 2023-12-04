@@ -186,7 +186,7 @@ if __name__ == "__main__":
     df = pd.DataFrame()
     df["Frames"] = frames
     df["CoordNum"] = coord_nums
-    df.to_csv("coord_nums.csv")
+    df.to_csv(f"{lammps_trj_path.split('/')[-1].split('.')[0]}.csv")
 
     #  import matplotlib.pyplot as plt
     #  plt.plot(range(len(coord_nums)), np.array(coord_nums))
