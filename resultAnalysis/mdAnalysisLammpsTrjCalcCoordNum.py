@@ -22,6 +22,7 @@ import numpy as np
 from multiprocessing import Pool
 import itertools
 import argparse
+import shutil
 #
 
 
@@ -124,7 +125,7 @@ def task(idx):
     lammps_atoms = lammps_trj[idx]
     atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
     Al_index = [atom.index for atom in atoms if atom.symbol == "Al"]
-    center_atom_i = Al_index[0]
+    center_atom_i = Al_index[args.atom_index]
 
 
     coord_num = get_coord_num(nn, atoms, center_atom_i, replica=1)
@@ -133,6 +134,7 @@ def task(idx):
     elif coord_num <=1:
         coord_num = get_coord_num(nn, atoms, center_atom_i, replica=2)
     os.chdir(cwd)
+    shutil.rmtree(f"tmp/task_{idx}")
     return f"frame_{idx*args.interval}", coord_num
     #  print(coord_num)
 
@@ -152,6 +154,7 @@ def task(idx):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Give something ...")
     parser.add_argument("-trj_path", type=str, required=True, help="..")
+    parser.add_argument("-atom_index", type=int, required=True,help="index of center of atom")
     parser.add_argument("-interval", type=int, required=False, default=1, help="..")
     parser.add_argument("-nproc", type=int, required=True, help="..")
     args = parser.parse_args()
