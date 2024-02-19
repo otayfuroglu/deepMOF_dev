@@ -27,5 +27,6 @@ module load PyTorch
 
 idx=$SLURM_ARRAY_TASK_ID
 
-python calcFreeEwithNequip.py -extxyz_path vasp_opt_lowest_10_polymeric_24atoms.extxyz -idx $idx 
+SCRIPT_DIR=/users/tayfurog/deepMOF_dev/nequip/prediction/
+python $SCRIPT_DIR/calcFreeEwithNequip.py -extxyz_path vasp_opt_lowest_10_polymeric_24atoms.extxyz -idx $idx 
 exit
