@@ -33,7 +33,7 @@ else:
 
 h = 0.01
 
-keyword += "_24atoms_3x3x3"
+keyword += "_24atoms_4x3x4"
 
 atoms_list = read(extxyz_path, index=":")
 

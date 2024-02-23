@@ -57,7 +57,7 @@ elif "polymeric" in extxyz_path:
 else:
     keyword = "test"
 
-keyword += "_24atoms_3x3x3"
+#  keyword += "_24atoms_4x3x4"
 
 CWD = os.getcwd()
 #  for i, atoms in enumerate(atoms_list):
@@ -74,15 +74,15 @@ WORKS_DIR.mkdir(parents=True, exist_ok=True)
 os.chdir(WORKS_DIR)
 # to call for calculation of vibiration
 
-P = [[0, 0, -3], [0, -3, 0], [-3, 0, 0]]
-atoms = make_supercell(atoms, P)
+#  P = [[0, 0, -4], [0, -3, 0], [-4, 0, 0]]
+#  atoms = make_supercell(atoms, P)
 
 atoms = getOpt(atoms, calc, name)
 
-
-#  getVib(atoms, calc)
+getVib(atoms, calc)
 
 os.chdir(CWD)
+
 write(f"nequip_opt_lowest_10_{keyword}.extxyz", atoms, append=True)
 
 
