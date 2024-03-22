@@ -53,15 +53,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Give something ...")
     #  parser.add_argument("-trj_path", type=str, required=True, help="..")
     parser.add_argument("-basedir", type=str, required=True, help="..")
-    parser.add_argument("-skip", type=int, required=False, default=1, help="..")
+    parser.add_argument("-lastframes", type=int, required=True, help="..")
     args = parser.parse_args()
     basedir = args.basedir
 
-    idxes = slice(args.skip, -1, 5)
+    idxes = slice(-args.lastframes, -1, 1)
     atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 
     fl = open(f"{basedir}/data.dat", "w")
-    fl.write("Temp,Press,AvVol,AvCoord\n")
+    fl.write("Temp,Press,AvVol,AvMeanCoord,AvMaxCoord,AvMinCoord,AvStdCoord,\n")
 
     dirs = sorted([dir_ for dir_ in os.listdir(basedir) if "Bar" in dir_])
     for dir_ in dirs:
@@ -80,7 +80,10 @@ if __name__ == "__main__":
 
         pot_es = []
         vols = []
-        coord_nums = []
+        mean_coord_nums = []
+        max_coord_nums = []
+        min_coord_nums = []
+        std_coord_nums = []
         for i, lammps_atoms in enumerate(lammps_trj):
             atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
             #  pot_es += [atoms.get_potential_energy()]
@@ -91,16 +94,26 @@ if __name__ == "__main__":
             coordnum("tmp.ascii", "tmp.extxyz", nat, atom_symb="Al")
             atoms = read("tmp.extxyz")
             coordnums = atoms.arrays["coordn"]
-            mean_coordnum = coordnums[coordnums > 0.0].mean()
+            elem_coordnums = coordnums[coordnums > 0.0]
+            max_coordnum = elem_coordnums.max()
+            min_coordnum = elem_coordnums.min()
+            std_coordnum = elem_coordnums.std()
+            mean_coordnum = elem_coordnums.mean()
             os.remove("tmp.ascii")
             os.remove("tmp.extxyz")
 
-            coord_nums += [mean_coordnum]
+            mean_coord_nums += [mean_coordnum]
+            max_coord_nums += [max_coordnum]
+            min_coord_nums += [min_coordnum]
+            std_coord_nums += [std_coordnum]
 
 
         av_vol = sum(vols) / len_trj
-        av_coordnum = sum(coord_nums) / len_trj
+        av_mean_coordnum = sum(mean_coord_nums) / len_trj
+        av_max_coordnum = sum(max_coord_nums) / len_trj
+        av_min_coordnum = sum(min_coord_nums) / len_trj
+        av_std_coordnum = sum(std_coord_nums) / len_trj
 
-        fl.write(f"{temp},{press},{av_vol},{av_coordnum}\n")
+        fl.write(f"{temp},{press},{av_vol},{av_mean_coordnum},{av_max_coordnum},{av_min_coordnum},{av_std_coordnum}\n")
         fl.flush()
         #  break
