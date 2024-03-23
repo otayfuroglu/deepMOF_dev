@@ -97,7 +97,7 @@ if __name__ == "__main__":
         max_coord_nums = []
         min_coord_nums = []
         std_coord_nums = []
-        for i, lammps_atoms in enumerate(lammps_trj):
+        for i, lammps_atoms in tqdm.tqdm(enumerate(lammps_trj)):
             atoms = lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair)
             #  pot_es += [atoms.get_potential_energy()]
             vols += [atoms.get_volume()]
