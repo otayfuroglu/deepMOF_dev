@@ -57,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     basedir = args.basedir
 
-    idxes = slice(args.lastframes, -1, 1)
+    idxes = slice(-args.lastframes, -1, 1)
     atom_type_symbol_pair = {1:"Al", 2:"Li", 3:"H"}
 
     fl = open(f"{basedir}/data.dat", "w")
