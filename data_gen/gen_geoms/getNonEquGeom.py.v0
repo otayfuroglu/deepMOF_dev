@@ -9,8 +9,6 @@ from multiprocessing import Pool
 from itertools import product
 import os
 import tqdm
-import argparse
-
 
 """ase Atoms object; rattle
 Randomly displace atoms.
@@ -20,6 +18,17 @@ from a normal distribution of standard deviation stdev.
 For a parallel calculation, it is important to use the same seed on all processors!
 """
 
+mof_num = 10
+frag_num = 6
+BASE_DIR = "/truba_scratch/yzorlu/deepMOF/HDNNP"
+XYZ_DIR = BASE_DIR + "/prepare_data/geomFiles/IRMOFSeries/fragments_%s" %frag_num
+NON_EQU_XYZ_DIR = BASE_DIR + "/prepare_data/outOfSFGeomsIRMOFs%s" %mof_num
+
+if not os.path.exists(NON_EQU_XYZ_DIR):
+    os.mkdir(NON_EQU_XYZ_DIR)
+
+#file_bases = ["mof5_new_f2", "mof5_new_f3", "mof5_new_f4", "mof5_new_f5", "mof5_new_f6"]
+#file_bases = ["mof5_new_single", ]
 
 def scale_atoms_distence(atoms, scale_factor):
     #  atoms = atoms.copy()
@@ -49,41 +58,38 @@ def displaced_atomic_positions(atom_positions):
         if calc_displacement_atom(atom_positions - n_atom_positions) <= 0.16:
             return n_atom_positions
 
-def get_non_equ_geom(flpath):
+def get_non_equ_geom(file_name):
 
-    #  NON_EQU_XYZ_DIR = BASE_DIR = "non_equ_geoms"
-    #  if not os.path.exists(NON_EQU_XYZ_DIR):
-    #      os.mkdir(NON_EQU_XYZ_DIR)
-
-    file_name= flpath.split("/")[-1]
     file_base = file_name.replace(".xyz", "")
 
 
     scale_range = (0.96, 1.11)
-    scale_step = 0.0002
+    scale_step = 0.00007
 
     # scale atomic positions
     for i, scale_factor in enumerate(np.arange(scale_range[0], scale_range[1], scale_step)):
         # reread every scaling iteration for escape cumulative scaling
-        atoms = read(flpath)
+        atoms = read("%s/%s.xyz" %(XYZ_DIR, file_base))
         atoms = scale_atoms_distence(atoms, scale_factor)
 
         # randomlu displace atomic positions
         for atom in atoms:
             atom.position = displaced_atomic_positions(atom.position)
 
-        #  write("{}/{}_".format(NON_EQU_XYZ_DIR, file_base)+"{0:0>5}".format(i)+".xyz", atoms)
-        atoms.info["label"] = file_base + "_" + "{0:0>5}".format(i)
-        write(f"non_equ_geoms_{file_base}.extxyz", atoms, append=True)
+        write("{}/{}_".format(NON_EQU_XYZ_DIR, file_base)+"{0:0>5}".format(i)+".xyz", atoms)
 
-def main():
+def main(n_proc):
 
-    parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-flpath", type=str, required=True, help="give hdf5 file base")
-    args = parser.parse_args()
-    flpath = args.flpath
-    get_non_equ_geom(flpath)
+    #  file_names = [file_name for file_name in os.listdir(XYZ_DIR) if ".xyz" in file_name]
+    file_names = ["irmofseries%s_f%s.xyz" %(mof_num, frag_num)]
 
+    pool = Pool(processes=n_proc)
 
-main()
+    result_list_tqdm = []
+
+    # implementation of  multiprocessor in tqdm. Ref.https://leimao.github.io/blog/Python-tqdm-Multiprocessing/
+    for result in tqdm.tqdm(pool.imap_unordered(func=get_non_equ_geom, iterable=file_names), total=len(file_names)):
+        result_list_tqdm.append(result)
+
+main(80)
 
