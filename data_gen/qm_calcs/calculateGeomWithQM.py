@@ -69,12 +69,9 @@ class CaculateData():
         df_calculated_files = pd.read_csv(self.csv_name, index_col=None)
         calculated_files = df_calculated_files["FileNames"].to_list()
         if file_base in calculated_files:
-            #  print("The %s file have already calculated" %file_base)
+            print("The %s file have already calculated" %file_base)
             #  self.i += 1
             return None
-
-        # file base will be add to calculted csv file
-        self._add_calculated_file(df_calculated_files, file_base)
 
         label = "orca_%s" %file_base
         temp_files = os.listdir(os.getcwd())
@@ -108,6 +105,9 @@ class CaculateData():
         #      os.system("rm %s*" %label)
 
         write(self.out_extxyz, atoms, append=True)
+        # file base will be add to calculted csv file
+        self._add_calculated_file(df_calculated_files, file_base)
+
 
     def countAtoms(self):
         return len(self.atoms_list)
