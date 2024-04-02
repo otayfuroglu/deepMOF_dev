@@ -18,8 +18,9 @@ def extxyz2Runner(atoms_list):
     fl = open(f"input.data", "w")
     for i, atoms in enumerate(tqdm.tqdm(atoms_list)):
         atoms_prep_list = [["begin"]]
-        atoms_prep_list += [["lattice    {:15.8f}    {:15.8f}    {:15.8f}".format(
-                cell[0], cell[1], cell[2])] for cell in atoms.cell * ANG2BOHR]
+        if any(atoms.pbc):
+            atoms_prep_list += [["lattice    {:15.8f}    {:15.8f}    {:15.8f}".format(
+                    cell[0], cell[1], cell[2])] for cell in atoms.cell * ANG2BOHR]
 
         atom_template = 'atom {:15.8f} {:15.8f} {:15.8f} {:2s} {:15.8f} {:15.8f} {:15.8f} {:15.8f} {:15.8f}'
         atoms_prep_list += [[atom_template.format(
