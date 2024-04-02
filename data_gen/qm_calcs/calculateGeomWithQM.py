@@ -102,7 +102,8 @@ class CaculateData():
                 #  print(file_name, "Removed!")
 
         #      # remove all orca temp out files related to label from runGeom directory.
-        #      os.system("rm %s*" %label)
+            os.system("rm %s*" %label)
+            return None
 
         write(self.out_extxyz, atoms, append=True)
         # file base will be add to calculted csv file
