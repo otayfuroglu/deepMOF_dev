@@ -60,7 +60,7 @@ def get_non_equ_geom(flpath):
 
 
     scale_range = (0.96, 1.11)
-    scale_step = 0.0002
+    scale_step = 0.00010
 
     # scale atomic positions
     for i, scale_factor in enumerate(np.arange(scale_range[0], scale_range[1], scale_step)):
