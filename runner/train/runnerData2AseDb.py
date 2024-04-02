@@ -68,7 +68,7 @@ with open(runner_data) as lines:
             if args.outformat.lower() == "db":
                 db.write(atoms)
             elif args.outformat.lower() == "extxyz":
-                write(f"{file_base}.xyz", atoms, format='extxyz', append=True)
+                write(f"{file_base}.extxyz", atoms, format='extxyz', append=True)
             else:
                 print(f"{args.outformat} format NOT implemented")
                 quit()
