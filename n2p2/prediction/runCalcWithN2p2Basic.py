@@ -54,7 +54,7 @@ def get_fmax_componentFrom_idx(forces, fmax_component_idx):
 
 def runPredict(idx):
 
-    try:
+    #  try:
         current = current_process()
         proc_dir = RESULT_DIR + "/tmp_%s" % current._identity
         if not os.path.exists(proc_dir):
@@ -74,7 +74,8 @@ def runPredict(idx):
                                     energy_units=args.energy_u,
                                     length_units=args.length_u,
                                    )
-        atoms.pbc = True
+        if atoms.cell:
+            atoms.pbc = True
         atoms.set_calculator(calculator)
 
         #  n2p2_energy = atoms.get_potential_energy()
@@ -86,8 +87,8 @@ def runPredict(idx):
         return (idx, len(atoms), qm_energy,
                 n2p2_energy, qm_fmax_component,
                 n2p2_fmax_component, qm_forces, n2p2_forces)
-    except:
-        return None
+    #  except:
+    #      return None
 
 
 parser = argparse.ArgumentParser(description="Give something ...")
