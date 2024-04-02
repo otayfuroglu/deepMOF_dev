@@ -38,10 +38,13 @@ symbols = []
 charges = []
 forces = []
 
+pbc = False
+
 with open(runner_data) as lines:
     for line in lines:
         if "lattice" in line:
             lattice += [[float(item)*BOHR2ANG for item in line.split()[1:]]]
+            pbc = True
         if "atom" in line:
             positions += [[float(item)*BOHR2ANG for item in line.split()[1:4]]]
             symbols += [line.split()[4]]
@@ -50,7 +53,9 @@ with open(runner_data) as lines:
         if "energy" in line:
             energy = float(line.split()[-1])
         if "end" in line:
-            atoms = Atoms(symbols=symbols, positions=positions, cell=lattice)
+            atoms = Atoms(symbols=symbols, positions=positions)
+            if pbc:
+                atoms.cell=lattice
             data = {}
 
             calculator = SinglePointCalculator(atoms, energy=energy * HARTREE2EV,
