@@ -60,10 +60,10 @@ def get_non_equ_geom(flpath):
 
 
     scale_range = (0.96, 1.11)
-    scale_step = 0.00010
+    scale_step = 0.00020
 
     # scale atomic positions
-    for i, scale_factor in enumerate(np.arange(scale_range[0], scale_range[1], scale_step)):
+    for i, scale_factor in tqdm.tqdm(enumerate(np.arange(scale_range[0], scale_range[1], scale_step))):
         # reread every scaling iteration for escape cumulative scaling
         atoms = read(flpath)
         atoms = scale_atoms_distence(atoms, scale_factor)
