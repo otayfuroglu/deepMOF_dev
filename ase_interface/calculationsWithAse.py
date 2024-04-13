@@ -63,7 +63,7 @@ class AseCalculations(object):
         calculator = QuantumEspresso(
             label=name,                    # Label for calculations
             wdir="runEspresso",                   # Working directory
-            pseudo_dir="/truba/home/yzorlu/pseudo_pot/qe/all_lda_UPF_v1.5",   # Directory with pseudopotentials
+            pseudo_dir=None,   # Directory with pseudopotentials
             kpts=[2,2,2],   # K-space sampling for the SCF calculation
             xc='pz',        # Exchange functional type in the name of the pseudopotentials
             pp_type='vbc',  # Variant of the pseudopotential
@@ -214,10 +214,15 @@ class AseCalculations(object):
 
     def setN2P2Calculator(self, model_dir, best_epoch):
         import sys
-        sys.path.insert(1, "/truba_scratch/yzorlu/deepMOF_dev") #TODO makeshift
+        sys.path.insert(1, f"/truba_scratch/otayfuroglu/deepMOF_dev") #TODO makeshift
         from  n2p2.prediction.n2p2AseInterFace import n2p2Calculator
 
-        calculator = n2p2Calculator(model_dir, best_epoch)
+        calculator = n2p2Calculator(
+            model_dir,
+            best_epoch,
+            energy_units="Hartree",
+            length_units="Bohr",
+        )
         self.molecule.set_calculator(calculator)
 
     def setNequipCalculator(self, model_path, device="cuda"):
@@ -297,6 +302,9 @@ class AseCalculations(object):
 
     def load_molecule_fromAseatoms(self, ase_atoms):
         self.molecule = ase_atoms
+
+    #  def set_pbc(self, pbc):
+    #      self.molecule = pbc
 
     def makeSupercell(self, P):
         from ase.build import make_supercell

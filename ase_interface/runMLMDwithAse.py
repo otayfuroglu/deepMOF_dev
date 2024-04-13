@@ -16,9 +16,8 @@ import argparse
 def getWorksDir(calc_name):
 
     WORKS_DIR = calc_name
-    if os.path.exists(WORKS_DIR):
-        shutil.rmtree(WORKS_DIR)
-    os.mkdir(WORKS_DIR)
+    if not os.path.exists(WORKS_DIR):
+        os.mkdir(WORKS_DIR)
 
     return WORKS_DIR
 
@@ -29,17 +28,20 @@ def run(molecule_path, calc_type, temp, replica):
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
-    if not os.path.exists("ase_worksdir"):
-        os.mkdir("ase_worksdir")
+    #  if not os.path.exists("ase_worksdir"):
+        #  os.mkdir("ase_worksdir")
 
-    WORKS_DIR = getWorksDir(RESULT_DIR + f"/ase_worksdir/{name}")
+    WORKS_DIR = getWorksDir(f"{RESULT_DIR}/{name}")
 
     calculation = AseCalculations(WORKS_DIR)
     calculation.setCalcName(name)
 
     calculation.load_molecule_fromFile(molecule_path)
+    calculation.molecule.pbc = True
     P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
     calculation.makeSupercell(P)
+
+    os.chdir(WORKS_DIR)
 
     if calc_type.lower() in ["schnetpack", "ani", "nequip"]:
         import torch
@@ -72,11 +74,14 @@ def run(molecule_path, calc_type, temp, replica):
     elif calc_type == "nequip":
         calculation.setNequipCalculator(model_path, device)
 
+    elif calc_type.lower() == "n2p2":
+        calculation.setN2P2Calculator(model_dir=args.model_path, best_epoch=28)
+
+
     temperature_K = None
     if md_type == "npt":
         temperature_K = temp
 
-    os.chdir(WORKS_DIR)
     calculation.init_md(
       name=name,
       time_step=0.5,
@@ -85,10 +90,10 @@ def run(molecule_path, calc_type, temp, replica):
       temp_bath=temp,
       # temperature_K for NPT
       temperature_K=temperature_K,
-      interval=50,
+      interval=10,
     )
 
-    calculation.optimize(fmax=0.0005)
+    calculation.optimize(fmax=0.005)
     calculation.run_md(1000000)
 
     #  setting strain for pressure deformation simultaions
