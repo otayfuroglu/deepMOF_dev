@@ -63,8 +63,7 @@ class CaculateData():
     def _calculate_data(self, idx):
         atoms = self.atoms_list[idx]
         file_base = atoms.info["label"]
-        initial_gbw_name = "initial_" + file_base.split("_")[0]\
-                + "_" + file_base.split("_")[1] + ".gbw"
+        initial_gbw_name = "initial_" + file_base.split("_")[0] + ".gbw"
 
         df_calculated_files = pd.read_csv(self.csv_name, index_col=None)
         calculated_files = df_calculated_files["FileNames"].to_list()
