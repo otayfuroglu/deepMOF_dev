@@ -13,6 +13,8 @@ import os, shutil
 import argparse
 #  import tqdm
 
+
+
 def getWorksDir(calc_name):
 
     WORKS_DIR = calc_name
@@ -22,9 +24,13 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def run(molecule_path, calc_type, temp, replica):
+def path2BaseName(path):
+    return mol_path.split('/')[-1].split('.')[0]
 
-    name = "%s_%sK" % (calc_type, temp)
+
+def run(mol_path, calc_type, temp, replica):
+
+    name = f"{path2BaseName(mol_path)}_{calc_type}_{temp}K"
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
@@ -36,7 +42,7 @@ def run(molecule_path, calc_type, temp, replica):
     calculation = AseCalculations(WORKS_DIR)
     calculation.setCalcName(name)
 
-    calculation.load_molecule_fromFile(molecule_path)
+    calculation.load_molecule_fromFile(mol_path)
     calculation.molecule.pbc = True
     P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
     calculation.makeSupercell(P)
@@ -124,8 +130,8 @@ def run(molecule_path, calc_type, temp, replica):
 #          file_name = file_names[0]
 #          temp = temp_list[idxs]
 #
-#      molecule_path = os.path.join(MOL_DIR, file_name)
-#      run(file_name, molecule_path, calc_type, temp, replica)
+#      mol_path = os.path.join(MOL_DIR, file_name)
+#      run(file_name, mol_path, calc_type, temp, replica)
 
 
 if __name__ == "__main__":
@@ -146,11 +152,11 @@ if __name__ == "__main__":
     temp = args.temp
     replica = args.replica
     model_path = args.model_path
-    molecule_path = args.mol_path
+    mol_path = args.mol_path
     RESULT_DIR = args.RESULT_DIR
     properties = ["energy", "forces", "stress"]  # properties used for training
 
-    run(molecule_path, calc_type, temp, replica)
+    run(mol_path, calc_type, temp, replica)
 
     #  temp_list = [100, 150]
     #  file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
