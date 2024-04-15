@@ -13,6 +13,8 @@ import os
 u = units.create_units("2014")
 EV2HARTREE = 1.0 / u["Hartree"]
 ANG2BOHR = 1.0 / u["Bohr"]
+EV2HARTREE = 1.0
+ANG2BOHR = 1.0
 
 def extxyz2Runner(atoms_list):
     fl = open(f"input.data", "w")
