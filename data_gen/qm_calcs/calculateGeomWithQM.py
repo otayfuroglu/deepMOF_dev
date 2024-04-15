@@ -72,8 +72,12 @@ class CaculateData():
             #  self.i += 1
             return None
 
+        # file base will be add to calculted csv file
+        self._add_calculated_file(df_calculated_files, file_base)
+
         label = "orca_%s" %file_base
         temp_files = os.listdir(os.getcwd())
+
         try:
             if initial_gbw_name in temp_files:
                 initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
@@ -89,6 +93,7 @@ class CaculateData():
                 os.system("mv %s.gbw %s" %(label, initial_gbw_name))
                 self.create_gbw = False
 
+            write(self.out_extxyz, atoms, append=True)
             os.system("rm %s*" %label)
             #  self.i += 1
         except:
@@ -103,11 +108,6 @@ class CaculateData():
         #      # remove all orca temp out files related to label from runGeom directory.
             os.system("rm %s*" %label)
             return None
-
-        write(self.out_extxyz, atoms, append=True)
-        # file base will be add to calculted csv file
-        self._add_calculated_file(df_calculated_files, file_base)
-
 
     def countAtoms(self):
         return len(self.atoms_list)
