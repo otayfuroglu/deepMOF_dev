@@ -21,8 +21,15 @@ BOHR2ANG = u["Bohr"]
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-data", type=str, required=True)
+parser.add_argument("-unit", type=str, required=True)
 parser.add_argument("-outformat", type=str, required=True)
 args = parser.parse_args()
+
+unit = args.unit
+if unit.lower() == "ev":
+    print("untis not charged")
+    HARTREE2EV = 1.0
+    BOHR2ANG = 1.0
 
 runner_data = args.data
 file_base = runner_data.split('.')[0]
@@ -55,7 +62,10 @@ with open(runner_data) as lines:
         if "end" in line:
             atoms = Atoms(symbols=symbols, positions=positions)
             if pbc:
-                atoms.cell=lattice
+                try:
+                    atoms.cell=lattice
+                except:
+                    pbc = False
             data = {}
 
             calculator = SinglePointCalculator(atoms, energy=energy * HARTREE2EV,
