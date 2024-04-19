@@ -81,7 +81,11 @@ def run(mol_path, calc_type, temp, replica):
         calculation.setNequipCalculator(model_path, device)
 
     elif calc_type.lower() == "n2p2":
-        calculation.setN2P2Calculator(model_dir=args.model_path, best_epoch=28)
+        calculation.setN2P2Calculator(
+            model_dir=args.model_path,
+            energy_units="eV",
+            length_units="Angstrom",
+            best_epoch=78)
 
 
     temperature_K = None
