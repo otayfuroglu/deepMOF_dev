@@ -30,7 +30,7 @@ def path2BaseName(path):
 
 def run(mol_path, calc_type, temp, replica):
 
-    name = f"{path2BaseName(mol_path)}_{calc_type}_{temp}K"
+    name = f"{path2BaseName(mol_path)}_{calc_type}_{temp}K_{md_type}"
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
