@@ -10,9 +10,6 @@ import os
 #  import shutil
 
 
-u = units.create_units("2014")
-EV2HARTREE = 1.0 / u["Hartree"]
-ANG2BOHR = 1.0 / u["Bohr"]
 
 def extxyz2Runner(atoms_list):
     fl = open(f"input.data", "w")
@@ -77,12 +74,22 @@ def rndExtxzy2Runner(atoms_list):
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-extxyz_path", type=str, required=True)
+parser.add_argument("-unit", type=str, required=True)
 parser.add_argument("-N", type=int, default=0, required=False)
 args = parser.parse_args()
 
 
 atoms_list = read(args.extxyz_path, index=":")
 N = args.N
+unit = args.unit
+if unit.lower() == "au":
+    u = units.create_units("2014")
+    EV2HARTREE = 1.0 / u["Hartree"]
+    ANG2BOHR = 1.0 / u["Bohr"]
+else:
+    EV2HARTREE = 1.0
+    ANG2BOHR = 1.0
+
 
 if N == 0:
     extxyz2Runner(atoms_list)
