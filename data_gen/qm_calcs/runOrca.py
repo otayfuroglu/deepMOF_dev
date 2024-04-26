@@ -18,10 +18,10 @@ from pathlib import Path
 
 def orca_calculator(label, n_task, initial_gbw=['', '']):
     return ORCA(label=label,
-                maxiter=250,
+                maxiter=400,
                 charge=0, mult=1,
-                orcasimpleinput=calc_type.upper() +' PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NOPOP NoKeepInts NOKEEPDENS ' + initial_gbw[0],
-                orcablocks='%scf Convergence tight \n maxiter 250 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
+                orcasimpleinput='SP PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS ' + initial_gbw[0],
+                orcablocks='%scf Convergence tight \n maxiter 400 end \n %output \n Print[ P_Hirshfeld] 1 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
                 )
 
 
