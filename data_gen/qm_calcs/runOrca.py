@@ -12,16 +12,18 @@ import multiprocessing
 from orca_parser import OrcaParser
 import argparse
 
+from orca_io import read_orca_h_charges
+
 from pathlib import Path
 
 
 
 def orca_calculator(label, n_task, initial_gbw=['', '']):
     return ORCA(label=label,
-                maxiter=400,
+                maxiter=250,
                 charge=0, mult=1,
-                orcasimpleinput='SP PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS ' + initial_gbw[0],
-                orcablocks='%scf Convergence tight \n maxiter 400 end \n %output \n Print[ P_Hirshfeld] 1 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
+                orcasimpleinput=calc_type.upper() +' PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NOPOP NoKeepInts NOKEEPDENS ' + initial_gbw[0],
+                orcablocks='%scf Convergence tight \n maxiter 250 end \n %output \n Print[ P_Hirshfeld] 1 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
                 )
 
 
@@ -37,10 +39,10 @@ label = geoms_path.split("/")[-1].split(".")[0]
 calc_type = args.calc_type
 n_task = args.n_task
 
-OUT_DIR = f"{calc_type}_{label}"
+OUT_DIR = Path(f"{calc_type}_{label}")
 
 
-Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 # change to local scratch directory
 #  os.chdir(TMP_DIR)
 
@@ -51,5 +53,10 @@ os.chdir(OUT_DIR)
 
 atoms.calc = orca_calculator(label, n_task)
 atoms.get_potential_energy()
+
+charges = read_orca_h_charges(f"{label}.out")
+atoms.arrays["HFPQ"] = charges
+
+print(charges)
 #  os.chdir(cwd)
 write(f"{calc_type}_{label}.extxyz", atoms)

@@ -10,14 +10,16 @@ import pandas as pd
 import multiprocessing
 from orca_parser import OrcaParser
 
+from orca_io import read_orca_h_charges
+
 
 
 def orca_calculator(label, n_task, initial_gbw=['', '']):
     return ORCA(label=label,
                 maxiter=250,
                 charge=0, mult=1,
-                orcasimpleinput='SP PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NOPOP NoKeepInts NOKEEPDENS ' + initial_gbw[0],
-                orcablocks='%scf Convergence tight \n maxiter 250 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
+                orcasimpleinput='SP PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS ' + initial_gbw[0],
+                orcablocks='%scf Convergence tight \n maxiter 250 end \n %output \n Print[ P_Hirshfeld] 1 end \n %pal nprocs ' + str(n_task) + ' end' + initial_gbw[1]
                 )
 
 
@@ -62,7 +64,11 @@ class CaculateData():
 
     def _calculate_data(self, idx):
         atoms = self.atoms_list[idx]
-        file_base = atoms.info["label"]
+        try:
+            file_base = atoms.info["label"]
+        except:
+            file_base = f"frame_{idx}"
+
         initial_gbw_name = "initial_" + file_base.split("_")[0] + ".gbw"
 
         df_calculated_files = pd.read_csv(self.csv_name, index_col=None)
@@ -88,7 +94,11 @@ class CaculateData():
             # orca calculation start
             atoms.get_potential_energy()
 
-            #  if self.i == 0:
+            # get hirshfeld point chargess externally
+            charges = read_orca_h_charges(f"{label}.out")
+            atoms.arrays["HFPQ"] = charges
+
+            #  if self.i == 1:
             if self.create_gbw:
                 os.system("mv %s.gbw %s" %(label, initial_gbw_name))
                 self.create_gbw = False
@@ -108,6 +118,8 @@ class CaculateData():
         #      # remove all orca temp out files related to label from runGeom directory.
             os.system("rm %s*" %label)
             return None
+
+
 
     def countAtoms(self):
         return len(self.atoms_list)
