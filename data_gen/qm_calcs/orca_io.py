@@ -127,14 +127,56 @@ def read_orca_h_charges(fd):
                         h_charges += [charge]
 
 
+@reader
+def read_orca_chelpg_charges(fd):
+    """Read CHELPG charges from ORCA pc_chelpg file."""
+
+    lines = fd.readlines()
+
+    chelpg_charges = []
+    #  stop = False
+    for i, line in enumerate(lines):
+        if i > 1:
+            charge = float(line.split()[1])
+            chelpg_charges += [charge]
+    if len(chelpg_charges) == 0:
+        raise RuntimeError('No charges')
+    return np.array(chelpg_charges)
+
+
+@reader
+def read_orca_ddec_charges(fd):
+    """Read DDEC charges from chargemol output which obtained orca wfx file."""
+
+    lines = fd.readlines()
+
+    ddec_charges = []
+    for i, line in enumerate(lines):
+        if i > 1:
+            if len(line) <= 2:
+                if len(ddec_charges) == 0:
+                    raise RuntimeError('No charges')
+                return np.array(ddec_charges)
+            charge = float(line.split()[4])
+            ddec_charges += [charge]
+
+#  stdout_path = "/arf/home/otayfuroglu/deepMOF_dev/data_gen/works/mof74/test/sp_sp_non_equ_geoms_MgF1_v5/MgF1_00001/DDEC6_even_tempered_net_atomic_charges.xyz"
+#  fd = Path(stdout_path)
+#  print(read_orca_ddec_charges(fd))
+#  quit()
+
 def read_orca_outputs(directory, stdout_path):
     results = {}
     energy = read_orca_energy(Path(stdout_path))
     results['energy'] = energy
     results['free_energy'] = energy
 
-    charges = read_orca_h_charges(Path(stdout_path))
-    results["charges"] = charges
+    h_charges = read_orca_h_charges(Path(stdout_path))
+    results["h_charges"] = h_charges
+
+    pc_chelpg_path = f"{stdout_path.replace('.out', '.pc_chelpg')}"
+    chelpg_charges = read_orca_h_charges(Path(pc_chelpg_path))
+    results["chelpg_charges"] = chelpg_charges
 
     # Does engrad always exist? - No!
     # Will there be other files -No -> We should just take engrad
