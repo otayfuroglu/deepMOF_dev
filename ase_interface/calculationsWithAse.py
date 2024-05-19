@@ -212,7 +212,7 @@ class AseCalculations(object):
             calculator = SumCalculator([DFTD4(method="PBE"), ani_calculator])
         self.molecule.set_calculator(calculator)
 
-    def setN2P2Calculator(self, model_dir, best_epoch):
+    def setN2P2Calculator(self, model_dir, energy_units, length_units, best_epoch):
         import sys
         sys.path.insert(1, f"/truba_scratch/otayfuroglu/deepMOF_dev") #TODO makeshift
         from  n2p2.prediction.n2p2AseInterFace import n2p2Calculator
@@ -220,8 +220,8 @@ class AseCalculations(object):
         calculator = n2p2Calculator(
             model_dir,
             best_epoch,
-            energy_units="Hartree",
-            length_units="Bohr",
+            energy_units=energy_units,
+            length_units=length_units,
         )
         self.molecule.set_calculator(calculator)
 

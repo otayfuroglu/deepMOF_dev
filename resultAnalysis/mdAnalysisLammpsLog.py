@@ -143,6 +143,32 @@ def plot_volume(data):
     plt.savefig("%s_volume.png" %log_base)
     #  plt.show()
 
+def plot_total_energy(data):
+    # Read the temperature
+    po_energy = data["TotEng"]
+
+    # Compute the cumulative mean
+    po_energy_mean = np.cumsum(po_energy) / (np.arange(len(po_energy))+1)
+    # Get the time axis
+    time_axis = data["Step"] * step_size
+
+
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot(111)
+
+    # for classic numbering format
+    ax.yaxis.get_major_formatter().set_scientific(False)
+    ax.yaxis.get_major_formatter().set_useOffset(False)
+
+    ax.plot(time_axis, po_energy, label='Total Energy')
+    #  ax.plot(time_axis, po_energy_mean, label='Energy (avg.)')
+    ax.set_ylabel(' Total Energy (eV)')
+    ax.set_xlabel('Time (fs)')
+    ax.legend()
+    #  plt.tight_layout()
+    plt.savefig("%s_pot_total_energy.png" %log_base)
+    #  plt.show()
+
 
 log_path = args.log
 log_base = os.path.basename(log_path).split(".")[0]
@@ -155,16 +181,17 @@ for label in log.get_keywords():
     data[label] = log.get(label)
 #  df.to_csv("test.csv")
 
-n_frame_atoms = data["Atoms"][0]
+n_frame_atoms = data["Step"][0]
 initial_skip = args.skip
 
 #  print(len(data))
 data = data[initial_skip:]
-plot_energy(data)
+#  plot_total_energy(data)
+#  plot_energy(data)
 plot_pot_energy(data)
 
 #  print(len(data))
-plot_loading(data, n_frame_atoms)
+#  plot_loading(data, n_frame_atoms)
 plot_temperature(data)
 plot_volume(data)
 
