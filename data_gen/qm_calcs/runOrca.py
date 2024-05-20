@@ -54,7 +54,7 @@ if not os.path.exists(OUT_DIR):
     # change to local scratch directory
     #  os.chdir(TMP_DIR)
 
-    #  cwd = os.getcwd()
+    cwd = os.getcwd()
     os.chdir(OUT_DIR)
 
     atoms.calc = orca_calculator(label, calc_type, n_task)
@@ -71,7 +71,7 @@ if not os.path.exists(OUT_DIR):
     ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
     atoms.arrays["DDECPQ"] = ddec_charges
     #  print(charges)
-    #  os.chdir(cwd)
+    os.chdir(cwd)
     write(f"{calc_type}_{base}.extxyz", atoms, append=True)
 
 

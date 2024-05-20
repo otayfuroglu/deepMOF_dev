@@ -70,11 +70,6 @@ class CaculateData():
         self.csv_path = csv_path
         #  self.i = 0
 
-        # for initial gbw
-        self.create_gbw = True
-        self.initial_gbw_name = None
-        self.gbw_dir = None
-
         self.atoms_list = None
         self._loadAtaoms()
         self.properties = properties
@@ -126,14 +121,20 @@ class CaculateData():
 
         cwd = os.getcwd()
 
-        OUT_DIR = Path("run_" + self.in_extxyz_path.split('/')[-1].split(".")[0]) / Path(label)
+        #  full path
+        OUT_DIR = Path(cwd) / Path("run_" + self.in_extxyz_path.split('/')[-1].split(".")[0]) / Path(label)
         OUT_DIR.mkdir(parents=True, exist_ok=True)
-        print(f"working in {OUT_DIR} directory")
+
+        GBW_DIR = Path(cwd) / Path("run_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
+        initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
+        initial_gbw_file = [flname for flname in os.listdir(GBW_DIR) if ".gbw" in flname]
+
+        print(f"working in {OUT_DIR} directory\n")
         os.chdir(OUT_DIR)
 
         try:
-            if self.create_gbw is False:
-                shutil.copy2(f"{self.gbw_dir}/{self.initial_gbw_name}", OUT_DIR)
+            if len(initial_gbw_file) == 1:
+                shutil.copy2(f"{GBW_DIR}/{initial_gbw_name}", OUT_DIR)
                 initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
                 atoms.set_calculator(orca_calculator(label, self.calc_type, self.n_task, initial_gbw))
             else:
@@ -156,17 +157,14 @@ class CaculateData():
             atoms.arrays["DDECPQ"] = ddec_charges
 
             #  if self.i == 1:
-            if self.create_gbw:
-                gbw_name = "initial_" + label.split("_")[0] + ".gbw"
-                os.system("mv %s.gbw %s" %(label, gbw_name))
-                self.initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
-                self.gbw_dir = OUT_DIR
-                self.create_gbw = False
+            if len(initial_gbw_file) == 0:
+                os.system("mv %s.gbw %s/%s" %(label, GBW_DIR, initial_gbw_name))
 
             #  os.system("rm %s*" %label)
             os.chdir(cwd)
             write(self.out_extxyz_path, atoms, append=True)
-            #  self.i += 1
+            shutil.rmtree(OUT_DIR)
+                #  self.i += 1
         except:
             #  print("Error for %s" %label)
             #  self.i += 1
@@ -177,7 +175,8 @@ class CaculateData():
                 #  print(file_name, "Removed!")
 
             # remove all orca temp out files related to label from runGeom directory.
-            #  os.system("rm %s*" %label)
+            #  os.system("rm %s/%s*" %(OUT_DIR, label))
+            shutil.rmtree(OUT_DIR)
             os.chdir(cwd)
             return None
 
