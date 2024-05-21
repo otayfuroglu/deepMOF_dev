@@ -104,7 +104,8 @@ class CaculateData():
         try:
             label = atoms.info["label"]
         except:
-            label = f"frame_{idx}"
+            label = "frame_" + "{0:0>5}".format(idx)
+            atoms.info["label"] = label
 
 
         df_calculated_files = pd.read_csv(self.csv_path, index_col=None)
