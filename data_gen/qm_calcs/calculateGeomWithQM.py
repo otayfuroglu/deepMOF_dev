@@ -123,7 +123,7 @@ class CaculateData():
         cwd = os.getcwd()
 
         #  full path
-        OUT_DIR = Path(cwd) / Path("run_" + self.in_extxyz_path.split('/')[-1].split(".")[0]) / Path(label)
+        OUT_DIR = Path(cwd) / Path("run_" + f"{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0]) / Path(label)
         OUT_DIR.mkdir(parents=True, exist_ok=True)
 
         GBW_DIR = Path(cwd) / Path("run_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
