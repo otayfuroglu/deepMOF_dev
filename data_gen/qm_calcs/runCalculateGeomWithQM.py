@@ -18,18 +18,19 @@ args = parser.parse_args()
 
 
 cwd = os.getcwd()
+
+n_core = args.n_core
+calc_type = args.calc_type
+
 in_extxyz = args.in_extxyz
 in_extxyz = in_extxyz.split('/')[-1]
 in_extxyz_path = f"{cwd}/{in_extxyz}"
 #  out_extxyz = "/".join(in_extxyz[0:-1]) + "/sp_" + in_extxyz[-1]
 out_extxyz_path = f"{cwd}/sp_{in_extxyz}"
 #  csv_path = in_extxyz.replace(".extxyz", ".csv")
-csv_path = f"{cwd}/{in_extxyz.replace('.extxyz', '.csv')}"
+csv_path = f"{cwd}/{calc_type_}{in_extxyz.replace('.extxyz', '.csv')}"
 #  OUT_DIR = "run_" + in_extxyz[-1].split(".")[0]
 #  os.chdir(os.getcwd())
-
-n_core = args.n_core
-calc_type = args.calc_type
 
 # set default
 n_task = 8
