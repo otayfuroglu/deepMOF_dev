@@ -12,6 +12,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-in_extxyz", type=str, required=True)
+parser.add_argument("-orca_path", type=str, required=True)
 parser.add_argument("-calc_type", type=str, required=True)
 parser.add_argument("-n_core", type=int, required=True)
 args = parser.parse_args()
@@ -20,15 +21,16 @@ args = parser.parse_args()
 cwd = os.getcwd()
 
 n_core = args.n_core
+orca_path = args.orca_path
 calc_type = args.calc_type
 
 in_extxyz = args.in_extxyz
 in_extxyz = in_extxyz.split('/')[-1]
 in_extxyz_path = f"{cwd}/{in_extxyz}"
 #  out_extxyz = "/".join(in_extxyz[0:-1]) + "/sp_" + in_extxyz[-1]
-out_extxyz_path = f"{cwd}/sp_{in_extxyz}"
+out_extxyz_path = f"{cwd}/{calc_type}_{in_extxyz}"
 #  csv_path = in_extxyz.replace(".extxyz", ".csv")
-csv_path = f"{cwd}/{calc_type_}{in_extxyz.replace('.extxyz', '.csv')}"
+csv_path = f"{cwd}/{calc_type}_{in_extxyz.replace('.extxyz', '.csv')}"
 #  OUT_DIR = "run_" + in_extxyz[-1].split(".")[0]
 #  os.chdir(os.getcwd())
 
@@ -52,7 +54,7 @@ properties = ["energy", "forces", "dipole_moment"]
 #  Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 #  os.chdir(OUT_DIR)
 
-calculate = CaculateData(properties, calc_type,  n_task, in_extxyz_path, out_extxyz_path, csv_path)
+calculate = CaculateData(orca_path, calc_type,  n_task, in_extxyz_path, out_extxyz_path, csv_path)
 print ("Nuber of out of range geomtries", calculate.countAtoms())
 print("QM calculations Running...")
 # set remove file if has error
