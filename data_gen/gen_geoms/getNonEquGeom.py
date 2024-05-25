@@ -56,7 +56,7 @@ def get_non_equ_geom(flpath):
     #      os.mkdir(NON_EQU_XYZ_DIR)
 
     file_name= flpath.split("/")[-1]
-    file_base = file_name.replace(".xyz", "")
+    file_base = file_name.split(".")[0]
 
 
     scale_range = (0.96, 1.11)
