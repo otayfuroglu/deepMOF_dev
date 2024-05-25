@@ -65,7 +65,10 @@ def orca_calculator(orca_path, base, calc_type,  n_task, initial_gbw=['', '']):
 
 
 class CaculateData():
-    def __init__(self, orca_path, calc_type, n_task, in_extxyz_path, out_extxyz_path, csv_path, base_dir=None):
+    def __init__(self, orca_path, calc_type, n_task,
+                 in_extxyz_path, out_extxyz_path, csv_path,
+                 base_dir=None, rm_out_dir=True,
+                ):
 
         self.orca_path = orca_path
         self.in_extxyz_path = in_extxyz_path
@@ -73,9 +76,9 @@ class CaculateData():
         self.csv_path = csv_path
 
         self.BASE_DIR = base_dir
-        if base_dir is None:
+        if self.BASE_DIR is None:
             self._setBASE_DIR()
-        #  self.i = 0
+        self.rm_out_dir = rm_out_dir
 
         self.atoms_list = None
         self._loadAtaoms()
@@ -111,6 +114,20 @@ class CaculateData():
         df_calculated_files_new = pd.DataFrame([label], columns=["FileNames"])
         df_calculated_files_new.to_csv(self.csv_path, mode='a', header=False, index=None)
 
+    def _readSetCharges(self, atoms, label="orca"):
+        # get hirshfeld point chargess externally
+        h_charges = read_orca_h_charges(f"{label}.out")
+        atoms.arrays["HFPQ"] = h_charges
+
+        chelpg_charges = read_orca_chelpg_charges(f"{label}.pc_chelpg")
+        atoms.arrays["CHELPGPQ"] = chelpg_charges
+
+        prepareDDECinput(label)
+        os.system("/arf/home/otayfuroglu/miniconda3/pkgs/chargemol-3.5-h1990efc_0/bin/chargemol")
+
+        ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
+        atoms.arrays["DDECPQ"] = ddec_charges
+
     def _calculate_data(self, idx):
 
         # to prevent nested out dir for same time proccessors
@@ -127,7 +144,7 @@ class CaculateData():
         df_calculated_files = pd.read_csv(self.csv_path, index_col=None)
         calculated_files = df_calculated_files["FileNames"].to_list()
         if label in calculated_files:
-            print("The %s file have already calculated" %label)
+            print("The %s file have already calculated\n" %label)
             #  self.i += 1
             return None
 
@@ -142,15 +159,14 @@ class CaculateData():
 
         GBW_DIR = Path(self.BASE_DIR) / Path(f"run_{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
         initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
-        initial_gbw_file = [flname for flname in os.listdir(GBW_DIR) if ".gbw" in flname]
+        #  initial_gbw_file = [flname for flname in os.listdir(GBW_DIR) if ".gbw" in flname]
+        initial_gbw_file = os.path.exists(GBW_DIR/Path(initial_gbw_name))
 
-        print(f"working in {OUT_DIR} directory\n")
         os.chdir(OUT_DIR)
+        print(f"working in {OUT_DIR} directory\n")
 
-        # TODO: to be fixed
-        label = "orca"
         try:
-            if len(initial_gbw_file) == 1:
+            if initial_gbw_file:
                 shutil.copy2(f"{GBW_DIR}/{initial_gbw_name}", OUT_DIR)
                 initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
                 atoms.set_calculator(orca_calculator(self.orca_path, label, self.calc_type, self.n_task, initial_gbw))
@@ -159,28 +175,17 @@ class CaculateData():
 
             # orca calculation start
             atoms.get_potential_energy()
-
-            # get hirshfeld point chargess externally
-            h_charges = read_orca_h_charges(f"{label}.out")
-            atoms.arrays["HFPQ"] = h_charges
-
-            chelpg_charges = read_orca_chelpg_charges(f"{label}.pc_chelpg")
-            atoms.arrays["CHELPGPQ"] = chelpg_charges
-
-            prepareDDECinput(label)
-            os.system("/arf/home/otayfuroglu/miniconda3/pkgs/chargemol-3.5-h1990efc_0/bin/chargemol")
-
-            ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
-            atoms.arrays["DDECPQ"] = ddec_charges
+            self._readSetCharges(atoms, label="orca")
 
             #  if self.i == 1:
-            if len(initial_gbw_file) == 0:
-                os.system("mv %s.gbw %s/%s" %(label, GBW_DIR, initial_gbw_name))
+            if not initial_gbw_file:
+                shutil.move("orca.gbw", f"{GBW_DIR}/{initial_gbw_name}")
 
             #  os.system("rm %s*" %label)
+            write(OUT_DIR/Path(self.out_extxyz_path), atoms, append=True)
             os.chdir(self.BASE_DIR)
-            write(self.out_extxyz_path, atoms, append=True)
-            shutil.rmtree(OUT_DIR)
+            if self.rm_out_dir:
+                shutil.rmtree(OUT_DIR)
         except:
             print("Error for %s" %label)
 
@@ -191,7 +196,7 @@ class CaculateData():
 
             # remove all orca temp out files related to label from runGeom directory.
             #  os.system("rm %s/%s*" %(OUT_DIR, label))
-            if self.calc_type.lower() == "sp":
+            if self.rm_out_dir:
                 shutil.rmtree(OUT_DIR)
             os.chdir(self.BASE_DIR)
             return None
