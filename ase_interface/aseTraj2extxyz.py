@@ -24,4 +24,5 @@ if os.path.exists(outFile_path):
 
 for i, atoms in tqdm(enumerate(ase_trj), total=len(ase_trj)):
     if i % interval == 0:
+        atoms.info["label"] =  "frame_" + "{0:0>5}".format(i)
         write(outFile_path, atoms, append=True)
