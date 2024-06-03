@@ -41,7 +41,7 @@ if n_core == 24 or n_core == 48:
     n_task = 6
 if n_core == 40 or n_core == 80:
     n_task = 8
-if n_core == 28 or n_core == 56:
+if n_core == 20 or n_core == 28 or n_core == 56:
     n_task = 4
 if n_core == 112:
     #  n_task = 16
