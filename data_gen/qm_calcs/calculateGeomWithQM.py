@@ -9,6 +9,7 @@ from ase.calculators.orca import OrcaProfile
 #  import numpy as np
 import pandas as pd
 import multiprocessing
+from orca_parser import OrcaParser
 
 from pathlib import Path
 from orca_io import (read_orca_h_charges,
@@ -28,7 +29,7 @@ def prepareDDECinput(base):
         </periodicity along A, B, and C vectors>
 
         <atomic densities directory complete path>
-        /arf/home/otayfuroglu/miniconda3/pkgs/chargemol-3.5-h1990efc_0/share/chargemol/atomic_densities/
+        {str(Path.home())}/miniconda3/pkgs/chargemol-3.5-h1990efc_0/share/chargemol/atomic_densities/
         </atomic densities directory complete path>
 
         <input filename>
@@ -122,7 +123,7 @@ class CaculateData():
         atoms.arrays["CHELPGPQ"] = chelpg_charges
 
         prepareDDECinput(label)
-        os.system("/arf/home/otayfuroglu/miniconda3/pkgs/chargemol-3.5-h1990efc_0/bin/chargemol")
+        os.system(f"{str(Path.home())}/miniconda3/pkgs/chargemol-3.5-h1990efc_0/bin/chargemol")
 
         ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
         atoms.arrays["DDECPQ"] = ddec_charges
@@ -181,7 +182,7 @@ class CaculateData():
                 shutil.move("orca.gbw", f"{GBW_DIR}/{initial_gbw_name}")
 
             #  os.system("rm %s*" %label)
-            write(OUT_DIR/Path(self.out_extxyz_path), atoms, append=True)
+            write(self.BASE_DIR/Path(self.out_extxyz_path), atoms, append=True)
             os.chdir(self.BASE_DIR)
             if self.rm_out_dir:
                 shutil.rmtree(OUT_DIR)
