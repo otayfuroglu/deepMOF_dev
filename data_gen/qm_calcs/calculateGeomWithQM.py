@@ -9,7 +9,6 @@ from ase.calculators.orca import OrcaProfile
 #  import numpy as np
 import pandas as pd
 import multiprocessing
-from orca_parser import OrcaParser
 
 from pathlib import Path
 from orca_io import (read_orca_h_charges,
