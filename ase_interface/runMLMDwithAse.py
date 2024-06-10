@@ -15,6 +15,17 @@ import argparse
 
 
 
+def getBoolStr(string):
+    string = string.lower()
+    if "true" in string or "yes" in string:
+        return True
+    elif "false" in string or "no" in string:
+        return False
+    else:
+        print("%s is bad input!!! Must be Yes/No or True/False" %string)
+        sys.exit(1)
+
+
 def getWorksDir(calc_name):
 
     WORKS_DIR = calc_name
@@ -43,9 +54,13 @@ def run(mol_path, calc_type, temp, replica):
     calculation.setCalcName(name)
 
     calculation.load_molecule_fromFile(mol_path)
-    calculation.molecule.pbc = True
-    P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
-    calculation.makeSupercell(P)
+    if pbc:
+        calculation.molecule.pbc = True
+        if replica > 0:
+            P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
+            calculation.makeSupercell(P)
+    else:
+        calculation.molecule.pbc = False
 
     os.chdir(WORKS_DIR)
 
@@ -82,7 +97,7 @@ def run(mol_path, calc_type, temp, replica):
 
     elif calc_type.lower() == "n2p2":
         calculation.setN2P2Calculator(
-            model_dir=args.model_path,
+            model_dir=model_path,
             energy_units="eV",
             length_units="Angstrom",
             best_epoch=78)
@@ -95,7 +110,7 @@ def run(mol_path, calc_type, temp, replica):
     calculation.init_md(
       name=name,
       time_step=0.5,
-      temp_init=100.0,
+      temp_init=temp,
       # temp_bath should be None for NVE and NPT
       temp_bath=temp,
       # temperature_K for NPT
@@ -103,8 +118,9 @@ def run(mol_path, calc_type, temp, replica):
       interval=10,
     )
 
-    calculation.optimize(fmax=0.005)
-    calculation.run_md(1000000)
+    if opt:
+        calculation.optimize(fmax=0.005)
+    calculation.run_md(nsteps)
 
     #  setting strain for pressure deformation simultaions
 
@@ -145,9 +161,12 @@ if __name__ == "__main__":
     parser.add_argument("-calc_type", type=str, required=True, help="..")
     parser.add_argument("-md_type", type=str, required=True, help="..")
     parser.add_argument("-temp", type=int, required=True, help="..")
-    parser.add_argument("-replica", type=int, required=True, help="..")
+    parser.add_argument("-replica", type=int, required=False, default=1, help="..")
     parser.add_argument("-model_path", type=str, required=True, help="..")
     parser.add_argument("-mol_path", type=str, required=True, help="..")
+    parser.add_argument("-pbc", type=str, required=True, help="..")
+    parser.add_argument("-opt", type=str, required=True, help="..")
+    parser.add_argument("-nsteps", type=int, required=True, help="..")
     parser.add_argument("-RESULT_DIR", type=str, required=True, help="..")
     args = parser.parse_args()
 
@@ -157,6 +176,9 @@ if __name__ == "__main__":
     replica = args.replica
     model_path = args.model_path
     mol_path = args.mol_path
+    pbc = getBoolStr(args.pbc)
+    opt = getBoolStr(args.opt)
+    nsteps = args.nsteps
     RESULT_DIR = args.RESULT_DIR
     properties = ["energy", "forces", "stress"]  # properties used for training
 
