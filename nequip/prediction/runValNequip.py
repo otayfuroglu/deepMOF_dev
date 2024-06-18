@@ -64,10 +64,10 @@ calc = NequIPCalculator.from_deployed_model(
 atoms_list = read(extxyz_path, index=":")
 
 fl_enegies = open(f"{file_base}_qm_model_energeis.csv", "w")
-#  fl_forces = open(f"{file_base}_qm_model_forces.csv", "w")
+fl_forces = open(f"{file_base}_qm_model_forces.csv", "w")
 fl_fmax_comp = open(f"{file_base}_qm_model_fmax_comp.csv", "w")
 fl_enegies.write(f"index,e_QM,e_Model,e_diff\n")
-#  fl_forces.write(f"index,forces_QM,forces_Model,forces_diff\n")
+fl_forces.write(f"index,forces_QM,forces_Model,forces_diff\n")
 fl_fmax_comp.write(f"index,fmax_comp_QM,fmax_comp_Model,fmax_comp_diff\n")
 
 #  while n_sample <= 250:
@@ -95,13 +95,17 @@ for i in tqdm.trange(0, len(atoms_list), 1):
 
 
     diff_energies = abs(model_energy - qm_energy)
-    #  diff_forces = abs(qm_forces - model_forces)
+    diff_forces = abs(qm_forces - model_forces)
     diff_fmax_components = abs(qm_fmax_components - model_fmax_components)
 
     fl_enegies.write(f"{label},{qm_energy},{model_energy},{diff_energies}\n")
-    #  for qm_force, model_force, diff_force in zip(qm_forces, model_forces, diff_forces):
-    fl_fmax_comp.write(f"{label},{qm_fmax_components},{model_fmax_components},{diff_fmax_components}, {len(atoms)}\n")
+
+    for qm_force, model_force, diff_force in zip(qm_forces, model_forces, diff_forces):
+        fl_forces.write(f"{label},{qm_force},{model_force},{diff_force}\n")
+
+    fl_fmax_comp.write(f"{label},{qm_fmax_components},{model_fmax_components},{diff_fmax_components}\n")
     fl_enegies.flush()
+    fl_fmax_comp.flush()
     fl_fmax_comp.flush()
 
 
