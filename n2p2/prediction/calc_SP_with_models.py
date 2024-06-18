@@ -198,12 +198,12 @@ def getSPEneryForces(idx):
     os.chdir(proc_dir)
 
 
-    #  qm_= data.get(idx+1)  # +1 because of index starts 1
-    #  file_names = row.name
-    #  write("test_atom_%d.xyz" %idx, mol)
-    file_names = f"Frame_{idx}"
     #  mol = row.toatoms()
     mol = data[idx]
+    #  try:
+    name = mol.info["label"]
+    #  except:
+    #      name = f"structure_{idx}"
     n_atoms = len(mol)
 
     qm_energy = mol.get_potential_energy()
@@ -240,7 +240,7 @@ def getSPEneryForces(idx):
     fall_err = torch.flatten(torch.from_numpy(qm_forces) - n2p2_forces)
 
 
-    energy_values = [file_names,
+    energy_values = [name,
                      qm_energy,
                      n2p2_energy,
                      energy_err,
@@ -249,13 +249,13 @@ def getSPEneryForces(idx):
                      energy_err/n_atoms,
                     ]
 
-    fmax_values = [file_names,
+    fmax_values = [name,
                      qm_fmax,
                      n2p2_fmax,
                      fmax_err,
                     ]
 
-    fmax_component_values = [file_names,
+    fmax_component_values = [name,
                      qm_fmax_component,
                      n2p2_fmax_component,
                      fmax_component_err,
@@ -266,7 +266,7 @@ def getSPEneryForces(idx):
     df_data_fmax_component.loc[0] = fmax_component_values
 
     df_data_fall = pd.DataFrame(columns=["FileNames", "qm_SP_F_all", "n2p2_SP_F_all", "F_all_Error"]) # reset df
-    df_data_fall["FileNames"] = [file_names] * len(qm_forces.flatten())
+    df_data_fall["FileNames"] = [name] * len(qm_forces.flatten())
     df_data_fall["qm_SP_F_all"] = qm_forces.flatten()
     df_data_fall["n2p2_SP_F_all"] = n2p2_forces.flatten()
     df_data_fall["F_all_Error"] = fall_err.numpy()
@@ -275,36 +275,6 @@ def getSPEneryForces(idx):
     df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
     df_data_fmax_component.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fmax_component), mode="a", header=False, float_format='%.6f')
     df_data_fall.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_fall), mode="a", header=False, float_format='%.6f')
-
-
-def getSPEneryForcesFromFiles(idx):
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(idx % 2)
-
-    file_names = [file_name for file_name in os.listdir(xyzDIR) if ".xyz" in file_name]
-    file_name = file_names[idx]
-    xyz_path = os.path.join(xyzDIR, file_name)
-    mol = read(xyz_path)
-    n_atoms = len(mol)
-
-    mol.set_calculator(calculator)
-    n2p2_energy = mol.get_potential_energy()
-    n2p2_fmax = (mol.get_forces()**2).sum(1).max()**0.5  # Maximum atomic force (fom ASE).
-
-    file_names = file_name.replace(".xyz", "")
-    energy_values = [file_names,
-                     n2p2_energy,
-                     n2p2_energy/n_atoms,
-                    ]
-
-    fmax_values = [file_names,
-                     n2p2_fmax,
-                    ]
-
-    df_data_energy.loc[0] = energy_values # rewrite on first row at each steps
-    df_data_fmax.loc[0] = fmax_values
-
-    df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), mode="a", header=False, float_format='%.6f')
-    df_data_fmax.to_csv("%s/%s"%(RESULT_DIR, csv_file_name_fmax), mode="a", header=False, float_format='%.6f')
 
 
 def idxsFromN2p2Data(data, name_list):
@@ -396,10 +366,10 @@ if __name__ == "__main__":
             "Error",
         ]
 
-        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
-        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
-        csv_file_name_fmax_component = "qm_sch_SP_FC_%s.csv" %(mode)
-        csv_file_name_fall = "qm_sch_SP_FAll_%s.csv" %(mode)
+        csv_file_name_energy = "qm_n2p2_SP_E_%s.csv" %(mode)
+        csv_file_name_fmax = "qm_n2p2_SP_F_%s.csv" %(mode)
+        csv_file_name_fmax_component = "qm_n2p2_SP_FC_%s.csv" %(mode)
+        csv_file_name_fall = "qm_n2p2_SP_FAll_%s.csv" %(mode)
 
         df_data_energy = pd.DataFrame(columns=column_names_energy)
         df_data_fmax = pd.DataFrame(columns=column_names_fmax)
@@ -427,8 +397,8 @@ if __name__ == "__main__":
             "n2p2_SP_fmax",
         ]
 
-        csv_file_name_energy = "qm_sch_SP_E_%s.csv" %(mode)
-        csv_file_name_fmax = "qm_sch_SP_F_%s.csv" %(mode)
+        csv_file_name_energy = "qm_n2p2_SP_E_%s.csv" %(mode)
+        csv_file_name_fmax = "qm_n2p2_SP_F_%s.csv" %(mode)
         df_data_energy = pd.DataFrame(columns=column_names_energy)
         df_data_fmax = pd.DataFrame(columns=column_names_fmax)
         df_data_energy.to_csv("%s/%s" %(RESULT_DIR, csv_file_name_energy), float_format='%.6f')
