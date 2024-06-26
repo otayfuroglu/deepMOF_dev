@@ -14,5 +14,6 @@ atoms = read(flpath)
 #  write("./MgF1.extxyz", atoms)
 write_lammps_data(f"data.{flpath.split('/')[-1].split('.')[0]}",
                   atoms,
-                  specorder=["Mg", "O", "C", "H"]
+                  #  specorder=["Mg", "O", "C", "H"]
+                  specorder=args.specorder
                  )
