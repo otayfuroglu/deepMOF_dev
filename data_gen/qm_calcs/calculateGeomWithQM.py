@@ -2,6 +2,8 @@
 from ase.io import read, write
 import os, shutil
 #  from dftd4 import D4_model
+from ase.calculators.gaussian import Gaussian
+
 from ase.calculators.orca import ORCA
 from ase.calculators.orca import OrcaProfile
 #from gpaw import GPAW, PW
@@ -47,7 +49,7 @@ def prepareDDECinput(base):
         print(input_txt, file=fl)
 
 
-def orca_calculator(orca_path, base, calc_type,  n_task, initial_gbw=['', '']):
+def orca_calculator(orca_path, base, calc_type, n_task, initial_gbw=['', '']):
     calc = ORCA(
         profile=OrcaProfile(orca_path),
         # label=label,
@@ -63,8 +65,24 @@ def orca_calculator(orca_path, base, calc_type,  n_task, initial_gbw=['', '']):
     return calc
 
 
+def g16Calculator(label, n_task, addsec=None, extra=None):
+
+     calc = Gaussian(
+         label=label,
+         chk=f"{label}.chk",
+         nprocshared=n_task,
+         xc="wb97",
+         basis="6-31g*",
+         scf="maxcycle=100",
+         addsec=addsec,
+         extra=extra,
+     )
+
+     return calc
+
+
 class CaculateData():
-    def __init__(self, orca_path, calc_type, n_task,
+    def __init__(self, orca_path, calc_type, calculator_type, n_task,
                  in_extxyz_path, out_extxyz_path, csv_path,
                  base_dir=None, rm_out_dir=True,
                 ):
@@ -83,6 +101,7 @@ class CaculateData():
         self._loadAtaoms()
 
         self.calc_type = calc_type
+        self.calculator_type = calculator_type
         self.n_task = n_task
 
         self._checkCSVFile()
@@ -113,7 +132,7 @@ class CaculateData():
         df_calculated_files_new = pd.DataFrame([label], columns=["FileNames"])
         df_calculated_files_new.to_csv(self.csv_path, mode='a', header=False, index=None)
 
-    def _readSetCharges(self, atoms, label="orca"):
+    def _readSetOrcaCharges(self, atoms, label="orca"):
         # get hirshfeld point chargess externally
         h_charges = read_orca_h_charges(f"{label}.out")
         atoms.arrays["HFPQ"] = h_charges
@@ -156,49 +175,57 @@ class CaculateData():
         OUT_DIR = Path(self.BASE_DIR) / Path(f"run_{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0]) / Path(label)
         OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-        GBW_DIR = Path(self.BASE_DIR) / Path(f"run_{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
-        initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
+        if self.calculator_type.lower() == "orca":
+            GBW_DIR = Path(self.BASE_DIR) / Path(f"run_{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
+            initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
         #  initial_gbw_file = [flname for flname in os.listdir(GBW_DIR) if ".gbw" in flname]
-        initial_gbw_file = os.path.exists(GBW_DIR/Path(initial_gbw_name))
+            initial_gbw_file = os.path.exists(GBW_DIR/Path(initial_gbw_name))
 
         os.chdir(OUT_DIR)
         print(f"working in {OUT_DIR} directory\n")
 
-        try:
+        #  try:
+        if self.calculator_type.lower() == "orca":
             if initial_gbw_file:
                 shutil.copy2(f"{GBW_DIR}/{initial_gbw_name}", OUT_DIR)
                 initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
-                atoms.set_calculator(orca_calculator(self.orca_path, label, self.calc_type, self.n_task, initial_gbw))
+                atoms.set_calculator(orca_calculator(self.orca_path, label,
+                                                     self.calc_type, self.n_task, initial_gbw))
             else:
-                atoms.set_calculator(orca_calculator(self.orca_path, label, self.calc_type, self.n_task))
+                atoms.set_calculator(orca_calculator(self.orca_path, label,
+                                                     self.calc_type, self.n_task))
+        elif self.calculator_type.lower() == "g16":
+            atoms.set_calculator(g16Calculator(label, self.n_task, addsec=None, extra=None))
 
-            # orca calculation start
-            atoms.get_potential_energy()
-            self._readSetCharges(atoms, label="orca")
+        # orca calculation start
+        atoms.get_potential_energy()
+        if self.calculator_type.lower() == "orca":
+            self._readSetOrcaCharges(atoms, label="orca")
 
-            #  if self.i == 1:
+        #  if self.i == 1:
+        if self.calculator_type.lower() == "orca":
             if not initial_gbw_file:
                 shutil.move("orca.gbw", f"{GBW_DIR}/{initial_gbw_name}")
 
-            #  os.system("rm %s*" %label)
-            write(self.BASE_DIR/Path(self.out_extxyz_path), atoms, append=True)
-            os.chdir(self.BASE_DIR)
-            if self.rm_out_dir:
-                shutil.rmtree(OUT_DIR)
-        except:
-            print("Error for %s" %label)
+        #  os.system("rm %s*" %label)
+        write(self.BASE_DIR/Path(self.out_extxyz_path), atoms, append=True)
+        os.chdir(self.BASE_DIR)
+        if self.rm_out_dir:
+            shutil.rmtree(OUT_DIR)
+        #  except:
+        #      print("Error for %s" %label)
 
-            # remove this non SCF converged file from xyz directory.
-            if self.rm_files:
-                os.remove("%s/%s" %(self.filesDIR, file_name))
-                #  print(file_name, "Removed!")
+        #      # remove this non SCF converged file from xyz directory.
+        #      if self.rm_files:
+        #          os.remove("%s/%s" %(self.filesDIR, file_name))
+        #          #  print(file_name, "Removed!")
 
-            # remove all orca temp out files related to label from runGeom directory.
-            #  os.system("rm %s/%s*" %(OUT_DIR, label))
-            if self.rm_out_dir:
-                shutil.rmtree(OUT_DIR)
-            os.chdir(self.BASE_DIR)
-            return None
+        #      # remove all orca temp out files related to label from runGeom directory.
+        #      #  os.system("rm %s/%s*" %(OUT_DIR, label))
+        #      if self.rm_out_dir:
+        #          shutil.rmtree(OUT_DIR)
+        #      os.chdir(self.BASE_DIR)
+        #      return None
 
     def countAtoms(self):
         return len(self.atoms_list)

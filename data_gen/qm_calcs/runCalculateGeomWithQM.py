@@ -12,8 +12,9 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-in_extxyz", type=str, required=True)
-parser.add_argument("-orca_path", type=str, required=True)
+parser.add_argument("-orca_path", type=str, required=False)
 parser.add_argument("-calc_type", type=str, required=True)
+parser.add_argument("-calculator_type", type=str, required=True)
 parser.add_argument("-n_core", type=int, required=True)
 args = parser.parse_args()
 
@@ -23,6 +24,7 @@ cwd = os.getcwd()
 n_core = args.n_core
 orca_path = args.orca_path
 calc_type = args.calc_type
+calculator_type = args.calculator_type
 
 in_extxyz = args.in_extxyz
 in_extxyz = in_extxyz.split('/')[-1]
@@ -56,7 +58,9 @@ properties = ["energy", "forces", "dipole_moment"]
 #  Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 #  os.chdir(OUT_DIR)
 
-calculate = CaculateData(orca_path, calc_type,  n_task, in_extxyz_path, out_extxyz_path, csv_path)
+calculate = CaculateData(orca_path, calc_type, calculator_type,
+                         n_task, in_extxyz_path, out_extxyz_path,
+                         csv_path, rm_out_dir=False)
 print ("Nuber of out of range geomtries", calculate.countAtoms())
 print("QM calculations Running...")
 # set remove file if has error
