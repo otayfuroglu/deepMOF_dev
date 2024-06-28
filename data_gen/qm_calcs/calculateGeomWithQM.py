@@ -17,6 +17,7 @@ from orca_io import (read_orca_h_charges,
                      read_orca_chelpg_charges,
                      read_orca_ddec_charges,
                     )
+from gaussian_io import read_esp_charges
 
 
 
@@ -65,7 +66,7 @@ def orca_calculator(orca_path, base, calc_type, n_task, initial_gbw=['', '']):
     return calc
 
 
-def g16Calculator(label, n_task, addsec=None, extra=None):
+def g16Calculator(label, n_task):
 
      calc = Gaussian(
          label=label,
@@ -74,8 +75,9 @@ def g16Calculator(label, n_task, addsec=None, extra=None):
          xc="wb97",
          basis="6-31g*",
          scf="maxcycle=100",
-         addsec=addsec,
-         extra=extra,
+         pop="MK, Hirshfeld",
+         addsec=None,
+         extra=None,
      )
 
      return calc
@@ -146,6 +148,11 @@ class CaculateData():
         ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
         atoms.arrays["DDECPQ"] = ddec_charges
 
+    def _readSetG16Charges(self, atoms, label):
+        # get M-K ESP point chargess externally
+        esp_charges = read_esp_charges(f"{label}.log")
+        atoms.arrays["MK_ESPQ"] = esp_charges
+
     def _calculate_data(self, idx):
 
         # to prevent nested out dir for same time proccessors
@@ -195,12 +202,14 @@ class CaculateData():
                 atoms.set_calculator(orca_calculator(self.orca_path, label,
                                                      self.calc_type, self.n_task))
         elif self.calculator_type.lower() == "g16":
-            atoms.set_calculator(g16Calculator(label, self.n_task, addsec=None, extra=None))
+            atoms.set_calculator(g16Calculator(label, self.n_task))
 
         # orca calculation start
         atoms.get_potential_energy()
         if self.calculator_type.lower() == "orca":
             self._readSetOrcaCharges(atoms, label="orca")
+        elif self.calculator_type == "g16":
+            self._readSetG16Charges(atoms, label)
 
         #  if self.i == 1:
         if self.calculator_type.lower() == "orca":
