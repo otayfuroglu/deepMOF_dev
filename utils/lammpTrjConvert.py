@@ -12,8 +12,8 @@ def lammps2AseAtoms(lammps_atoms, atom_type_symbol_pair):
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-trj_path", type=str, required=True, help="..")
-parser.add_argument("-atom_type_symbol_pair", type=str, required=True, help="..")
-parser.add_argument("-out_format", type=str, required=True, help="give atoms number and symbols accordingly lammps type like dictionary but enclosed in double quotes both of keys and values")
+parser.add_argument("-atom_type_symbol_pair", type=str, required=True, help="give atoms number and symbols accordingly lammps type like dictionary but enclosed in double quotes both of keys and values")
+parser.add_argument("-out_format", type=str, required=True, help="..")
 # eg. -atom_type_symbol_pair '{"1":"C", "2":"O", "3":"H", "4":"O", "5":"Mg"'
 parser.add_argument("-interval", type=int, required=False, default=1, help="..")
 args = parser.parse_args()

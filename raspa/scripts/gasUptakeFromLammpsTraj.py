@@ -51,11 +51,12 @@ def getUptake(cif_file_path, pressure, helium_void_fraction):
         unit_cells=(2,2,2),
         #  unit_cells=(2,2,2),
         framework_name="streamed", # if not streaming, this will load the structure at `$RASPA_DIR/share/raspa/structures`.
-        cycles=1000,
+        cycles=5000,
         #  init_cycles="auto",
-        init_cycles=500,
+        init_cycles=2500,
         #  forcefield="GenericMOFs",
         forcefield="CrystalGenerator",
+        #  forcefield="MgMOF-74-Yazaydin",
         input_file_type="cif")
 
     uptake_grav_abs = result["Number of molecules"][molecule]\
@@ -117,18 +118,19 @@ if "__main__" == __name__:
     import argparse
 
     BASE_DIR = "/truba_scratch/otayfuroglu/deepMOF_dev/"
-    mof_num = "1"
-    temperature = 77
-    descrip_word = "CrytalGen_expStructure_2x2x2_v2"
-    molecule = "H2"
+    #  mof_num = "1"
+    temperature = 298
+    descrip_word = "CrytalGen_"
+    molecule = "CO2"
     labels = [
         "Pressure", "AbsoluteUptake (mg/g)", "AbsoluteUptakes (cm^3 (STP)/cm^3)",
         "ExcessUptakes (mg/g)", "ExcessUptakes (cm^3 (STP)/cm^3)",
 
              ]
 
-    csv_file_path = "IRMOF%s_%s_uptakes_%sK_%s.csv" % (
-        mof_num, molecule, temperature, descrip_word)
+    #  csv_file_path = "mgmof74_uptakes_%sK_%s.csv" % (
+    #      mof_num, molecule, temperature, descrip_word)
+    csv_file_path = f"mgmof74_uptakes_{temperature}K_{molecule}.csv"
 
     df = pd.DataFrame(columns=labels)
     df.to_csv(csv_file_path, index=False)
@@ -137,16 +139,16 @@ if "__main__" == __name__:
     #  traj_path = f"{BASE_DIR}/n2p2/works/runMD/latticeBulkModulusWithClassic/IRMOF{mof_num}_1Bar_{temperature+2}K.lammpstrj"
     #  ase_traj = read(traj_path, format="lammps-dump-text", index=":")
     #  init_vol = ase_traj[0].get_volume()
-    idx = 750
+    #  idx = 750
     #  atoms = ase_traj[idx]
     #  cif_file_path = f"IRMOF{mof_num}_1Bar_298K_i{idx}Classic.cif"
-    cif_file_path = f"./filled_IRMOF{mof_num}.cif"
+    cif_file_path = "MgMOF74_clean_fromCORE.cif"
     #  cif_file_path = "./IRMOF1_1Bar_300K_represent.cif"
     #  write(cif_file_path, atoms)
 
     helium_void_fraction = get_helium_void_fraction(cif_file_path)
 
-    pressures = [1, 10, 20, 35, 50, 65, 80, 100]
+    pressures = [1, 10, 20, 30, 40, 50]
 
     #  for pressure in pressures:
     #      prun(pressure)

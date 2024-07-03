@@ -34,7 +34,7 @@ def create_pd_row(label_val):
 def run(traj_file):
     print("Processing", traj_file)
     # get pressure from file name
-    press =int(traj_file.lower()[traj_file.lower().index(gas_type.lower()):traj_file.lower().index("bar")]
+    press = int(traj_file.lower()[traj_file.lower().index(gas_type.lower()):traj_file.lower().index("bar")]
                .replace("_", "").replace(gas_type.lower(), ""))
 
     traj = read("%s/%s" %(traj_dir, traj_file), format="lammps-dump-text", index=":")
@@ -75,14 +75,21 @@ if __name__ == "__main__":
         "4": 1.00794,
     }
 
+    #  atom_mass_classic = {
+    #      "1": 65.3800,
+    #      "2": 15.9994,
+    #      "3": 15.9994,
+    #      "4": 12.0107,
+    #      "5": 1.00794,
+    #  }
+
     atom_mass_classic = {
-        "1": 65.3800,
+        "1": 24.305,
         "2": 15.9994,
         "3": 15.9994,
         "4": 12.0107,
         "5": 1.00794,
     }
-
     gas_id = args.gasid
     gas_type = args.gastype
     traj_dir = args.traj_dir
@@ -91,6 +98,8 @@ if __name__ == "__main__":
         gas_mass = 2.01588
     elif gas_type.lower() == "ch4":
         gas_mass = 16.04246
+    elif gas_type.lower() == "co2":
+        gas_mass = 44.01
     else:
         print("Erorr! Please enter gas type as H2 or CH4")
         sys.exit(1)
