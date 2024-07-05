@@ -71,13 +71,15 @@ def g16Calculator(label, n_task):
      calc = Gaussian(
          label=label,
          chk=f"{label}.chk",
+         save=None,
          nprocshared=n_task,
-         xc="wb97",
-         basis="6-31g*",
+         xc="wb97xd",
+         basis="6-311++G(3df,3pd)",
          scf="maxcycle=100",
          pop="MK, Hirshfeld",
+         #  extra="# Force",
+         extra="# Force SCRF=(SMD, solvent=water)",
          addsec=None,
-         extra=None,
      )
 
      return calc

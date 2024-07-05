@@ -39,17 +39,21 @@ csv_path = f"{cwd}/{calc_type}_{in_extxyz.replace('.extxyz', '.csv')}"
 # set default
 n_task = 8
 
-if n_core == 20:
-    n_task = 10
-if n_core == 24 or n_core == 48:
-    n_task = 6
-if n_core == 40 or n_core == 80:
-    n_task = 8
-if n_core == 28 or n_core == 56:
-    n_task = 4
-if n_core == 112:
-    #  n_task = 16
-    n_task = 16
+if calculator_type == "g16":
+    n_task = 1
+
+else:
+    if n_core == 20:
+        n_task = 10
+    if n_core == 24 or n_core == 48:
+        n_task = 6
+    if n_core == 40 or n_core == 80:
+        n_task = 8
+    if n_core == 28 or n_core == 56:
+        n_task = 4
+    if n_core == 112:
+        #  n_task = 16
+        n_task = 16
 
 n_proc = int(n_core / n_task)
 
