@@ -326,10 +326,16 @@ class AseCalculations(object):
         self.molecule.forces = self.molecule.get_forces()
         #self.save_molecule("single_point", write_format="extxyz")
 
-    def optimize(self, fmax=1.0e-2, steps=1000):
+    def optimize(self, fmax=1.0e-2, steps=1000, indices=[]):
         self.calcName = "Optimization"
 
         optimization_path = os.path.join(self.working_dir, self.calcName)
+
+        if len(indices) > 0:
+            from ase.constraints import FixAtoms
+            c = FixAtoms(indices=indices)
+            self.molecule.set_constraint(c)
+
         optimizer = LBFGS(self.molecule,
                                 #  trajectory="%s.traj" % optimization_path,
                                 #  restart="%s.pkl" % optimization_path,

@@ -119,7 +119,9 @@ def run(mol_path, calc_type, temp, replica):
     )
 
     if opt:
-        calculation.optimize(fmax=0.005)
+        indices=[atom.index for atom in calculation.molecule if atom.index not in [544, 545, 546]]
+        print(indices)
+        calculation.optimize(fmax=0.005, indices=indices)
     calculation.run_md(nsteps)
 
     #  setting strain for pressure deformation simultaions
