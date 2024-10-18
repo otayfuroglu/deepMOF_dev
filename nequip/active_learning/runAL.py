@@ -14,11 +14,11 @@ args = parser.parse_args()
 
 #  T = 300
 #  it = "iter4"
-it = "iter8"
+it = "iter10"
 version = "v7"
 device = "cuda"
 frag_tpye = "MgF2"
-keyword = "nonbonded_CO2"
+keyword = "bonded_CO2"
 
 model2_path = args.model2_path
 calc2 = NequIPCalculator.from_deployed_model(
