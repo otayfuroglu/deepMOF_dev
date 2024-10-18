@@ -200,12 +200,12 @@ if __name__ == "__main__":
     for atoms in atoms_list:
         #calc = True
 
-        mol_name = atoms.info['label']
-        calc = checkCalcFiles(mol_name, calculated_names)
+        label = atoms.info['label']
+        name = f"{label}_{calc_type}_{temp}K_{md_type}"
+        calc = checkCalcFiles(name, calculated_names)
         if calc:
-            name = f"{mol_name}_{calc_type}_{temp}K_{md_type}"
             #  try:
-            #  fix_indices = [atom.index for atom in atoms if atom.symbol == "H"]
+            fix_indices = [atom.index for atom in atoms if atom.symbol == "H"]
             run(atoms, name, calc_type, temp, replica, fix_indices)
            #   except:
            #       print(mol_name, file=fl)
