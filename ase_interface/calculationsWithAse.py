@@ -326,15 +326,17 @@ class AseCalculations(object):
         self.molecule.forces = self.molecule.get_forces()
         #self.save_molecule("single_point", write_format="extxyz")
 
+    def setConstraint(self, indices):
+
+        from ase.constraints import FixAtoms
+        c = FixAtoms(indices=indices)
+        self.molecule.set_constraint(c)
+
+
     def optimize(self, fmax=1.0e-2, steps=1000, indices=[]):
         self.calcName = "Optimization"
 
         optimization_path = os.path.join(self.working_dir, self.calcName)
-
-        if len(indices) > 0:
-            from ase.constraints import FixAtoms
-            c = FixAtoms(indices=indices)
-            self.molecule.set_constraint(c)
 
         optimizer = LBFGS(self.molecule,
                                 #  trajectory="%s.traj" % optimization_path,
@@ -466,11 +468,17 @@ class AseCalculations(object):
 
     def printMD(self):
         """xxx"""
-        volume = self.molecule.get_volume()
+        check_cell = True if self.molecule.cell.sum() else False
+        if check_cell:
+            volume = self.molecule.get_volume()
         temp = self.molecule.get_temperature()
         epot = self.molecule.get_potential_energy()
 
-        print('%.4f,%.4f,%.4f'%(epot, temp, volume), file=self.out_file)
+        if check_cell:
+            print('%.4f,%.4f,%.4f'%(epot, temp, volume), file=self.out_file)
+        else:
+            print('%.4f,%.4f'%(epot, temp), file=self.out_file)
+
 
     def _setTqdm(self, steps):
         #  self.pbar =
