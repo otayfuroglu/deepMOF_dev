@@ -144,6 +144,8 @@ class CaculateData():
         atoms.arrays["CHELPGPQ"] = chelpg_charges
 
         prepareDDECinput(label)
+        # to produce wfn and wfx file for charhemol by orca_2aim
+        os.system(f"{self.orca_path}_2aim {label}")
         os.system(f"{str(Path.home())}/miniconda3/pkgs/chargemol-3.5-h1990efc_0/bin/chargemol")
 
         ddec_charges = read_orca_ddec_charges("DDEC6_even_tempered_net_atomic_charges.xyz")
