@@ -21,7 +21,6 @@ from gaussian_io import read_esp_charges
 
 
 
-
 def prepareDDECinput(base):
     input_txt = f"""
         <periodicity along A, B, and C vectors>
