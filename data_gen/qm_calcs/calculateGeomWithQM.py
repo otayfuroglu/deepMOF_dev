@@ -194,49 +194,49 @@ class CaculateData():
         os.chdir(OUT_DIR)
         print(f"working in {OUT_DIR} directory\n")
 
-        #  try:
-        if self.calculator_type.lower() == "orca":
-            if initial_gbw_file:
-                shutil.copy2(f"{GBW_DIR}/{initial_gbw_name}", OUT_DIR)
-                initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
-                atoms.set_calculator(orca_calculator(self.orca_path, label,
-                                                     self.calc_type, self.n_task, initial_gbw))
-            else:
-                atoms.set_calculator(orca_calculator(self.orca_path, label,
-                                                     self.calc_type, self.n_task))
-        elif self.calculator_type.lower() == "g16":
-            atoms.set_calculator(g16Calculator(label, self.n_task))
+        try:
+            if self.calculator_type.lower() == "orca":
+                if initial_gbw_file:
+                    shutil.copy2(f"{GBW_DIR}/{initial_gbw_name}", OUT_DIR)
+                    initial_gbw = ['MORead',  '\n%moinp "{}"'.format(initial_gbw_name)]
+                    atoms.set_calculator(orca_calculator(self.orca_path, label,
+                                                         self.calc_type, self.n_task, initial_gbw))
+                else:
+                    atoms.set_calculator(orca_calculator(self.orca_path, label,
+                                                         self.calc_type, self.n_task))
+            elif self.calculator_type.lower() == "g16":
+                atoms.set_calculator(g16Calculator(label, self.n_task))
 
-        # orca calculation start
-        atoms.get_potential_energy()
-        if self.calculator_type.lower() == "orca":
-            self._readSetOrcaCharges(atoms, label="orca")
-        elif self.calculator_type == "g16":
-            self._readSetG16Charges(atoms, label)
+            # orca calculation start
+            atoms.get_potential_energy()
+            if self.calculator_type.lower() == "orca":
+                self._readSetOrcaCharges(atoms, label="orca")
+            elif self.calculator_type == "g16":
+                self._readSetG16Charges(atoms, label)
 
-        #  if self.i == 1:
-        if self.calculator_type.lower() == "orca":
-            if not initial_gbw_file:
-                shutil.move("orca.gbw", f"{GBW_DIR}/{initial_gbw_name}")
+            #  if self.i == 1:
+            if self.calculator_type.lower() == "orca":
+                if not initial_gbw_file:
+                    shutil.move("orca.gbw", f"{GBW_DIR}/{initial_gbw_name}")
 
-        #  os.system("rm %s*" %label)
-        write(self.BASE_DIR/Path(self.out_extxyz_path), atoms, append=True)
-        os.chdir(self.BASE_DIR)
-        if self.rm_out_dir:
-            shutil.rmtree(OUT_DIR)
-        #  except:
-        #      print("Error for %s" %label)
+            #  os.system("rm %s*" %label)
+            write(self.BASE_DIR/Path(self.out_extxyz_path), atoms, append=True)
+            os.chdir(self.BASE_DIR)
+            if self.rm_out_dir:
+                shutil.rmtree(OUT_DIR)
+        except:
+            print("Error for %s" %label)
 
-        #      # remove this non SCF converged file from xyz directory.
-        #      if self.rm_files:
-        #          os.remove("%s/%s" %(self.filesDIR, file_name))
-        #          #  print(file_name, "Removed!")
+            # remove this non SCF converged file from xyz directory.
+            if self.rm_files:
+                os.remove("%s/%s" %(self.filesDIR, file_name))
+                #  print(file_name, "Removed!")
 
-        #      # remove all orca temp out files related to label from runGeom directory.
-        #      #  os.system("rm %s/%s*" %(OUT_DIR, label))
-        #      if self.rm_out_dir:
-        #          shutil.rmtree(OUT_DIR)
-        #      os.chdir(self.BASE_DIR)
+            # remove all orca temp out files related to label from runGeom directory.
+            #  os.system("rm %s/%s*" %(OUT_DIR, label))
+            if self.rm_out_dir:
+                shutil.rmtree(OUT_DIR)
+            os.chdir(self.BASE_DIR)
         #      return None
 
     def countAtoms(self):
