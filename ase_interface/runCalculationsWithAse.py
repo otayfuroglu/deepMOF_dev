@@ -22,10 +22,9 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
+def run(atoms, calc_type, run_type, temp=0, cell=1):
 
-    file_base = file_name.split(".")[0]
-    name = file_base + "_%s_%s_%sK" % (calc_type, run_type, temp)
+    name = "%s_%s_%sK" % (calc_type, run_type, temp)
     CW_DIR = os.getcwd()
 
     # main directory for caculation runOpt
@@ -39,7 +38,8 @@ def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
     calculation = AseCalculations(WORKS_DIR)
     calculation.setCalcName(name)
 
-    calculation.load_molecule_fromFile(molecule_path)
+    #  calculation.load_molecule_fromFile(molecule_path)
+    calculation.load_molecule_fromAseatoms(atoms)
     P = [[0, 0, -cell], [0, -cell, 0], [-cell, 0, 0]]
     calculation.makeSupercell(P)
 
@@ -82,7 +82,12 @@ def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
         calculation.setAniCalculator(model_type="ani2x", device=device)
 
     elif calc_type.lower() == "n2p2":
-        calculation.setN2P2Calculator(args.MODEL_DIR, best_epoch=66)
+        calculation.setN2P2Calculator(
+            args.MODEL_DIR,
+            best_epoch=66,
+            energy_units="eV",
+            length_units="eV/Angstrom",
+        )
 
 
     elif calc_type.lower() == "nequip":
@@ -96,8 +101,8 @@ def run(file_name, molecule_path, calc_type, run_type, temp=0, cell=1):
         #  WORKS_DIR = WORKS_DIR.replace("vibration", "opt").replace("DFT", "model")
         #  opt_molpath= "%s/Optimization.xyz" %WORKS_DIR
         #  calculation.load_molecule_fromFile(molecule_path=opt_molpath)
-        calculation.optimize(fmax=0.015)
-        calculation.vibration(nfree=4)
+        calculation.optimize(fmax=0.001)
+        calculation.vibration(nfree=2)
         os.chdir(CW_DIR)
 
     elif run_type.lower() == "md":
@@ -167,15 +172,10 @@ def p_run(idxs):
     #data = AtomsData(path_to_db)
     #db_atoms = data.get_atoms(0)
 
-    if n_file > 1:
-        file_name = file_names[idxs]
-        temp = temp_list[0]
-    else:
-        file_name = file_names[0]
-        temp = temp_list[idxs]
 
-    molecule_path = os.path.join(MOL_DIR, file_name)
-    run(file_name, molecule_path, calc_type, run_type, temp, cell)
+    #  molecule_path = os.path.join(MOL_DIR, file_name)
+    atoms = atoms_list[idxs]
+    run(atoms, calc_type, run_type, temp, cell)
 
 
 if __name__ == "__main__":
@@ -189,8 +189,9 @@ if __name__ == "__main__":
     parser.add_argument("-calc_type", "--calc_type",
                         type=str, required=True,
                         help="..")
-    parser.add_argument("-temp_list", "--temp_list", nargs='+',
-                       default=[], type=int)
+    #  parser.add_argument("-temp_list", "--temp_list", nargs='+',
+    #                     default=[], type=int)
+    parser.add_argument("-temp", "--temp", type=int)
     parser.add_argument("-cell", "--cell",
                         type=int, required=True,
                         help="..")
@@ -200,41 +201,29 @@ if __name__ == "__main__":
     parser.add_argument("-RESULT_DIR", "--RESULT_DIR",
                         type=str, required=True,
                         help="..")
-    parser.add_argument("-MOL_DIR", "--MOL_DIR",
+    parser.add_argument("-mol_path", "--mol_path",
                         type=str, required=True,
-                        help="..")
-    parser.add_argument("-file_name", "--file_name",
-                        type=str, required=False,
                         help="..")
     args = parser.parse_args()
 
     run_type = args.run_type
     calc_type = args.calc_type
-    temp_list = args.temp_list
+    temp = args.temp
     cell = args.cell
     RESULT_DIR = args.RESULT_DIR
-    MOL_DIR = args.MOL_DIR
-    file_name = args.file_name
+    mol_path = args.mol_path
     properties = ["energy", "forces", "stress"]  # properties used for training
 
 
-    if calc_type.lower() == "nequip":
-        molecule_path = read(MOL_DIR)
-        run(file_name, molecule_path, calc_type, run_type, temp, cell)
+    atoms_list = read(mol_path, index=":")
+    #  if calc_type.lower() == "nequip":
+    if len(atoms_list) == 1:
+        atoms = atoms_list[0]
+        run(atoms, calc_type, run_type, temp, cell)
 
     else:
-        #  temp_list = [100, 150]
-        if file_name:
-            file_names = [file_name]
-        else:
-            file_names = [file_name for file_name in os.listdir(MOL_DIR) if "." in file_name]
-
-        n_file = len(file_names)
-        if n_file > 1:
-            idxs = range(n_file)
-            nprocs = n_file
-        else:
-            idxs = range(len(temp_list))
-            nprocs = len(temp_list)
+        n_atoms = len(atoms_list)
+        idxs = range(n_atoms)
+        nprocs = n_atoms
         with Pool(nprocs) as pool:
            pool.map(p_run, idxs)
