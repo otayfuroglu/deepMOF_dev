@@ -22,7 +22,7 @@ def getWorksDir(calc_name):
     return WORKS_DIR
 
 
-def run(atoms, calc_type, run_type, temp=0, cell=1):
+def run(atoms, calc_type, run_type, temp=0, replica=1):
 
     name = "%s_%s_%sK" % (calc_type, run_type, temp)
     CW_DIR = os.getcwd()
@@ -40,7 +40,7 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
 
     #  calculation.load_molecule_fromFile(molecule_path)
     calculation.load_molecule_fromAseatoms(atoms)
-    P = [[0, 0, -cell], [0, -cell, 0], [-cell, 0, 0]]
+    P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
     calculation.makeSupercell(P)
 
     if calc_type.lower() in ["schnetpack", "ani"]:
@@ -58,8 +58,6 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
                                         dispCorrection="dftd4",
                                         nproc=56)
         calculation.setCalcName(name)
-
-
     elif calc_type.lower() == "schnetpack":
         from schnetpack.environment import AseEnvironmentProvider
         from schnetpack.utils import load_model
@@ -77,34 +75,29 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
             environment_provider=AseEnvironmentProvider(cutoff=5.5),
             device=device,
         )
-
     elif calc_type.lower() == "ani":
         calculation.setAniCalculator(model_type="ani2x", device=device)
-
     elif calc_type.lower() == "n2p2":
         calculation.setN2P2Calculator(
             args.MODEL_DIR,
             best_epoch=66,
             energy_units="eV",
-            length_units="eV/Angstrom",
+            length_units="Angstrom",
         )
-
-
     elif calc_type.lower() == "nequip":
         calculation.setNequipCalculator(args.MODEL_DIR, device="cuda")
+
     # set calculation type
     if run_type.lower() == "opt":
-        calculation.optimize()
+        calculation.optimize(fmax=fmax)
         os.chdir(CW_DIR)
-
     elif run_type.lower() == "vibration":
         #  WORKS_DIR = WORKS_DIR.replace("vibration", "opt").replace("DFT", "model")
         #  opt_molpath= "%s/Optimization.xyz" %WORKS_DIR
         #  calculation.load_molecule_fromFile(molecule_path=opt_molpath)
-        calculation.optimize(fmax=0.001)
+        calculation.optimize(fmax=fmax)
         calculation.vibration(nfree=2)
         os.chdir(CW_DIR)
-
     elif run_type.lower() == "md":
 
         calculation.init_md(
@@ -118,8 +111,8 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
           interval=50,
         )
 
-        calculation.optimize(fmax=0.0005)
-        calculation.run_md(1000000)
+        calculation.optimize(fmax=fmax)
+        calculation.run_md(nsteps)
 
         #  setting strain for pressure deformation simultaions
 
@@ -133,7 +126,6 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
         #      abc[0] = a
         #      calculation.molecule.set_cell(abc)
         #      calculation.run_md(5000)
-
     elif run_type.lower() == "eos":
 
         cell = calculation.molecule.get_cell()
@@ -150,8 +142,6 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
 
             traj.write(calculation.molecule)
         os.chdir(CW_DIR)
-
-
     elif run_type.lower() == "optlattice":
         name = file_base + "_calc_lattice_const"
         from ase.constraints import StrainFilter, UnitCellFilter
@@ -159,10 +149,10 @@ def run(atoms, calc_type, run_type, temp=0, cell=1):
         #  calculation.setCalcName("mof5Lattice")
         #  calculation.molecule.set_pbc([True, True, True])
         print(calculation.molecule.get_cell_lengths_and_angles())
-        calculation.optimizeWithStrain(fmax=0.0005)
+        calculation.optimizeWithStrain(fmax=fmax)
         print(calculation.molecule.get_cell_lengths_and_angles())
 
-        calculation.optimize(fmax=0.05)
+        calculation.optimize(fmax=fmax)
 
 
 def p_run(idxs):
@@ -192,7 +182,7 @@ if __name__ == "__main__":
     #  parser.add_argument("-temp_list", "--temp_list", nargs='+',
     #                     default=[], type=int)
     parser.add_argument("-temp", "--temp", type=int)
-    parser.add_argument("-cell", "--cell",
+    parser.add_argument("-replica", "--replica",
                         type=int, required=True,
                         help="..")
     parser.add_argument("-MODEL_DIR", "--MODEL_DIR",
@@ -204,14 +194,22 @@ if __name__ == "__main__":
     parser.add_argument("-mol_path", "--mol_path",
                         type=str, required=True,
                         help="..")
+    parser.add_argument("-fmax", "--fmax",
+                        type=float, required=True,
+                        help="..")
+    parser.add_argument("-nsteps", "--nsteps",
+                        type=int, required=True,
+                        help="..")
     args = parser.parse_args()
 
     run_type = args.run_type
     calc_type = args.calc_type
     temp = args.temp
-    cell = args.cell
+    replica = args.replica
     RESULT_DIR = args.RESULT_DIR
     mol_path = args.mol_path
+    fmax = args.fmax
+    nsteps = args.nsteps
     properties = ["energy", "forces", "stress"]  # properties used for training
 
 
@@ -219,7 +217,7 @@ if __name__ == "__main__":
     #  if calc_type.lower() == "nequip":
     if len(atoms_list) == 1:
         atoms = atoms_list[0]
-        run(atoms, calc_type, run_type, temp, cell)
+        run(atoms, calc_type, run_type, temp, replica)
 
     else:
         n_atoms = len(atoms_list)
