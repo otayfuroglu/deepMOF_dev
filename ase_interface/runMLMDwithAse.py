@@ -59,7 +59,7 @@ def run(atoms, name, calc_type, temp, replica, fix_indices=[]):
     calculation.load_molecule_fromAseatoms(atoms)
     if pbc:
         calculation.molecule.pbc = True
-        if replica > 0:
+        if replica >= 2:
             P = [[0, 0, -replica], [0, -replica, 0], [-replica, 0, 0]]
             calculation.makeSupercell(P)
     else:
@@ -200,12 +200,16 @@ if __name__ == "__main__":
     for atoms in atoms_list:
         #calc = True
 
-        label = atoms.info['label']
+        try:
+            label = atoms.info['label']
+        except:
+            label= "framework"
         name = f"{label}_{calc_type}_{temp}K_{md_type}"
         calc = checkCalcFiles(name, calculated_names)
         if calc:
             #  try:
-            fix_indices = [atom.index for atom in atoms if atom.symbol == "H"]
+            #  fix_indices = [atom.index for atom in atoms if atom.symbol == "H"]
+            fix_indices = []
             run(atoms, name, calc_type, temp, replica, fix_indices)
            #   except:
            #       print(mol_name, file=fl)
