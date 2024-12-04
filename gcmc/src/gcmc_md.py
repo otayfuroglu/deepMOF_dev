@@ -123,6 +123,34 @@ class AI_GCMCMD():
             del atoms.constraints
 
     def _run_npt_md(self, atoms, timestep, N):
+        from ase.md.npt import NPT
+
+        if not self.flex_ads:
+            self._set_rigid_ads_atoms(atoms)
+
+        atoms.calc = self.model
+        # Set initial velocities corresponding to T
+        MaxwellBoltzmannDistribution(atoms, temperature_K=self.T)
+        trajectory = Trajectory(f'{self.results_dir}/trajectory_{self.P/bar}bar.traj', "a", atoms)
+        # Define the NPT dynamics
+        dyn = NPT(atoms,
+                  timestep=timestep*fs,  # Timestep of 1 femtosecond
+                  temperature_K=self.T,
+                  externalstress=self.P,
+                  ttime=25*fs,  # Thermostat coupling time
+                  pfactor=0.6,)    # Barostat coupling factor
+
+        dyn.attach(trajectory.write, interval=self.interval)  # Write every step
+        #  self._setTqdm(N)
+        #  dyn.attach(self._tqdmMD)
+        # Run the dynamics for a fixed number of steps
+        dyn.run(N)
+
+        # to remove contraints after MD
+        if not self.flex_ads:
+            del atoms.constraints
+
+    def _run_nptberendsen_md(self, atoms, timestep, N):
         from ase.md.nptberendsen import NPTBerendsen
 
         if not self.flex_ads:
