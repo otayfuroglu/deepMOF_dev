@@ -215,7 +215,8 @@ class AI_GCMCMD():
             if iteration % X == 0:
                 #run md
                 #  self._run_nvt_md(atoms, timestep, N)
-                self._run_npt_md(atoms, timestep, N)
+                #  self._run_npt_md(atoms, timestep, N)
+                self._run_nptberendsen_md(atoms, timestep, N)
 
                 #  if iteration == 0:
                 #get potential energy after MD steps
