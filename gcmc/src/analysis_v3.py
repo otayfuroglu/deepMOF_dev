@@ -86,7 +86,7 @@ def getUptakeNpy(npy_path, plot=False):
     fl_base = results_dir
     nAds_list = np.load(npy_path).tolist()
 
-    abs_avg_nAds = np.array(nAds_list[int(len(nAds_list)/1.25):]).mean()
+    abs_avg_nAds = np.array(nAds_list[int(len(nAds_list)/4):]).mean()
     excess_avg_nAds = getAvgExcess(abs_avg_nAds, void_volume, rho_bulk_gas)
     #  avg_nAds = np.array(nAds_list).mean()
     #print(avg_nAds/sum(atoms_frame.get_masses())* 1000, " mmol/g")
