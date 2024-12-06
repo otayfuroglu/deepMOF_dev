@@ -6,7 +6,9 @@ import seaborn as sns
 import os
 from ase.io.trajectory import Trajectory
 from ase.io import read
+from ase.units import bar, GPa
 import argparse
+
 
 
 import matplotlib
@@ -88,6 +90,25 @@ def plot_volume():
     plt.savefig("%s_volume.png" %log_base)
     #  plt.show()
 
+def plot_pressure():
+
+    #  window = 10
+    #  new_length = (len(pressures) // window) * window
+    #  pressures_mean = np.mean(np.array(pressures[:new_length]).reshape(-1, window), axis=1)   # moving avarage
+    #  pressures_mean = pressures_mean.repeat(window) # for same len of time axis
+
+    pressures_mean = np.cumsum(pressures) / (np.arange(len(pressures))+1) # cumulative avarage
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(time_axis, pressures, label=r"Pressure")
+    plt.plot(time_axis[:len(pressures_mean)], pressures_mean, label=r"Pressure (avg.)")
+    plt.ylabel(r"Pressure (bar)")
+    plt.xlabel('t (fs)')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("%s_pressure.png" %log_base)
+    #  plt.show()
+
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-traj", type=str, required=True)
 parser.add_argument("-stepsize", type=float, required=True)
@@ -113,6 +134,9 @@ temps = [atoms.get_temperature() for atoms in atoms_list[initial_skip:]]
 vols = [atoms.get_volume() for atoms in atoms_list[initial_skip:]]
 cell_lengths = [atoms.cell.lengths() for atoms in atoms_list[initial_skip:]]
 
+pressures = [(-atoms.get_stress(voigt=False, include_ideal_gas=True).trace() / 3) / bar # eV/A^3 to bar
+             for atoms in atoms_list[initial_skip:]]
+
 
 #  print(" Avg. T (K): ", temps.mean())
 print(" Avg. Volume (A^3): ", np.array(vols).mean())
@@ -124,3 +148,4 @@ print(" Avg. cell lengths a, b, c ", np.array(cell_lengths).mean(axis=0))
 #  plot_loading(, n_frame_atoms)
 plot_temperature()
 plot_volume()
+plot_pressure()
