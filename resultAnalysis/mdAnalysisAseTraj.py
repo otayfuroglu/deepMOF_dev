@@ -142,10 +142,10 @@ pressures = [(-atoms.get_stress(voigt=False, include_ideal_gas=True).trace() / 3
 print(" Avg. Volume (A^3): ", np.array(vols).mean())
 print(" Avg. cell lengths a, b, c ", np.array(cell_lengths).mean(axis=0))
 
-
 #  plot_energy()
 #  plot_pot_energy()
 #  plot_loading(, n_frame_atoms)
+
 plot_temperature()
 plot_volume()
 plot_pressure()
