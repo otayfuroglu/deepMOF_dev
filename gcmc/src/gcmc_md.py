@@ -150,8 +150,8 @@ class AI_GCMCMD():
         if not self.flex_ads:
             del atoms.constraints
 
-    def _run_nptberendsen_md(self, atoms, timestep, N):
-        from ase.md.nptberendsen import NPTBerendsen
+    def _run_nptberendsen_md(self, atoms, timestep, N, Inhomogeneous=False):
+        from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 
         if not self.flex_ads:
             self._set_rigid_ads_atoms(atoms)
@@ -161,15 +161,26 @@ class AI_GCMCMD():
         MaxwellBoltzmannDistribution(atoms, temperature_K=self.T)
         trajectory = Trajectory(f'{self.results_dir}/trajectory_{self.P/bar}bar.traj', "a", atoms)
         # Define the NPT dynamics
-        dyn = NPTBerendsen(atoms,
-                           timestep=timestep*fs,  # Timestep of 1 femtosecond
-                           temperature_K=self.T,
-                           pressure=self.P,
-                           #  taut=0.5e3 *fs,
-                           taut=1e2 *fs,
-                           taup=1e3*fs,
-                           compressibility=1e-7,
-                          )
+        if not Inhomogeneous:
+            dyn = NPTBerendsen(atoms,
+                               timestep=timestep*fs,  # Timestep of 1 femtosecond
+                               temperature_K=self.T,
+                               pressure=self.P,
+                               #  taut=0.5e3 *fs,
+                               taut=1e2 *fs,
+                               taup=1e3*fs,
+                               compressibility=1e-7,
+                              )
+        else:
+            dyn = Inhomogeneous_NPTBerendsen(atoms,
+                               timestep=timestep*fs,  # Timestep of 1 femtosecond
+                               temperature_K=self.T,
+                               pressure=self.P,
+                               #  taut=0.5e3 *fs,
+                               taut=1e2 *fs,
+                               taup=1e3*fs,
+                               compressibility=1e-7,
+                              )
 
         dyn.attach(trajectory.write, interval=self.interval)  # Write every step
         #  self._setTqdm(N)
@@ -220,7 +231,7 @@ class AI_GCMCMD():
                 #run md
                 #  self._run_nvt_md(atoms, timestep, N)
                 #  self._run_npt_md(atoms, timestep, N)
-                self._run_nptberendsen_md(atoms, timestep, N)
+                self._run_nptberendsen_md(atoms, timestep, N, Inhomogeneous=False)
 
                 #  if iteration == 0:
                 #get potential energy after MD steps
