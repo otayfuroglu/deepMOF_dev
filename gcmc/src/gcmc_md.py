@@ -162,10 +162,14 @@ class AI_GCMCMD():
         trajectory = Trajectory(f'{self.results_dir}/trajectory_{self.P/bar}bar.traj', "a", atoms)
         # Define the NPT dynamics
         dyn = NPTBerendsen(atoms,
-                   timestep=timestep*fs,  # Timestep of 1 femtosecond
-                   temperature_K=self.T,
-                   pressure=self.P,
-                   compressibility=4.57e-5)  # Typical for solids
+                           timestep=timestep*fs,  # Timestep of 1 femtosecond
+                           temperature_K=self.T,
+                           pressure=self.P,
+                           #  taut=0.5e3 *fs,
+                           taut=1e2 *fs,
+                           taup=1e3*fs,
+                           compressibility=1e-7,
+                          )
 
         dyn.attach(trajectory.write, interval=self.interval)  # Write every step
         #  self._setTqdm(N)
