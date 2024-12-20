@@ -39,11 +39,13 @@ parser.add_argument("-pressure", type=float, required=True, help="")
 parser.add_argument("-temperature", type=float, required=True, help="")
 parser.add_argument("-stepsize", type=float, required=True, help="")
 parser.add_argument("-totalsteps", type=int, required=True, help="")
-parser.add_argument("-mdsteps", type=int, required=True, help="")
-parser.add_argument("-gcmcsteps", type=int, required=True, help="")
+parser.add_argument("-nmdsteps", type=int, required=True, help="")
+parser.add_argument("-ngcmcsteps", type=int, required=True, help="")
+parser.add_argument("-nmcmoves", type=int, required=True, help="")
 parser.add_argument("-flex_ads", type=str, required=True, help="")
 parser.add_argument("-opt", type=str, required=True, help="")
-parser.add_argument("-model_path", type=str, required=True, help="")
+parser.add_argument("-model_gcmc_path", type=str, required=True, help="")
+parser.add_argument("-model_md_path", type=str, required=True, help="")
 parser.add_argument("-struc_path", type=str, required=True, help="")
 parser.add_argument("-molecule_path", type=str, required=True, help="")
 parser.add_argument("-interval", type=int, required=True, help="")
@@ -52,14 +54,24 @@ args = parser.parse_args()
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.backends.cudnn.allow_tf32 = False
 
+
+def load_model(model_path):
+    #  Modify species for Mg-MOF-74 (see training yaml file)
+    return NequIPCalculator.from_deployed_model(
+        model_path = model_path, #'./MgF2_nonbonded_v10_nnp1_e10.pth',
+        species_to_type_name = {"C" : "C", "H" : "H", "O" : "O", "Mg" : "Mg"}, device=device)
+
+
 #  temperature = 273 * kelvin
 temperature = args.temperature * kelvin
 pressure = args.pressure * bar
 stepsize = args.stepsize
 totalsteps = args.totalsteps
-N = args.mdsteps # invoke this fix every N steps
-X = args.gcmcsteps # average number of GCMC attempt every N steps
-model_path = args.model_path
+nmdsteps = args.nmdsteps # invoke this fix every nmdsteps steps
+ngcmcsteps = args.ngcmcsteps # average number of GCMC exchanges to attempt every nmdsteps steps
+nmcmoves = args.nmcmoves # average number of MC moves to attempt every nmdsteps steps
+model_gcmc_path = args.model_gcmc_path
+model_md_path = args.model_md_path
 struc_path = args.struc_path
 molecule_path = args.molecule_path
 interval = args.interval
@@ -68,16 +80,9 @@ flex_ads = getBoolStr(args.flex_ads)
 opt = getBoolStr(args.opt)
 # Preferably run on GPUs
 device = 'cuda'
-#  Modify species for Mg-MOF-74 (see training yaml file)
-model = NequIPCalculator.from_deployed_model(model_path = model_path, #'./MgF2_nonbonded_v10_nnp1_e10.pth',
-                                                    species_to_type_name = {"C" : "C",
-                                                                            "H" : "H",
-                                                                            "O" : "O",
-                                                                            "Mg" : "Mg",
-                                                                            #  "Os" : "Os",
-                                                                            #  "Co" : "Co"
-                                                                           },
-                                                    device=device)
+
+model_gcmc = load_model(model_gcmc_path)
+model_md = load_model(model_md_path)
 
 #  atoms_frame = read('MgMOF74_clean_fromCORE.cif')
 atoms_frame = read(struc_path)
@@ -86,7 +91,7 @@ P = [[0, 0, -replica[0]], [0, -replica[1], 0], [-replica[2], 0, 0]]
 atoms_frame = make_supercell(atoms_frame, P)
 
 if opt:
-    atoms_frame.calc = model
+    atoms_frame.calc = model_md
     #  write("framebeforeopt.cif", atoms_frame)
     # geom opt frame based on model
     # to account relaxation of cell
@@ -115,13 +120,13 @@ vdw_radii[12] = 1.0
 eos = PREOS.from_name('carbondioxide')
 fugacity = eos.calculate_fugacity(temperature, pressure)
 
-results_dir = f"gcmcmd_results_stepsize{stepsize}_N{N}_X{X}_flexAds{flex_ads}_opt{opt}_{pressure/bar}bar_{int(temperature)}K"
+results_dir = f"gcmcmd_results_stepsize{stepsize}_N{nmdsteps}_X{ngcmcsteps+nmcmoves}_flexAds{flex_ads}_opt{opt}_{pressure/bar}bar_{int(temperature)}K"
 if not os.path.exists(results_dir):
     os.mkdir(results_dir)
 
 
-gcmc_md = AI_GCMCMD(model, results_dir, interval, atoms_frame, atoms_ads, flex_ads,
+gcmc_md = AI_GCMCMD(model_gcmc, model_md, results_dir, interval, atoms_frame, atoms_ads, flex_ads,
                   temperature, pressure, fugacity, device, vdw_radii)
 
-gcmc_md.run(stepsize, totalsteps, N, X)
+gcmc_md.run(stepsize, totalsteps, nmdsteps, ngcmcsteps, nmcmoves)
 #
