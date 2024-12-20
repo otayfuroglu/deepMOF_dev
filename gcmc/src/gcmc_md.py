@@ -359,16 +359,17 @@ class AI_GCMCMD():
             self.uptake.append(self.Z_ads)
             self.adsorption_energy.append(e)
 
-            # save status
+            # save status at steps interval
             if self.n_tot_succ_steps % self.interval == 0 and self.old_n_tot_succ_steps != self.n_tot_succ_steps:
                 write(f'{self.results_dir}/trajectory_{self.P/bar}bar.extxyz', self.atoms, append=True)
                 print(f"{self.n_tot_succ_steps},{self.n_trial_insertion},{self.n_succ_insertion},{self.n_trial_deletion},{self.n_succ_deletion}", file=self.fl_status)
 
-                np.save(f'{self.results_dir}/uptake_{self.P/bar}bar.npy', np.array(self.uptake))
-                np.save(f'{self.results_dir}/adsorption_energy_{self.P/bar}bar.npy', np.array(self.adsorption_energy))
-
                 self.fl_status.flush()
                 self.old_n_tot_succ_steps = self.n_tot_succ_steps
+
+            # save uptake and enrgirs at ever step in
+            np.save(f'{self.results_dir}/uptake_{self.P/bar}bar.npy', np.array(self.uptake))
+            np.save(f'{self.results_dir}/adsorption_energy_{self.P/bar}bar.npy', np.array(self.adsorption_energy))
 
         # assign velocites to new added atoms
         if Z_ads_in_loop > 0:
