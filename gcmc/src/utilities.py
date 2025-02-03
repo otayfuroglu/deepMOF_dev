@@ -2,6 +2,31 @@ import numpy as np
 from molmod.units import *
 from molmod.constants import *
 
+import CoolProp
+
+def calculate_fugacity_with_coolprop(method, fluid, T, P):
+    """
+    Calculate the fugacity for a given fluid using CoolProp.
+
+    Args:
+        fluid (str): The name of the fluid (e.g., 'CO2').
+        T (float): Temperature (K).
+        P (float): Pressure (Pa).
+
+    Returns:
+        float: Fugacity
+    """
+
+    # NOTE added by omert
+
+    # Define fluid and parameters
+    HEOS = CoolProp.AbstractState(method, fluid)
+    #  HEOS.set_mole_fractions([1])
+
+    HEOS.update(CoolProp.PT_INPUTS, P, T)  # Pressure in Pa
+    fugacity = HEOS.fugacity(0)# * J_to_au  # Convert to atomic units
+    return fugacity
+
 
 def _random_rotation(pos, circlefrac = 1.0):
     # Translate to origin
@@ -118,8 +143,6 @@ class EOS(object):
         if np.abs(Zref-1.0)>deviation:
             raise ValueError("Failed to find pressure where the fluidum is ideal-gas like, check input parameters")
         return Pref
-
-
 
 
 class PREOS(EOS):

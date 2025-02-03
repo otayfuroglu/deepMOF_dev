@@ -81,4 +81,3 @@ gcmc = AI_GCMC(model, results_dir, interval, atoms_frame, atoms_ads, temperature
 #  gcmc.run(6000000)
 gcmc.run(2000000)
 
-

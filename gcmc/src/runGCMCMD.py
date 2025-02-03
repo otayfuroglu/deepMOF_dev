@@ -12,7 +12,7 @@ from ase.filters import UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from time import time
-from gcmc_md import AI_GCMCMD
+from gcmc_md import GCMCMD
 from molmod.units import *
 from time import time
 
@@ -37,7 +37,7 @@ def getBoolStr(string):
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-pressure", type=float, required=True, help="")
 parser.add_argument("-temperature", type=float, required=True, help="")
-parser.add_argument("-stepsize", type=float, required=True, help="")
+parser.add_argument("-timestep", type=float, required=True, help="")
 parser.add_argument("-totalsteps", type=int, required=True, help="")
 parser.add_argument("-nmdsteps", type=int, required=True, help="")
 parser.add_argument("-ngcmcsteps", type=int, required=True, help="")
@@ -65,7 +65,7 @@ def load_model(model_path):
 #  temperature = 273 * kelvin
 temperature = args.temperature * kelvin
 pressure = args.pressure * bar
-stepsize = args.stepsize
+timestep = args.timestep
 totalsteps = args.totalsteps
 nmdsteps = args.nmdsteps # invoke this fix every nmdsteps steps
 ngcmcsteps = args.ngcmcsteps # average number of GCMC exchanges to attempt every nmdsteps steps
@@ -81,8 +81,8 @@ opt = getBoolStr(args.opt)
 # Preferably run on GPUs
 device = 'cuda'
 
-model_gcmc = load_model(model_gcmc_path)
-model_md = load_model(model_md_path)
+calc_gcmc = load_model(model_gcmc_path)
+calc_md = load_model(model_md_path)
 
 #  atoms_frame = read('MgMOF74_clean_fromCORE.cif')
 atoms_frame = read(struc_path)
@@ -120,13 +120,14 @@ vdw_radii[12] = 1.0
 eos = PREOS.from_name('carbondioxide')
 fugacity = eos.calculate_fugacity(temperature, pressure)
 
-results_dir = f"gcmcmd_results_stepsize{stepsize}_N{nmdsteps}_X{ngcmcsteps+nmcmoves}_flexAds{flex_ads}_opt{opt}_{pressure/bar}bar_{int(temperature)}K"
+results_dir = f"gcmcmd_results_timestep{timestep}_N{nmdsteps}_X{ngcmcsteps+nmcmoves}_flexAds{flex_ads}_opt{opt}_{pressure/bar}bar_{int(temperature)}K"
 if not os.path.exists(results_dir):
     os.mkdir(results_dir)
 
 
-gcmc_md = AI_GCMCMD(model_gcmc, model_md, results_dir, interval, atoms_frame, atoms_ads, flex_ads,
+gcmc_md = GCMCMD(calc_gcmc, calc_md, results_dir, interval, atoms_frame, atoms_ads, flex_ads,
                   temperature, pressure, fugacity, device, vdw_radii)
-
-gcmc_md.run(stepsize, totalsteps, nmdsteps, ngcmcsteps, nmcmoves)
+# initialize MD
+gcmc_md.init_md(timestep, md_type="nptberendsen")
+gcmc_md.run(totalsteps, nmdsteps, ngcmcsteps, nmcmoves)
 #

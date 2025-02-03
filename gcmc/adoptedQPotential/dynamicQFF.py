@@ -107,8 +107,10 @@ class ForceField(Calculator):
 
     def _get_VdWs_ob(self, atoms):
         obmol = self._atoms_to_obmol(atoms)
-        ff = ob.OBForceField.FindForceField("uff")
+        #  ff = ob.OBForceField.FindForceField("uff")
         #  ff = ob.OBForceField.FindForceField("gaff")
+        #  ff = ob.OBForceField.FindForceField("mmff94")
+        ff = ob.OBForceField.FindForceField("ghemical")
         ff.Setup(obmol)
         return ff.E_VDW() * units.kJ / units.mol
 
@@ -130,7 +132,7 @@ class ForceField(Calculator):
                 i, j, e = self.get_coulomb_potential_value(atoms, coulomb)
             #  e = self.coulomb_potential_energy_manuel(atoms, nl)
                 energy += e
-            #  energy += self._get_VdWs_ob(atoms)
+            energy += self._get_VdWs_ob(atoms)
 
             self.results['energy'] = energy
 
