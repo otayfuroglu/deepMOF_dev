@@ -12,7 +12,7 @@ from ase.filters import UnitCellFilter
 from ase.io.trajectory import Trajectory
 
 from time import time
-from gcmc_md_lammps import GCMCMD
+from gcmc_md import GCMCMD
 from molmod.units import *
 from time import time
 

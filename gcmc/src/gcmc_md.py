@@ -305,8 +305,8 @@ class GCMCMD():
 
         self.lmp.command(f"timestep {timestep}")
         self.lmp.command(f"fix init_nvt all nvt temp {self.T} {self.T} {self.tdump}")
-        self.lmp.command(f"run 50000")
-        #  self.lmp.command(f"run 50")
+        #  self.lmp.command(f"run 50000")
+        self.lmp.command(f"run 50")
         self.lmp.command(f"unfix init_nvt")
         self.lmp.command(f"reset_timestep 0")
 
