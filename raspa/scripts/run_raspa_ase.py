@@ -3,6 +3,7 @@ from raspa_ase import Raspa
 import os
 
 
+
 #  os.environ["RASPA_DIR"] = "/arf/home/otayfuroglu/deepMOF_dev/raspa/gRASPA/patch_Allegro"
 os.environ["RASPA_DIR"] = "/arf/home/otayfuroglu/deepMOF_dev/raspa/gRASPA/src_clean"
 
