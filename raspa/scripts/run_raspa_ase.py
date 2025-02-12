@@ -66,3 +66,4 @@ calc = Raspa(components=components, parameters=parameters)
 atoms.calc = calc
 atoms.get_potential_energy()
 print(calc.results)
+
