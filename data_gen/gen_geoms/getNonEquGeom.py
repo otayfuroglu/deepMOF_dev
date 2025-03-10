@@ -33,16 +33,16 @@ def scale_atoms_distence(atoms, scale_factor):
 #atoms = read("./fragments/mof5_f1.xyz")
 #scale_atoms_distence(atoms, 2)
 
-def random_scale_direction(direction):
-    return np.random.uniform(0.96 * direction, 1.10 * direction)
+def random_scale_direction(direction, scale_range):
+    return np.random.uniform(scale_range[0] * direction, scale_range[1] * direction)
 
 def calc_displacement_atom(directions_distance):
     return np.sqrt(sum(direction**2 for direction in directions_distance))
 
-def displaced_atomic_positions(atom_positions):
+def displaced_atomic_positions(atom_positions, scale_range):
 
     while True:
-        n_atom_positions = np.array([random_scale_direction(direction)
+        n_atom_positions = np.array([random_scale_direction(direction, scale_range)
                                     for direction in atom_positions])
         if calc_displacement_atom(atom_positions - n_atom_positions) <= 0.16:
             return n_atom_positions
@@ -53,11 +53,11 @@ def get_non_equ_geom(file_base, i, N, atoms=None):
     #  if not os.path.exists(NON_EQU_XYZ_DIR):
     #      os.mkdir(NON_EQU_XYZ_DIR)
 
-    scale_range = (0.96, 1.11)
-    scale_step = (1.11 - 0.96) / N
+    scale_range = (0.98, 1.06)
+    scale_step = (scale_range[1] - scale_range[0]) / N
 
     try:
-        label = atoms.info["label"] 
+        label = atoms.info["label"]
     except:
         label = file_base
 
@@ -72,7 +72,7 @@ def get_non_equ_geom(file_base, i, N, atoms=None):
         atoms_trial = scale_atoms_distence(atoms_trial, scale_factor)
         # randomlu displace atomic positions
         for atom in atoms_trial:
-            atom.position = displaced_atomic_positions(atom.position)
+            atom.position = displaced_atomic_positions(atom.position, scale_range)
 
         atoms_trial.info["label"] = label + f"_{i}_" + "{0:0>3}".format(j)
         if flpath:
