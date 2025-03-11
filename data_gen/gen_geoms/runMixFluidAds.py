@@ -54,7 +54,7 @@ def ins_fluid(atoms, max_n_ads, ratio=0.5, pbc=False):
     #  vdw_radii[8] = 1.50
 
 
-        atoms.center(vacuum=0.5)
+        atoms.center(vacuum=0.0)
 
 
         structure = System(numbers = atoms.get_atomic_numbers(),
@@ -110,7 +110,7 @@ for i, fl_name in enumerate([fl for fl in os.listdir(struc_dir) if fl.endswith("
         # scale vdw
         scale_vdw(set(atoms.numbers), sf_vdw)
 
-    for ratio in [0.2, 0.4, 0.6, 0.8]:
+    for ratio in [0.5, 0.6, 0.7, 0.8]:
         for _ in range(25):
             ins_fluid(atoms, max_n_ads=200, ratio=ratio, pbc=False)
 
