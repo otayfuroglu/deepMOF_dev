@@ -53,7 +53,7 @@ def ins_fluid(max_n_ads, pbc=False):
 
     for fl_name in [fl for fl in os.listdir(struc_dir) if fl.endswith(".extxyz")]:
         atoms = read(f"{struc_dir}/{fl_name}")
-        atoms.center(vacuum=0.5)
+        atoms.center(vacuum=5)
 
         # scale vdw
         scale_vdw(atoms, sf_vdw)
@@ -75,7 +75,7 @@ def ins_fluid(max_n_ads, pbc=False):
             n_written = loading.load(n_trial=10000, n_load=max_n_ads)
         print('Written %d adsorbates'%n_written)
         #  out_path = f"{out_dir}/{fl_name}"
-        out_path = f"all_test.extxyz"
+        out_path = f"{'_'.join([name.split('.')[0] for name in [fl_name, fluid_path]])}.extxyz"
         loading.write_output(out_path, append=True)
         break
 
@@ -98,5 +98,5 @@ ads.detect_bonds()
 
 
 #  create_bulk_fluid(max_n_ads=100)
-ins_fluid(max_n_ads=200)
+ins_fluid(max_n_ads=200, pbc=True)
 

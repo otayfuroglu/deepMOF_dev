@@ -53,7 +53,7 @@ def get_non_equ_geom(file_base, i, N, atoms=None):
     #  if not os.path.exists(NON_EQU_XYZ_DIR):
     #      os.mkdir(NON_EQU_XYZ_DIR)
 
-    scale_range = (0.98, 1.06)
+    scale_range = (0.96, 1.11)
     scale_step = (scale_range[1] - scale_range[0]) / N
 
     try:
