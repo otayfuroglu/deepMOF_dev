@@ -6,19 +6,15 @@ from ase.io.trajectory import Trajectory
 import tqdm
 import argparse
 
+device = "cuda"
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-trj_path", type=str, required=True, help="")
 parser.add_argument("-model2_path", type=str, required=True, help="")
+parser.add_argument("-version", type=str, required=True, help="")
 args = parser.parse_args()
 
-#  T = 300
-#  it = "iter4"
-it = "iter10"
-version = "v7"
-device = "cuda"
-frag_tpye = "MgF2"
-keyword = "bonded_CO2"
+version = args.version
 
 model2_path = args.model2_path
 calc2 = NequIPCalculator.from_deployed_model(
@@ -51,10 +47,10 @@ for i in tqdm.trange(0, len(atoms_list), 2):
     fl.write(f"{i},{e1},{e2},{e_diff}\n")
     fl.flush()
 
-    if e_diff >= 0.003:
-        if n_sample <= 100:
-            atoms.info["label"] = f"{file_base}_{it}_" + "{0:0>5}".format(i)
-            write(f"{file_base}_AL_{it}.extxyz", atoms, append=True)
+    if e_diff >= 0.0016:
+        if n_sample <= 5:
+            atoms.info["label"] = f"{file_base}_{version}_" + "{0:0>5}".format(i)
+            write(f"all_AL_{version}.extxyz", atoms, append=True)
 
             n_sample += 1
 fl.close()
