@@ -34,6 +34,7 @@ from ase.calculators.dftd3 import DFTD3
 #  from ase.calculators.mixing import SumCalculator
 #  from dftd4.ase import DFTD4
 
+from itertools import combinations
 import numpy as np
 import os
 import tqdm
@@ -326,17 +327,15 @@ class AseCalculations(object):
         self.molecule.forces = self.molecule.get_forces()
         #self.save_molecule("single_point", write_format="extxyz")
 
-    def setConstraint(self, indices):
-
-        from ase.constraints import FixAtoms
-        c = FixAtoms(indices=indices)
-        self.molecule.set_constraint(c)
-
-
     def optimize(self, fmax=1.0e-2, steps=1000, indices=[]):
         self.calcName = "Optimization"
 
         optimization_path = os.path.join(self.working_dir, self.calcName)
+
+        if len(indices) > 0:
+            from ase.constraints import FixAtoms
+            c = FixAtoms(indices=indices)
+            self.molecule.set_constraint(c)
 
         optimizer = LBFGS(self.molecule,
                                 #  trajectory="%s.traj" % optimization_path,
@@ -344,6 +343,27 @@ class AseCalculations(object):
                                )
         optimizer.run(fmax, steps)
         self.save_molecule()
+
+    def setConstraint(self, indices):
+
+        from ase.constraints import FixAtoms
+        c = FixAtoms(indices=indices)
+        self.molecule.set_constraint(c)
+
+    def set_rigid_fixbonds_atoms(self, ads_indices_list):
+
+        from ase.constraints import FixBondLengths
+        for ads_indices in ads_indices_list:
+            fix_bond_indices = list(combinations(ads_indices, 2))[:len(ads_indices)-1]
+            fix_bond_indices = [list(item) for item in fix_bond_indices]
+            c = FixBondLengths(fix_bond_indices)
+            self.molecule.set_constraint(c)
+
+    def set_rigid_triatomic_atoms(self, ads_indices_list):
+        from ase.constraints import FixLinearTriatomic
+
+        c = FixLinearTriatomic(triples=ads_indices_list)
+        self.molecule.set_constraint(c)
 
     def vibration(self, delta=0.01, nfree=2):
         from ase.vibrations import Vibrations
@@ -377,11 +397,18 @@ class AseCalculations(object):
     def init_md(
         self,
         name,
-        time_step=0.2,
-        temp_init=100,
+        md_type=None,
+        time_step=None,
+        temp_init=None,
         temp_bath=None,
         temperature_K=None,
         pressure=1, #bar
+        friction=0.01,          # Friction coefficient for NVT
+        ttime=25,  # Thermostat coupling time for NPT
+        pfactor=0.6,    # Barostat coupling factor for NPT
+        taut=1e2, # NPTBerendsen
+        taup=1e3, # NPTBerendsen
+        compressibility=1e-6, # NPTBerendsen NPTBerendsen
         reset=False,
         interval=1,
     ):
@@ -391,41 +418,39 @@ class AseCalculations(object):
         if not self.dynamics or reset:
             self._init_velocities(temp_init=temp_init)
 
-        # setup dynamics
-        if temperature_K:
-            print("NPT ensemble.. Pressure set to %s bar" %pressure)
-            #  self.dynamics = NPTBerendsen(
-            #      self.molecule,
-            #      timestep=time_step * units.fs,
-            #      temperature_K=temperature_K,
-            #      taut=100 * units.fs,
-            #      pressure_au=pressure * 1.01325 * units.bar,
-            #      taup=1000 * units.fs,
-            #      compressibility=4.57e-5 / units.bar)
-
-            externalstress = 1.0*units.Pascal  # (-1.7, -1.7, -1.7, 0, 0, 0)*GPa
-            ttime = 100*units.fs
-            ptime = 300*units.fs
-            #  bulk_modulus = 35*units.GPa
-            #  pfactor = (ptime**2)*bulk_modulus
-
+        if md_type.lower() == "nvt":
+            # Define the Langevin dynamics
+            self.dynamics = Langevin(self.molecule,
+                           timestep=time_step*units.fs,        # Timestep of 1 femtosecond
+                           temperature_K=temperature_K,      # Target temperature in Kelvin
+                           friction=0.01)          # Friction coefficient
+        elif md_type.lower() == "npt":
             self.dynamics = NPT(self.molecule,
-                                5*units.fs,
-                                temperature_K=temperature_K,
-                                externalstress=externalstress,
-                                ttime=ttime,
-                                #  pfactor=pfactor
-                               )
-
-        elif temp_bath:
-            self.dynamics = Langevin(
-                self.molecule,
-                time_step * units.fs,
-                temp_bath * units.kB,
-                1.0 / (100.0 * units.fs),
-            )
-        else:
-            self.dynamics = VelocityVerlet(self.molecule, time_step * units.fs)
+                      timestep=time_step*units.fs,  # Timestep of 1 femtosecond
+                      temperature_K=temperature_K,
+                      externalstress=pressure,
+                      ttime=25*units.fs,  # Thermostat coupling time
+                      pfactor=0.6,)    # Barostat coupling factor
+        elif md_type.lower() == "nptberendsen":
+            self.dynamics = NPTBerendsen(self.molecule,
+                               timestep=time_step*units.fs,  # Timestep of 1 femtosecond
+                               temperature_K=temperature_K,
+                               pressure=pressure,
+                               #  taut=0.5e3 *units.fs,
+                               taut=1e2 *units.fs,
+                               taup=1e3*units.fs,
+                               compressibility=1e-6,
+                              )
+        elif md_type.lower() == "nptberendsen_inhomogeneous":
+            self.dynamics = Inhomogeneous_NPTBerendsen(self.molecule,
+                               timestep=time_step*units.fs,  # Timestep of 1 femtosecond
+                               temperature_K=temperature_K,
+                               pressure=pressure,
+                               #  taut=0.5e3 *units.fs,
+                               taut=1e2 *units.fs,
+                               taup=1e3*units.fs,
+                               compressibility=1e-6,
+                              )
 
         # Create monitors for logfile and traj file
         logfile = os.path.join(self.working_dir, "%s.log" % name)
@@ -449,7 +474,7 @@ class AseCalculations(object):
 
     def _init_velocities(
         self,
-        temp_init=100,
+        temp_init=None,
         remove_translation=True,
         remove_rotation=True,
     ):
@@ -468,17 +493,11 @@ class AseCalculations(object):
 
     def printMD(self):
         """xxx"""
-        check_cell = True if self.molecule.cell.sum() else False
-        if check_cell:
-            volume = self.molecule.get_volume()
+        volume = self.molecule.get_volume()
         temp = self.molecule.get_temperature()
         epot = self.molecule.get_potential_energy()
 
-        if check_cell:
-            print('%.4f,%.4f,%.4f'%(epot, temp, volume), file=self.out_file)
-        else:
-            print('%.4f,%.4f'%(epot, temp), file=self.out_file)
-
+        print('%.4f,%.4f,%.4f'%(epot, temp, volume), file=self.out_file)
 
     def _setTqdm(self, steps):
         #  self.pbar =
