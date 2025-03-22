@@ -23,6 +23,8 @@ csv_path = args.csv_path
 df_data = pd.read_csv(csv_path)
 x = df_data.iloc[:, 1].astype(float).to_list()
 y = df_data.iloc[:, 2].astype(float).to_list()
+
+print("RMSE: ", np.sqrt(np.mean((np.array(y)-np.array(x))**2)))
 # Create a joint plot with hexbin and marginal histograms
 #  plt.plot(x,y, "*")
 
@@ -32,12 +34,12 @@ g = sns.jointplot(
     y=y,
     kind="reg",  # Use hexbin plot
     line_kws=dict(color="slategray", ),
-    color="skyblue", marker='o', scatter_kws=None,
+    color="skyblue", marker='o', scatter_kws={'s': 150} ,
     height=10,           # Increase the overall figure height (in inches)
     ratio=6,            # Adjust the ratio of the joint axes to the marginal
     #  gridsize=100,
     #  cmap="Blues",
-    marginal_kws={"bins": 20, "color": "grey", "linewidth":1},  # Histogram settings
+    marginal_kws={"bins": 30, "color": "grey", "linewidth":1},  # Histogram settings
     marginal_ticks=False,
 
 )
@@ -63,12 +65,13 @@ formatter.set_scientific(False)
 g.ax_joint.xaxis.set_major_formatter(formatter)
 g.ax_joint.yaxis.set_major_formatter(formatter)
 
-g.ax_joint.xaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-g.ax_joint.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+g.ax_joint.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+g.ax_joint.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
 g.ax_joint.tick_params(labelsize=28, )
 
-
+#  g.ax_joint.set_xlim(-60, 60)
+#  g.ax_joint.set_ylim(-60, 60)
 #  plt.setp(g.ax_marg_y.patches, color="r")
 plt.savefig(f"{csv_path.split('.')[0]}.png", bbox_inches='tight')
 #  plt.show()
