@@ -103,13 +103,13 @@ def run(atoms, name, calc_type, temp, replica):
 
     # NOTE  rigid_triatomic works but rigid_triatomic with fixbonds and only fixbonds don't work
     # rigid ads
-    # rigid CH4
-    #  n_frame = 81
-    #  ads_atoms = read(f'{RESULT_DIR}/CO2.xyz') # CO2 molecule
-    #  ads_indices_list = extract_ads_indices(atoms, ads_atoms, n_frame)
-    #  # for min val in middle
-    #  ads_indices_list = [(item[1], item[0], item[2]) for item in ads_indices_list]
-    #  calculation.set_rigid_triatomic_atoms(ads_indices_list)
+    # rigid CO2
+    n_frame = 81
+    ads_atoms = read(f'{RESULT_DIR}/CO2.xyz') # CO2 molecule
+    ads_indices_list = extract_ads_indices(atoms, ads_atoms, n_frame)
+    # for min val in middle
+    ads_indices_list = [(item[1], item[0], item[2]) for item in ads_indices_list]
+    calculation.set_rigid_triatomic_atoms(ads_indices_list)
     #
     #  # rigid CH4
     #  ads_atoms = read(f'{RESULT_DIR}/CH4.xyz') # CO2 molecule
