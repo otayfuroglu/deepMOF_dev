@@ -53,7 +53,9 @@ def ins_fluid(max_n_ads, pbc=False):
 
     for fl_name in [fl for fl in os.listdir(struc_dir)]:
         atoms = read(f"{struc_dir}/{fl_name}")
-        atoms.center(vacuum=8.0)
+        if (atoms.cell==0).all():
+            atoms.center(0.0)
+        #  atoms.center(vacuum=8.0)
 
         # scale vdw
         scale_vdw(atoms, sf_vdw)
@@ -66,16 +68,17 @@ def ins_fluid(max_n_ads, pbc=False):
         n_written = loading.load(n_trial=10000, n_load=max_n_ads)
         # bigger cell for adding ads
         if not n_written:
-            atoms.center(vacuum=8.0)
+            #  atoms.center(vacuum=8.0)
             structure = System(numbers = atoms.get_atomic_numbers(),
                                 pos = atoms.get_positions()*angstrom,
                                 rvecs = atoms.get_cell()*angstrom)
             structure.detect_bonds()
             loading = insertAds(structure, ads, vdw_radii, pbc=pbc)
-            n_written = loading.load(n_trial=10000, n_load=max_n_ads)
+            n_written = loading.load(n_trial=50000, n_load=max_n_ads)
         print('Written %d adsorbates'%n_written)
         #  out_path = f"{out_dir}/{fl_name}"
         out_path = f"{out_dir}/{'_'.join([name.split('.')[0] for name in [fl_name, fluid_path]])}.extxyz"
+        loading.final_structure.info['label'] = '_'.join([name.split('.')[0] for name in [fl_name, fluid_path]])
         loading.write_output(out_path, append=True)
 
 parser = argparse.ArgumentParser(description="Give something ...")
