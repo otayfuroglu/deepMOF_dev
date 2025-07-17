@@ -97,6 +97,7 @@ class insertAds():
         numbers, pos = structure.numbers, structure.pos
         n_write = self.Z_ads
         atoms = Atoms(numbers=numbers, positions=pos/angstrom, cell=structure.cell.rvecs/angstrom, pbc=self.pbc)
+        atoms.info["label"] = fl_name
         self.final_structure = atoms
         return n_write
 
@@ -110,8 +111,20 @@ class insertMixAds(insertAds):
         self.ads2 = ads2
         super().__init__(structure, ads, vdw_radii, pbc)
 
+
+    def _insert_trial(self, ads, num_ads):
+        pos_ads = ads.pos.copy()
+        pos_ads = self.random_position(pos_ads)
+        if not self.vdw_overlap(self.structure, pos_ads, num_ads):
+            s_ads = System(numbers=num_ads, pos=pos_ads)
+            s_ads.detect_bonds()
+            self.structure = self.structure.merge(s_ads)
+            return True
+        return False
+
+
     def load_mix(self, n_trial, n_load, ratio):
-        structure = self.structure
+        #  structure = self.structure
         num_ads = self.ads.numbers
         self.Z_ads = 0
         num_ads2 = self.ads2.numbers
@@ -124,33 +137,46 @@ class insertMixAds(insertAds):
             #  idx_rand = np.random.randint(1)
             # Insertion attempt
             if np.random.rand() < ratio:
-                pos_ads = self.ads.pos.copy()
-                pos_ads = self.random_position(pos_ads)
-                if not self.vdw_overlap(structure, pos_ads, num_ads):
-                    s_ads = System(numbers=num_ads, pos=pos_ads)
-                    s_ads.detect_bonds()
-                    structure = structure.merge(s_ads)
-
+                if self._insert_trial(self.ads, num_ads):
                     self.Z_ads += 1
-                    #  self.acc[0] += 1
-                #  self.tried[0] += 1
             else:
-                pos_ads2 = self.ads2.pos.copy()
-                pos_ads2 = self.random_position(pos_ads2)
-                if not self.vdw_overlap(structure, pos_ads2, num_ads2):
-                    s_ads2 = System(numbers=num_ads2, pos=pos_ads2)
-                    s_ads2.detect_bonds()
-                    structure = structure.merge(s_ads2)
-
+                if self._insert_trial(self.ads2, num_ads2):
                     self.Z_ads2 += 1
-                    #  self.acc[0] += 1
-                #  self.tried[0] += 1
             if self.Z_ads + self.Z_ads2 == n_load: break
             step += 1
 
-        numbers, pos = structure.numbers, structure.pos
+        numbers, pos = self.structure.numbers, self.structure.pos
         n_write = self.Z_ads + self.Z_ads2
-        atoms = Atoms(numbers=numbers, positions=pos/angstrom, cell=structure.cell.rvecs/angstrom, pbc=self.pbc)
+        atoms = Atoms(numbers=numbers, positions=pos/angstrom, cell=self.structure.cell.rvecs/angstrom, pbc=self.pbc)
+        self.final_structure = atoms
+        return n_write
+
+    def load_mix_fixed_nads(self, n_trial, nads, nads2):
+        #  structure = self.structure
+        num_ads = self.ads.numbers
+        self.Z_ads = 0
+        num_ads2 = self.ads2.numbers
+        self.Z_ads2 = 0
+        #  self.acc, self.tried = np.zeros(3), np.zeros(3)
+
+        n_load = nads + nads2
+        step = 0
+        while step <= n_trial and n_load > 0:
+
+            #  idx_rand = np.random.randint(1)
+            # Insertion attempt
+            if self.Z_ads < nads:
+                if self._insert_trial(self.ads, num_ads):
+                    self.Z_ads += 1
+            if self.Z_ads2 < nads2:
+                if self._insert_trial(self.ads2, num_ads2):
+                    self.Z_ads2 += 1
+            if self.Z_ads + self.Z_ads2 == n_load: break
+            step += 1
+
+        numbers, pos = self.structure.numbers, self.structure.pos
+        n_write = self.Z_ads + self.Z_ads2
+        atoms = Atoms(numbers=numbers, positions=pos/angstrom, cell=self.structure.cell.rvecs/angstrom, pbc=self.pbc)
         self.final_structure = atoms
         return n_write
 
