@@ -9,7 +9,7 @@ from ase.calculators.orca import ORCA
 #  import numpy as np
 import pandas as pd
 import multiprocessing
-from orca_parser import OrcaParser
+#  from orca_parser import OrcaParser
 import argparse
 
 from pathlib import Path
@@ -26,12 +26,14 @@ from orca_io import (read_orca_h_charges,
 
 parser = argparse.ArgumentParser(description="Give something ...")
 parser.add_argument("-geoms_path", type=str, required=True)
+parser.add_argument("-orca_path", type=str, required=True)
 parser.add_argument("-calc_type", type=str, required=True)
 parser.add_argument("-idx", type=int, required=True)
 parser.add_argument("-n_task", type=int, required=True)
 args = parser.parse_args()
 
 geoms_path = args.geoms_path
+orca_path = args.orca_path
 base = geoms_path.split("/")[-1].split(".")[0]
 
 calc_type = args.calc_type
@@ -57,7 +59,7 @@ if not os.path.exists(OUT_DIR):
     cwd = os.getcwd()
     os.chdir(OUT_DIR)
 
-    atoms.calc = orca_calculator(label, calc_type, n_task)
+    atoms.calc = orca_calculator(orca_path, label, calc_type, n_task)
     atoms.get_potential_energy()
 
     h_charges = read_orca_h_charges(f"{label}.out")

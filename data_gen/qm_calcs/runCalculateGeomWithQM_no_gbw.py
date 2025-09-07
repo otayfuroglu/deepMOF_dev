@@ -1,7 +1,8 @@
 
 import os, sys
 sys.path.insert(0, "/truba_scratch/otayfuroglu/deepMOF_dev")
-from calculateGeomWithQM import CaculateData
+#  from calculateGeomWithQM import CaculateData
+from calculateGeomWithQM_no_gbw import CaculateData
 import multiprocessing
 #  import getpass
 import argparse
