@@ -27,6 +27,7 @@ trj_path = args.trj_path
 file_base = trj_path.split("/")[-1].split(".")[0]
 
 atoms_list = Trajectory(trj_path)
+n_atoms_list = len(atoms_list)
 
 n_sample = 0
 #  i = 500
@@ -36,8 +37,9 @@ fl = open(f"{file_base}_model1_model2_energeis.csv", "w")
 fl.write(f"index,e_NNP1,e_NNP2,e_diff\n")
 
 #  while n_sample <= 250:
-for i in tqdm.trange(0, len(atoms_list), 2):
-    #  for i in range(0, len(atoms_list), 1):
+    # start from middle of MD
+for i in tqdm.trange(int(n_atoms_list/2), len(atoms_list), 2):
+#  for i in tqdm.trange(0, len(atoms_list), 1):
     atoms = atoms_list[i]
     e1 = atoms.get_potential_energy() / len(atoms)
     atoms.calc = calc2
@@ -47,10 +49,11 @@ for i in tqdm.trange(0, len(atoms_list), 2):
     fl.write(f"{i},{e1},{e2},{e_diff}\n")
     fl.flush()
 
-    if e_diff >= 0.0016:
-        if n_sample <= 5:
+    if e_diff >= 0.0002:
+        if n_sample < 7:
             atoms.info["label"] = f"{file_base}_{version}_" + "{0:0>5}".format(i)
-            write(f"all_AL_{version}.extxyz", atoms, append=True)
+            #  write(f"all_AL_{version}.extxyz", atoms, append=True)
+            write(f"all_AL_{version}_flex_guest.extxyz", atoms, append=True)
 
             n_sample += 1
 fl.close()
