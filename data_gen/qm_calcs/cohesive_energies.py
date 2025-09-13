@@ -7,7 +7,7 @@ import json
 
 
 
-def substractSelfEnergy(atoms):
+def getSelfEnergy(atoms):
     total_self_energy = 0
     for symbol in symbols_selfenergy_pair.keys():
         num_atoms = len([atom for atom in atoms if atom.symbol == symbol])
@@ -15,10 +15,11 @@ def substractSelfEnergy(atoms):
         total_self_energy += self_energy
     return total_self_energy
 
-#  atomic_energies={"C": "-1025.34896263954",
-#                   "O": "-2034.97553102427",
-#                   "H": "-13.5576149854593",
-#                   "Mg": "-1479.90402789208",
+# ORCA 6.0  RPBE D3BJ DEF2-TZVP
+#  atomic_energies={"C": "-1028.3626838002976",
+#                   "O": "-2040.4160983992801",
+#                   "H": "-13.737306152573883",
+#                   "Mg": "-5443.727367053916",
 #                  }
 #
 #  symbols = ['C', 'O', 'H', 'Mg']
@@ -37,8 +38,8 @@ symbols_selfenergy_pair = json.loads(args.symbols_selfenergy_pair)
 atoms_list = read(extxyz_path, index=":")
 for atoms in atoms_list:
     total_energy = atoms.get_potential_energy()
-    self_energy = substractSelfEnergy(atoms)
-    cohesive_energy = total_energy-self_energy
+    self_energy = getSelfEnergy(atoms)
+    cohesive_energy = total_energy - self_energy
     atoms.calc = SinglePointCalculator(atoms, energy=cohesive_energy, forces=atoms.get_forces())
     atoms.get_potential_energy()
     write(f"cohesive_{extxyz_path.split('/')[-1]}", atoms, append=True)

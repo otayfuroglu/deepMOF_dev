@@ -100,5 +100,5 @@ ads.detect_bonds()
 
 
 #  create_bulk_fluid(max_n_ads=100)
-ins_fluid(max_n_ads=400, pbc=True)
+ins_fluid(max_n_ads=10, pbc=True)
 
