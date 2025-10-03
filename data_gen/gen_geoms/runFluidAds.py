@@ -104,11 +104,10 @@ def run_bulk_fluid():
     for i in range(10):
         #  atoms = read(fluid_path) + read(fluid2_path)
         atoms = read(fluid_path)
-        atom_nums = set((atoms + atoms2).numbers)
         if i == 0:
             # scale vdw
-            scale_vdw(atom_nums, sf_vdw)
-        create_bulk_fluid(atoms, atoms2, max_n_ads=nads, pbc=False)
+            scale_vdw(set(atoms.numbers), sf_vdw)
+        create_bulk_fluid(atoms, max_n_ads=nads, pbc=False)
 
 
 def run_ins_fluid():
@@ -121,5 +120,5 @@ def run_ins_fluid():
             ins_fluid(fl_name, atoms, max_n_ads=nads, pbc=False)
         break
 
-#  run_bulk_fluid()
-run_ins_fluid()
+run_bulk_fluid()
+#  run_ins_fluid()
