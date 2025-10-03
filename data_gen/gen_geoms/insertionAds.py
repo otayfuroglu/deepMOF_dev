@@ -97,7 +97,7 @@ class insertAds():
         numbers, pos = structure.numbers, structure.pos
         n_write = self.Z_ads
         atoms = Atoms(numbers=numbers, positions=pos/angstrom, cell=structure.cell.rvecs/angstrom, pbc=self.pbc)
-        atoms.info["label"] = fl_name
+        #  atoms.info["label"] = fl_name
         self.final_structure = atoms
         return n_write
 
