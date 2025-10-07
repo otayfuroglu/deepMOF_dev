@@ -101,7 +101,8 @@ class insertAds():
         self.final_structure = atoms
         return n_write
 
-    def write_output(self, out_path, append):
+    def write_output(self, idx, out_path, append):
+        self.final_structure.info["label"] = f"{out_path.split('.')[0]}_{idx}"
         write(out_path, self.final_structure, format='extxyz', append=append)
 
 

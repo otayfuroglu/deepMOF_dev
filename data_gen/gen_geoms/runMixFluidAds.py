@@ -23,7 +23,7 @@ def scale_vdw(atom_nums, sf_vdw):
         print(f"vdw adjusted to {vdw_radii[num]} for {num}")
 
 
-def create_bulk_mix_fluid(atoms, atoms2,  max_n_ads, pbc=False):
+def create_bulk_mix_fluid(idx, atoms, atoms2,  max_n_ads, pbc=False):
 
     #NOTE scaled when call to avoid rescale
     # scale vdw
@@ -39,12 +39,12 @@ def create_bulk_mix_fluid(atoms, atoms2,  max_n_ads, pbc=False):
     n_written = loading.load_mix_fixed_nads(n_trial=50000, nads=nads1, nads2=nads2)
     print('Written %d adsorbates'%n_written)
     out_path = f"bulk_mixture_{'_'.join([name.split('.')[0] for name in [fluid_path, fluid2_path]])}.extxyz"
-    loading.write_output(out_path, append=True)
+    loading.write_output(idx, out_path, append=True)
     loading.print_ratio()
     #  break
 
 
-def ins_fluid(fl_name, atoms, max_n_ads, pbc=False):
+def ins_fluid(idx, fl_name, atoms, max_n_ads, pbc=False):
 
     #NOTE scaled when call to avoid rescale
     #  vdw_radii[1] = 1.0
@@ -74,7 +74,7 @@ def ins_fluid(fl_name, atoms, max_n_ads, pbc=False):
         print('Written %d adsorbates'%n_written)
         #  out_path = f"{out_dir}/{fl_name}"
         out_path = f"{'_'.join([name.split('.')[0] for name in [fl_name, fluid_path, fluid2_path]])}_{nads1}_{nads2}.extxyz"
-        loading.write_output(out_path, append=True)
+        loading.write_output(idx, out_path, append=True)
         loading.print_ratio()
 
 
@@ -115,7 +115,7 @@ def run_bulk_mixture():
         if i == 0:
             # scale vdw
             scale_vdw(atom_nums, sf_vdw)
-        create_bulk_mix_fluid(atoms, atoms2, max_n_ads=1000, pbc=False)
+        create_bulk_mix_fluid(i, atoms, atoms2, max_n_ads=1000, pbc=False)
 
 
 def run_ins_mixture():
@@ -124,8 +124,8 @@ def run_ins_mixture():
         if i == 0:
             # scale vdw
             scale_vdw(set(atoms.numbers), sf_vdw)
-        for _ in range(25):
-            ins_fluid(fl_name, atoms, max_n_ads=200, pbc=False)
+        for idx in range(25):
+            ins_fluid(idx, fl_name, atoms, max_n_ads=200, pbc=False)
         break
 
 #  run_bulk_mixture()
