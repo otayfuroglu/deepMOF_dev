@@ -73,7 +73,7 @@ def ins_fluid(fl_name, atoms, max_n_ads, pbc=False):
             n_written = loading.load_mix_fixed_nads(n_trial=10000, nads=nads1, nads2=nads2)
         print('Written %d adsorbates'%n_written)
         #  out_path = f"{out_dir}/{fl_name}"
-        out_path = f"{'_'.join([name.split('.')[0] for name in [fl_name, fluid_path, fluid2_path]])}.extxyz"
+        out_path = f"{'_'.join([name.split('.')[0] for name in [fl_name, fluid_path, fluid2_path]])}_{nads1}_{nads2}.extxyz"
         loading.write_output(out_path, append=True)
         loading.print_ratio()
 
