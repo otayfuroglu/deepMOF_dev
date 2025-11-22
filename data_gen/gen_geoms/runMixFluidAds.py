@@ -53,7 +53,7 @@ def ins_fluid(idx, fl_name, atoms, max_n_ads, pbc=False):
     #  vdw_radii[8] = 1.50
 
 
-        atoms.center(vacuum=0.0)
+        atoms.center(vacuum=-1.0)
 
 
         structure = System(numbers = atoms.get_atomic_numbers(),
@@ -64,7 +64,7 @@ def ins_fluid(idx, fl_name, atoms, max_n_ads, pbc=False):
         n_written = loading.load_mix_fixed_nads(n_trial=10000, nads=nads1, nads2=nads2)
         # bigger cell for adding ads
         if not n_written:
-            atoms.center(vacuum=0.0)
+            atoms.center(vacuum=-1.0)
             structure = System(numbers = atoms.get_atomic_numbers(),
                                 pos = atoms.get_positions()*angstrom,
                                 rvecs = atoms.get_cell()*angstrom)
@@ -124,7 +124,7 @@ def run_ins_mixture():
         if i == 0:
             # scale vdw
             scale_vdw(set(atoms.numbers), sf_vdw)
-        for idx in range(25):
+        for idx in range(200):
             ins_fluid(idx, fl_name, atoms, max_n_ads=200, pbc=False)
         break
 
