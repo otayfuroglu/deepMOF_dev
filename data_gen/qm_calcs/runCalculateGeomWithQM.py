@@ -6,6 +6,7 @@ import multiprocessing
 #  import getpass
 import argparse
 from pathlib import Path
+from ase.io import read
 
 
 #  USER = getpass.getuser()
@@ -39,9 +40,11 @@ csv_path = f"{cwd}/{calc_type}_{in_extxyz.replace('.extxyz', '.csv')}"
 # set default
 n_task = 8
 
+atoms_list = read(in_extxyz_path, index=":")
 if calculator_type == "g16":
     n_task = 1
-
+elif len(atoms_list) == 1:
+    n_task = n_core
 else:
     if n_core == 20:
         n_task = 10
@@ -55,8 +58,9 @@ else:
         #  n_task = 16
         n_task = 16
     if n_core == 110:
-        #  n_task = 16
-        n_task = 10
+        #  n_task = 10
+        n_task = 22
+        #  n_task = 54
 
 n_proc = int(n_core / n_task)
 
