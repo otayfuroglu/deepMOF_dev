@@ -39,7 +39,7 @@ def run(nsteps):
     lmp.command("atom_style atomic")
     lmp.command("newton off")
     lmp.command(f"read_data data.{file_base}")
-    lmp.command(f"replicate 1 2 2")
+    lmp.command(f"replicate 1 1 1")
 
     for i, symbol in enumerate(specorder):
         lmp.command(f"mass {i+1} {masses[symbol]}")
@@ -56,14 +56,14 @@ def run(nsteps):
     lmp.command(f"timestep {timestep}")
     lmp.command(f"minimize 1.0e-15 1.0e-15 1000 10000")
     lmp.command(f"fix mynvt all nvt temp {temperature} {temperature} 0.5")
-    lmp.command(f"run 50000")
+    lmp.command(f"run 50000") # equilibration
     lmp.command(f"unfix mynvt")
     lmp.command(f"reset_timestep 0")
     lmp.command(f"thermo_style custom step temp press pe ke density atoms vol")
     lmp.command(f"log {file_base}_{pressure}bar_{temperature}K.log")
     lmp.command(f"dump 1 all atom 50 {file_base}_{pressure}bar_{temperature}K.lammpstrj")
-    #  lmp.command(f"fix mynpt all npt temp {temperature} {temperature} 0.1 iso {pressure} {pressure} 0.5")
-    lmp.command(f"fix mynpt all npt temp {temperature} {temperature} 0.1 tri {pressure} {pressure} 0.5")
+    lmp.command(f"fix mynpt all npt temp {temperature} {temperature} 0.1 iso {pressure} {pressure} 0.5")
+    #  lmp.command(f"fix mynpt all npt temp {temperature} {temperature} 0.1 tri {pressure} {pressure} 0.5")
     #  lmp.command(f"run {nsteps}")
 
 
@@ -81,12 +81,13 @@ args = parser.parse_args()
 
 file_base = args.file_base
 masses = {
-    "Al": 26.981,
-    "Li": 6.941,
+    "Mg": 24.3050,
+    "O": 15.9994,
+    "C": 12.0107,
     "H": 1.00794,
 }
 
-model_path = "alanatesWithStress.pth"
+model_path = "mixture_CO2_CH4_cohesive_pbed4_v10_nnp1.pth"
 #  specorder=["Mn", "O", "C", "H"]
 specorder = list(masses.keys())
 #  atom_type_pairs = {"Mg": 1, "O": 2,  "C": 3, "H": 4}
@@ -99,4 +100,4 @@ nsteps = 4000000
 atoms = read(f"{file_base}.extxyz")
 atoms2lammpsdata(atoms)
 
-run(nsteps)
+#  run(nsteps)
