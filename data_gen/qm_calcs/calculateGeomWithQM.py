@@ -53,11 +53,11 @@ def orca_calculator(orca_path, base, calc_type, n_task, initial_gbw=['', '']):
     calc = ORCA(
         profile=OrcaProfile(orca_path),
         # label=label,
-        charge=0, mult=16,
+        charge=0, mult=1,
         orcasimpleinput=f"{calc_type.upper()}" \
             + ' R2SCAN D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS CHELPG AIM ' \
             + initial_gbw[0],
-        orcablocks= '%scf Convergence tight \n maxiter 500 end \n %output \n' \
+        orcablocks= '%scf Convergence tight \n maxiter 250 \n AutoTRAHIter 70 end \n %output \n' \
             + ' Print[ P_Hirshfeld] 1 end \n %maxcore 2200 \n %pal nprocs ' \
             + str(n_task) + ' end' \
             + initial_gbw[1]
@@ -188,8 +188,8 @@ class CaculateData():
         if self.calculator_type.lower() == "orca":
             GBW_DIR = Path(self.BASE_DIR) / Path(f"run_{self.calc_type}_" + self.in_extxyz_path.split('/')[-1].split(".")[0])
             # NOTE
-            #  initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
-            initial_gbw_name = "initial_" + "_".join(label.split("_")[:4]) + ".gbw"
+            initial_gbw_name = "initial_" + label.split("_")[0] + ".gbw"
+            #  initial_gbw_name = "initial_" + "_".join(label.split("_")[:5]) + ".gbw"
         #  initial_gbw_file = [flname for flname in os.listdir(GBW_DIR) if ".gbw" in flname]
             initial_gbw_file = os.path.exists(GBW_DIR/Path(initial_gbw_name))
 

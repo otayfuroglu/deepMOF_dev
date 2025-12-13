@@ -58,8 +58,8 @@ else:
         #  n_task = 16
         n_task = 16
     if n_core == 110:
-        #  n_task = 10
-        n_task = 22
+        n_task = 10
+        #  n_task = 22
         #  n_task = 54
 
 n_proc = int(n_core / n_task)
