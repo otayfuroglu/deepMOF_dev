@@ -34,8 +34,8 @@ for sim_type in ["rigid", "flexible"]:
         df_data_single_gas = pd.read_csv(f"../../{gas_type.upper()}/{sim_type}_{gas_type}_up5bar.csv")
         df_data_single_gas_exp = pd.read_csv(f"../../{gas_type.upper()}/experiment_{gas_type}_up5bar.csv")
         df_data_mix_gas = pd.read_csv(f"./avg_5replica_{uptake_type}_uptakes_{int(y[0]*100)}_{int(y[1]*100)}_{gas_id}.csv")
-        #  df_iast_data_mix_gas = pd.read_csv(f"./{sim_type}_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
-        df_iast_data_mix_gas = pd.read_csv(f"./experiment_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
+        df_iast_data_mix_gas = pd.read_csv(f"./{sim_type}_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
+        #  df_iast_data_mix_gas = pd.read_csv(f"./experiment_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
 
         # Plot mixture isotherms
         pressure_pure_gas, loading_pure_gas = get_press_loading(df_data_single_gas)
@@ -51,7 +51,7 @@ for sim_type in ["rigid", "flexible"]:
         plt.title(f'Mixture Isotherms from IAST ({int(y[0]*100)}_{int(y[1]*100)} CO2/CH4)')
         #  plt.title('Mixture Isotherms from IAST (10/90 CO2/CH4)')
         plt.legend()
-        plt.xlim(-0.1, 5.5)
+        plt.xlim(-0.1, 1.1)
         #  plt.xlim(0, 0.2)
         #  plt.ylim(0, 14.1)
         #  plt.ylim(0, 0.5)
