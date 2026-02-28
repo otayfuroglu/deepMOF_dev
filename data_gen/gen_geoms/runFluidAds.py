@@ -113,7 +113,7 @@ def run_bulk_fluid():
 
 
 def run_ins_fluid():
-    for i, fl_name in enumerate([fl for fl in os.listdir(struc_dir) if fl.endswith(".extxyz")]):
+    for i, fl_name in enumerate([fl for fl in os.listdir(struc_dir) if fl.endswith("xyz")]):
         atoms = read(f"{struc_dir}/{fl_name}")
         if i == 0:
             # scale vdw
@@ -122,5 +122,5 @@ def run_ins_fluid():
             ins_fluid(idx, fl_name, atoms, max_n_ads=nads, pbc=False)
         break
 
-run_bulk_fluid()
-#  run_ins_fluid()
+#  run_bulk_fluid()
+run_ins_fluid()
