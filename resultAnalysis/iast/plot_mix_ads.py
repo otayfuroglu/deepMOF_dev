@@ -1,6 +1,7 @@
 #
 import numpy as np
 import pandas as pd
+import argparse
 
 import matplotlib.pyplot as plt
 
@@ -9,9 +10,14 @@ import matplotlib.pyplot as plt
 def get_press_loading(df_data):
     df_data = df_data.sort_values(by="Pressure(Pascal)")
     df_data["Pressure(bar)"] = df_data["Pressure(Pascal)"] / 1e5 # in bar
-    #  df_data = df_data[df_data["Pressure(bar)"] <6.0]
-    return df_data["Pressure(Pascal)"] / 1e5, df_data[f"ExcesUptake(mmol/g)"]
+    return df_data["Pressure(bar)"], df_data[f"ExcesUptake(mmol/g)"]
 
+
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-single_data_dir", type=str, required=True, help="")
+args = parser.parse_args()
+
+single_data_dir = args.single_data_dir
 
 #  df_sim_data_co2 = pd.read_csv(f"./flexible_co2_up5bar.csv")
 #  #  df_sim_data_ch4 = pd.read_csv("./nnp_mixture_ch4_up5bar.csv")
@@ -31,9 +37,9 @@ for sim_type in ["rigid", "flexible"]:
             gas_id = 1
         uptake_type = f"{sim_type}_binary"
 
-        df_data_single_gas = pd.read_csv(f"../../{gas_type.upper()}/{sim_type}_{gas_type}_up5bar.csv")
-        df_data_single_gas_exp = pd.read_csv(f"../../{gas_type.upper()}/experiment_{gas_type}_up5bar.csv")
-        df_data_mix_gas = pd.read_csv(f"./avg_5replica_{uptake_type}_uptakes_{int(y[0]*100)}_{int(y[1]*100)}_{gas_id}.csv")
+        df_data_single_gas = pd.read_csv(f"{single_data_dir}/{gas_type.upper()}/{sim_type}_{gas_type}_up5bar.csv")
+        df_data_single_gas_exp = pd.read_csv(f"{single_data_dir}/{gas_type.upper()}/experiment_{gas_type}_up5bar.csv")
+        df_data_mix_gas = pd.read_csv(f"../avg_5replica_{uptake_type}_uptakes_{int(y[0]*100)}_{int(y[1]*100)}_{gas_id}.csv")
         df_iast_data_mix_gas = pd.read_csv(f"./{sim_type}_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
         #  df_iast_data_mix_gas = pd.read_csv(f"./experiment_{gas_type}_iast_{int(y[0]*100)}_{int(y[1]*100)}.csv")
 
@@ -51,9 +57,15 @@ for sim_type in ["rigid", "flexible"]:
         plt.title(f'Mixture Isotherms from IAST ({int(y[0]*100)}_{int(y[1]*100)} CO2/CH4)')
         #  plt.title('Mixture Isotherms from IAST (10/90 CO2/CH4)')
         plt.legend()
-        plt.xlim(-0.1, 1.1)
+        plt.xlim(-0.1, 5.1)
+        #  plt.xlim(0, 1.01)
         #  plt.xlim(0, 0.2)
-        #  plt.ylim(0, 14.1)
+        if gas_type == "co2":
+            plt.ylim(-0.1, 14.0)
+            #  plt.ylim(-0.1, 10.0)
+        elif gas_type == "ch4":
+            plt.ylim(-0.1, 5.0)
+            #  plt.ylim(-0.1, 2.0)
         #  plt.ylim(0, 0.5)
         #  plt.grid(True)
         #  plt.show()

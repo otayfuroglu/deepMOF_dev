@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import pyiast
+import argparse
 
 import matplotlib.pyplot as plt
 
@@ -22,8 +23,8 @@ def getModelIsoterm(df_data, fit_type="analaytical"):
                                         #  model="Quadratic",
                                         #  model="Langmuir",
                                         #  model="DSLangmuir",
-                                        model="DualSiteSip",
-                                        #  model="DualSiteMF",
+                                        #  model="DualSiteSip",
+                                        model="DualSiteMF",
                                         #  optimization_method="Nelder-Mead",
                                         optimization_method="L-BFGS-B", # for DualSiteMF beter results others
                                         #  optimization_method="Powell",
@@ -41,11 +42,17 @@ def getModelIsoterm(df_data, fit_type="analaytical"):
     return model_isoterm
 
 
+parser = argparse.ArgumentParser(description="Give something ...")
+parser.add_argument("-single_data_dir", type=str, required=True, help="")
+args = parser.parse_args()
+
+single_data_dir = args.single_data_dir
+
 #  df_pure_data_co2 = pd.read_csv("./flexible_co2_up5bar.csv")
 #  df_pure_data_co2 = pd.read_csv("./experiment_co2_up5bar.csv")
 #  df_pure_data_ch4 = pd.read_csv("./experiment_ch4_up5bar.csv")
 
-upper_pressure_limit = 1.0  # in bar
+upper_pressure_limit = 20.0  # in bar
 #  sim_type = "rigid"
 #  sim_type = "flexible"
 gas_type_list = ["ch4", "co2"]
@@ -58,14 +65,19 @@ y = np.array([0.5, 0.5])  # gas mole fractions
 #  y = np.array([0.9, 0.1])  # gas mole fractions
 
 # Generate mixture isotherm (loading vs. pressure)
-total_pressures = np.linspace(start=0.001, stop=upper_pressure_limit, num=30)
+if upper_pressure_limit <= 1.0 or upper_pressure_limit >= 15.0:
+    # generate total pressures as logarithmically spaced values between 0.001 and upper_pressure_limit
+    total_pressures = np.logspace(start=-3, stop=np.log10(upper_pressure_limit), num=30)
+else:
+    total_pressures = np.linspace(start=0.001, stop=upper_pressure_limit, num=50)
 
 for sim_type in ["rigid", "flexible"]:
+#  for sim_type in ["experiment"]:
     for gas_type in gas_type_list:
         if sim_type == "experiment":
-            gas_csv[gas_type] = pd.read_csv(f"../../{gas_type.upper()}/{sim_type}_{gas_type}.csv")
+            gas_csv[gas_type] = pd.read_csv(f"{single_data_dir}/{gas_type.upper()}/{sim_type}_{gas_type}.csv")
         else:
-            gas_csv[gas_type] = pd.read_csv(f"../../{gas_type.upper()}/{sim_type}_{gas_type}_up5bar.csv")
+            gas_csv[gas_type] = pd.read_csv(f"{single_data_dir}/{gas_type.upper()}/{sim_type}_{gas_type}_up20bar.csv")
 
     gas_iso = {}
     for gas_type in gas_type_list:
