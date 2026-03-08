@@ -119,7 +119,7 @@ def run_bulk_mixture():
 
 
 def run_ins_mixture():
-    for i, fl_name in enumerate([fl for fl in os.listdir(struc_dir) if fl.endswith(".xyz")]):
+    for i, fl_name in enumerate([fl for fl in os.listdir(struc_dir) if fl.endswith("xyz")]):
         atoms = read(f"{struc_dir}/{fl_name}")
         if i == 0:
             # scale vdw
