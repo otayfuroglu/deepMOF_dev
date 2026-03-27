@@ -1,0 +1,484 @@
+#!/usr/bin/env python3
+"""
+Build MOF permeability system with CO2/CH4 mixture + graphene cap +
+custom LAMMPS data writer.
+
+Geometry along MOF c-vector (transport direction):
+
+    [ gas region ] [ GAP ] [ 2x2x2 MOF supercell ] [ vacuum + graphene sheet ]
+
+- PBC: True, True, False  (periodic in a,b; non-periodic along c)
+- Works for non-orthogonal MOF cells.
+
+Labels:
+    group_id = 0  -> MOF framework + graphene wall
+    group_id = 2  -> CO2 molecules
+    group_id = 3  -> CH4 molecules
+
+mol_id:
+    0 for MOF/graphene atoms
+    1,2,... for gas molecules (unique per molecule)
+"""
+
+import numpy as np
+from ase import Atoms
+from ase.io import read, write
+from ase.build import make_supercell, molecule, graphene
+from ase.data import atomic_numbers, atomic_masses
+
+
+
+# ---------------------------
+# Geometry helpers
+# ---------------------------
+
+def get_c_info(cell):
+    """Return |c| and unit vector along c for a given 3x3 cell."""
+    cell = np.array(cell)
+    c_vec = cell[2]
+    L_c = np.linalg.norm(c_vec)
+    c_hat = c_vec / L_c
+    return L_c, c_hat
+
+
+def cart_to_frac(positions, cell, inv_cell=None):
+    """Cartesian -> fractional coordinates given a 3x3 cell."""
+    cell = np.array(cell)
+    if inv_cell is None:
+        inv_cell = np.linalg.inv(cell)
+    return positions @ inv_cell
+
+
+def frac_to_cart(frac, cell):
+    """Fractional -> Cartesian coordinates for a 3x3 cell."""
+    cell = np.array(cell)
+    return frac @ cell
+
+
+# ---------------------------
+# Gas mixture generator
+# ---------------------------
+
+def build_random_mixture_in_tube(cell, w_min, w_max, n_co2, n_ch4,
+                                 min_dist=2.5, max_tries=20000, seed=42,
+                                 existing_atoms=None,
+                                 start_mol_id=1):
+    """
+    Build random CO2/CH4 mixture in [w_min, w_max] along c-direction, using
+    the same a,b cross-section and cell geometry as 'cell'.
+
+    Returns:
+        gas (Atoms) with:
+            gas.arrays['group_id'] = 2 for CO2, 3 for CH4
+            gas.arrays['mol_id']   = unique integer per molecule
+        next_mol_id (int) = max assigned mol_id + 1
+    """
+    rng = np.random.default_rng(seed)
+    cell = np.array(cell)
+    inv_cell = np.linalg.inv(cell)
+
+    _, c_hat = get_c_info(cell)
+    gas = Atoms(cell=cell, pbc=[True, True, False])
+
+    mol_CO2_templ = molecule("CO2")
+    mol_CH4_templ = molecule("CH4")
+
+    def random_orientation(mol_templ):
+        mol = mol_templ.copy()
+        axis = rng.normal(size=3)
+        axis /= np.linalg.norm(axis)
+        angle = rng.uniform(0.0, 360.0)
+        mol.rotate(angle, v=axis, center="COP", rotate_cell=False)
+        return mol
+
+    def try_place(mol_templ):
+        # existing positions from gas + existing_atoms (MOF/graphene)
+        if existing_atoms is not None:
+            if len(gas) > 0:
+                existing_pos = np.vstack(
+                    [gas.get_positions(), existing_atoms.get_positions()]
+                )
+            else:
+                existing_pos = existing_atoms.get_positions()
+        else:
+            existing_pos = gas.get_positions()
+
+        existing_frac = cart_to_frac(existing_pos, cell, inv_cell) \
+                        if len(existing_pos) > 0 else None
+
+        for _ in range(max_tries):
+            mol = random_orientation(mol_templ)
+
+            # random fractional (u,v) in [0,1) along a,b
+            u = rng.uniform(0.0, 1.0)
+            v = rng.uniform(0.0, 1.0)
+            # random distance along c in [w_min, w_max]
+            w_c = rng.uniform(w_min, w_max)
+
+            a_vec, b_vec, c_vec = cell
+            r_xy = u * a_vec + v * b_vec
+            r_c  = c_hat * w_c
+            r_com_target = r_xy + r_c
+
+            r_com_current = mol.get_center_of_mass()
+            shift = r_com_target - r_com_current
+            mol.translate(shift)
+
+            if existing_frac is None and len(gas) == 0:
+                return mol
+
+            new_pos = mol.get_positions()
+            new_frac = cart_to_frac(new_pos, cell, inv_cell)
+
+            ok = True
+            for k in range(len(new_pos)):
+                f_new = new_frac[k]
+                if existing_frac is not None:
+                    diff = existing_frac - f_new
+                    # minimum image in a, b only
+                    diff[:, 0] -= np.rint(diff[:, 0])
+                    diff[:, 1] -= np.rint(diff[:, 1])
+                    # no wrapping in c
+
+                    diff_cart = frac_to_cart(diff, cell)
+                    dist2 = np.sum(diff_cart**2, axis=1)
+                    if np.any(dist2 < min_dist**2):
+                        ok = False
+                        break
+            if ok:
+                return mol
+
+        raise RuntimeError("Could not place molecule without overlap; "
+                           "adjust density / gaps / min_dist.")
+
+    next_mol_id = start_mol_id
+
+    # CO2 -> group_id 2
+    for _ in range(n_co2):
+        mol = try_place(mol_CO2_templ)
+        mol_group = np.full(len(mol), 2, dtype=int)
+        mol_id_arr = np.full(len(mol), next_mol_id, dtype=int)
+        mol.set_array("group_id", mol_group)
+        mol.set_array("mol_id", mol_id_arr)
+        gas += mol
+        next_mol_id += 1
+
+    # CH4 -> group_id 3
+    for _ in range(n_ch4):
+        mol = try_place(mol_CH4_templ)
+        mol_group = np.full(len(mol), 3, dtype=int)
+        mol_id_arr = np.full(len(mol), next_mol_id, dtype=int)
+        mol.set_array("group_id", mol_group)
+        mol.set_array("mol_id", mol_id_arr)
+        gas += mol
+        next_mol_id += 1
+
+    return gas, next_mol_id
+
+# ---------------------------
+# Graphene sheet builder
+def build_graphene_sheet_in_cross_section(cell, c_hat, w_layer, na=8, nb=8):
+    """
+    Build a carbon sheet spanning the a,b cross-section of 'cell',
+    placed at distance w_layer along c_hat from the origin.
+
+    - Uses the same cell as MOF/gas  -> perfectly aligned with unit cell & PBC.
+    - na, nb control how many C atoms along a and b (sheet density).
+
+    Returns:
+        Atoms with symbols='C', group_id=0, mol_id=0.
+    """
+    cell = np.array(cell)
+    a_vec, b_vec, c_vec = cell
+
+    # Create a regular grid in fractional coordinates (u,v) in [0,1)
+    # so it matches the MOF cell exactly in a,b.
+    frac = []
+    for i in range(na):
+        for j in range(nb):
+            u = (i + 0.5) / na   # center of each grid cell
+            v = (j + 0.5) / nb
+            frac.append([u, v, 0.0])
+    frac = np.array(frac)
+
+    # Convert to Cartesian
+    pos = frac_to_cart(frac, cell)
+
+    # Now project every atom onto the plane at w_layer along c_hat
+    for k in range(len(pos)):
+        w = np.dot(pos[k], c_hat)          # current distance along c_hat
+        pos[k] += c_hat * (w_layer - w)    # shift so w -> w_layer
+
+    graph = Atoms(
+        symbols=["C"] * len(pos),
+        positions=pos,
+        cell=cell,
+        pbc=[True, True, False],
+    )
+
+    n = len(graph)
+    graph.new_array("group_id", np.full(n, 1, dtype=int))  # 1 = graphene
+    graph.new_array("mol_id", np.zeros(n, dtype=int))
+
+    return graph
+
+
+# ---------------------------
+# Custom LAMMPS data writer
+# ---------------------------
+
+def write_lammps_data_custom(filename, atoms, charge_default=0.0):
+    """
+    Write LAMMPS data (triclinic, atom_style full) with distinct atom types for
+    (symbol, group_id), in this order:
+
+        1) MOF/graphene (group_id == 0 or 1), by mass desc: Mg, O, C, H, ...
+        2) CO2 (group_id == 2): C, O
+        3) CH4 (group_id == 3): C, H
+        4) Others: by (group_id, symbol)
+    """
+    cell = np.array(atoms.get_cell())
+    (ax, ay, az), (bx, by, bz), (cx, cy, cz) = cell
+
+    xlo = 0.0
+    xhi = ax
+    xy = bx
+    xz = cx
+    ylo = 0.0
+    yhi = by
+    zlo = 0.0
+    zhi = cz
+    yz = cy
+
+    symbols = atoms.get_chemical_symbols()
+    group_ids = atoms.arrays["group_id"]
+    mol_ids = atoms.arrays.get("mol_id", np.zeros(len(atoms), int))
+
+    # Unique type keys
+    type_keys = []
+    for sym, gid in zip(symbols, group_ids):
+        key = (sym, int(gid))
+        if key not in type_keys:
+            type_keys.append(key)
+
+    def elem_mass(sym):
+        Z = atomic_numbers[sym]
+        return atomic_masses[Z]
+
+    # Partition into MOF (0), graphene (1), CO2 (2), CH4 (3), others
+    mof_keys0 = [k for k in type_keys if k[1] == 0]
+    graph_keys = [k for k in type_keys if k[1] == 1]
+    co2_keys   = [k for k in type_keys if k[1] == 2]
+    ch4_keys   = [k for k in type_keys if k[1] == 3]
+    other_keys = [k for k in type_keys
+                  if k not in mof_keys0 + graph_keys + co2_keys + ch4_keys]
+
+    # MOF (group 0): by mass desc
+    mof_keys0 = sorted(mof_keys0, key=lambda k: -elem_mass(k[0]))
+
+    # Graphene (group 1): by mass desc (usually just C)
+    graph_keys = sorted(graph_keys, key=lambda k: -elem_mass(k[0]))
+
+    # CO2: C then O
+    co2_order_map = {"C": 0, "O": 1}
+    co2_keys = sorted(co2_keys, key=lambda k: co2_order_map.get(k[0], 99))
+
+    # CH4: C then H
+    ch4_order_map = {"C": 0, "H": 1}
+    ch4_keys = sorted(ch4_keys, key=lambda k: ch4_order_map.get(k[0], 99))
+
+    # Others: by (group_id, symbol)
+    other_keys = sorted(other_keys, key=lambda k: (k[1], k[0]))
+
+    ordered_type_keys = mof_keys0 + graph_keys + co2_keys + ch4_keys + other_keys
+    type_map = {key: i + 1 for i, key in enumerate(ordered_type_keys)}
+
+
+    #  # CO2: C then O
+    #  co2_order_map = {"C": 0, "O": 1}
+    #  co2_keys = sorted(co2_keys, key=lambda k: co2_order_map.get(k[0], 99))
+    #
+    #  # CH4: C then H
+    #  ch4_order_map = {"C": 0, "H": 1}
+    #  ch4_keys = sorted(ch4_keys, key=lambda k: ch4_order_map.get(k[0], 99))
+    #
+    #  # Others
+    #  other_keys = sorted(other_keys, key=lambda k: (k[1], k[0]))
+    #
+    #  ordered_type_keys = mof_keys + co2_keys + ch4_keys + other_keys
+    #  type_map = {key: i + 1 for i, key in enumerate(ordered_type_keys)}
+
+    # Masses
+    masses = {}
+    for key, tid in type_map.items():
+        sym, gid = key
+        Z = atomic_numbers[sym]
+        masses[tid] = atomic_masses[Z]
+
+    # charges
+    if "charges" in atoms.arrays:
+        charges = atoms.arrays["charges"]
+    else:
+        charges = np.full(len(atoms), float(charge_default))
+
+    with open(filename, "w") as f:
+        f.write("LAMMPS data file (MOF + CO2 + CH4 + graphene cap)\n\n")
+
+        natoms = len(atoms)
+        ntypes = len(ordered_type_keys)
+
+        f.write(f"{natoms} atoms\n")
+        f.write(f"{ntypes} atom types\n\n")
+
+        f.write(f"{xlo:16.8f} {xhi:16.8f} xlo xhi\n")
+        f.write(f"{ylo:16.8f} {yhi:16.8f} ylo yhi\n")
+        f.write(f"{zlo:16.8f} {zhi:16.8f} zlo zhi\n\n")
+
+        f.write(f"{xy:16.8f} {xz:16.8f} {yz:16.8f} xy xz yz\n\n")
+
+        # Masses
+        f.write("Masses\n\n")
+        for key, tid in sorted(type_map.items(), key=lambda kv: kv[1]):
+            sym, gid = key
+            mass = masses[tid]
+            if gid == 0:
+                label = "MOF"
+            elif gid == 1:
+                label = "graphene"
+            elif gid == 2:
+                label = "CO2"
+            elif gid == 3:
+                label = "CH4"
+            else:
+                label = f"group{gid}"
+            f.write(f"{tid:4d} {mass:16.8f}  # {sym} ({label})\n")
+        f.write("\n")
+
+        # Atoms
+        f.write("Atoms  # atom_style full\n\n")
+        pos = atoms.get_positions()
+
+        for i, (sym, gid, mid, q, r) in enumerate(
+            zip(symbols, group_ids, mol_ids, charges, pos), start=1
+        ):
+            key = (sym, int(gid))
+            atype = type_map[key]
+            x, y, z = r
+            f.write(f"{i:6d} {int(mid):6d} {atype:4d} {q:12.6f} "
+                    f"{x:16.8f} {y:16.8f} {z:16.8f}\n")
+
+
+# ---------------------------
+# Main construction
+# ---------------------------
+
+def main():
+    # 1) MOF 2x2x2 supercell
+    mof_unit = read(MOF_FILE)
+    mof_super = make_supercell(mof_unit, SC_MATRIX)
+
+    cell_mof = np.array(mof_super.get_cell())
+    L_MOF, c_hat = get_c_info(cell_mof)
+    print("MOF 2x2x2 cell:\n", cell_mof)
+    print(f"|c_MOF| = {L_MOF:.3f} Å")
+
+    # Define positions along c (distance along c_hat from origin):
+    # graphene at 0
+    graphene_w = 0.0
+    gas_w_min = graphene_w + GAP_GRAPHENE_GAS
+    gas_w_max = gas_w_min + L_GAS
+    mof_w_min = gas_w_max + GAP_GAS_MOF
+    mof_w_max = mof_w_min + L_MOF
+    Lz_total  = mof_w_max + L_VAC  # end of vacuum
+
+    print(f"graphene at w = {graphene_w:.2f} Å")
+    print(f"gas region: [{gas_w_min:.2f}, {gas_w_max:.2f}] Å")
+    print(f"MOF region: [{mof_w_min:.2f}, {mof_w_max:.2f}] Å")
+    print(f"Total c-length: {Lz_total:.2f} Å")
+
+    # Extend cell c-vector to Lz_total, keep a,b as in MOF
+    scale_c = Lz_total / L_MOF
+    new_cell = cell_mof.copy()
+    new_cell[2] *= scale_c
+
+    mof_super.set_cell(new_cell, scale_atoms=False)
+    mof_super.set_pbc([True, True, False])
+
+    # Label MOF atoms: group 0, mol_id 0
+    n_mof = len(mof_super)
+    mof_super.new_array("group_id", np.full(n_mof, 0, dtype=int))
+    mof_super.new_array("mol_id", np.zeros(n_mof, dtype=int))
+
+    # Shift MOF so its COM (or roughly its slab) is around [mof_w_min, mof_w_max]
+    # Our earlier assumption: original MOF spans approx [0, L_MOF], so shift by mof_w_min.
+    mof_super.translate(c_hat * mof_w_min)
+
+    # Build system with final cell
+    system = Atoms(cell=new_cell, pbc=[True, True, False])
+    system += mof_super
+
+    # 2) Graphene sheet at the tube entrance
+    graph = build_graphene_sheet_in_cross_section(new_cell, c_hat, graphene_w)
+    system += graph
+
+    # 3) Gas mixture in [gas_w_min, gas_w_max]
+    print(f"Building gas mixture: N_CO2={N_CO2}, N_CH4={N_CH4}")
+    gas, next_mol_id = build_random_mixture_in_tube(
+        cell=new_cell,
+        w_min=gas_w_min,
+        w_max=gas_w_max,
+        n_co2=N_CO2,
+        n_ch4=N_CH4,
+        min_dist=MIN_DIST,
+        max_tries=MAX_TRIES,
+        seed=RNG_SEED,
+        existing_atoms=system,   # avoid overlaps with MOF + graphene
+        start_mol_id=1,
+    )
+    system += gas
+
+    print(f"Final system: {len(system)} atoms")
+    print("Final cell (rows = a,b,c):")
+    print(system.get_cell())
+    Lx, Ly, Lz = system.cell.lengths()
+    print(f"Cell lengths: a={Lx:.3f}, b={Ly:.3f}, c={Lz:.3f} Å")
+
+    write(f"{file_base}_{N_CO2}CO2_{N_CH4}CH4.extxyz", system)
+
+    # 4) Write LAMMPS data with your custom ordering (MOF/graphene first, then CO2, CH4)
+    write_lammps_data_custom(OUTPUT_DATA, system, charge_default=0.0)
+    print(f"Wrote custom LAMMPS data to: {OUTPUT_DATA}")
+
+
+# ---------------------------
+# User parameters
+# ---------------------------
+
+file_base = "MgMOF74_clean_fromCORE_1x1x8_corrected_v5"
+#  MOF_FILE = f"{file_base}.cif"                 # your MOF unit cell
+MOF_FILE = f"{file_base}.extxyz"                 # your MOF unit cell
+
+# Region thicknesses along the MOF c-direction (Å)
+L_GAS = 30.0    # gas region before MOF
+L_VAC = 200.0    # vacuum region after MOF
+GAP_GAS_MOF = 2.0     # empty gap between top of gas region and MOF front
+GAP_GRAPHENE_GAS = 2.0   # distance between graphene and start of gas (you can change)
+
+# Supercell of MOF
+SC_MATRIX = np.diag([1, 1, 1])
+
+# Gas mixture composition
+N_CO2 = 20     # number of CO2 molecules
+N_CH4 = 180     # number of CH4 molecules
+
+OUTPUT_DATA = f"data.{file_base}_{N_CO2}CO2_{N_CH4}CH4"
+
+# Packing parameters
+MIN_DIST = 2.5      # minimum interatomic distance (Å) to avoid overlaps
+MAX_TRIES = 20000   # max attempts per molecule
+RNG_SEED = 33
+
+
+if __name__ == "__main__":
+    main()
+
