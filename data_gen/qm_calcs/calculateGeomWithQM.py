@@ -55,7 +55,7 @@ def orca_calculator(orca_path, base, calc_type, n_task, initial_gbw=['', '']):
         # label=label,
         charge=0, mult=1,
         orcasimpleinput=f"{calc_type.upper()}" \
-            + ' R2SCAN D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS CHELPG AIM ' \
+            + ' PBE D4 DEF2-TZVP DEF2/J RIJDX MINIPRINT NOPRINTMOS NoKeepInts NOKEEPDENS CHELPG AIM ' \
             + initial_gbw[0],
         orcablocks= '%scf Convergence tight \n maxiter 250 \n AutoTRAHIter 70 end \n %output \n' \
             + ' Print[ P_Hirshfeld] 1 end \n %maxcore 2200 \n %pal nprocs ' \

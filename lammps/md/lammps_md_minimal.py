@@ -87,17 +87,17 @@ masses = {
     "H": 1.00794,
 }
 
-model_path = "mixture_CO2_CH4_cohesive_pbed4_v10_nnp1.pth"
+model_path = "/arf/truba_old/home/otayfuroglu/deepMOF_dev_works/nequip/works/mof74/runTrain/results/MgF2_nnp1/mixture_CO2_H2_cohesive_PBE_D4_enriched_dataset_cycle_10/mixture_CO2_H2_cohesive_PBE_D4_enriched_dataset_cycle_10.pth"
 #  specorder=["Mn", "O", "C", "H"]
 specorder = list(masses.keys())
 #  atom_type_pairs = {"Mg": 1, "O": 2,  "C": 3, "H": 4}
 temperature = args.temp  # Kelvin
 pressure = 0
 timestep = 0.0005  # ps
-nsteps = 4000000
+nsteps = 2000000
 
-#  atoms = read(f"{file_base}.cif")
-atoms = read(f"{file_base}.extxyz")
+atoms = read(f"{file_base}.cif")
+#  atoms = read(f"{file_base}.extxyz")
 atoms2lammpsdata(atoms)
 
-#  run(nsteps)
+run(nsteps)
