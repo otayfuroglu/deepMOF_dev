@@ -3,6 +3,147 @@ import sys
 import argparse
 import os
 
+import re
+import shutil
+from pathlib import Path
+
+
+
+def get_restart_step_from_filename(restart_file):
+    """
+    Extract restart timestep from filename.
+
+    Example:
+      MgMOF74_clean_fromCORE_36CO2_2CH4_298K.1000 -> 1000
+    """
+    name = Path(restart_file).name
+    m = re.search(r"\.(\d+)$", name)
+    if not m:
+        raise ValueError(
+            f"Could not extract restart timestep from filename: {restart_file}\n"
+            "Expected format like: system_name.1000"
+        )
+    return int(m.group(1))
+
+
+def trim_lammpstrj_in_place_before_restart(traj_file, restart_file):
+    """
+    Keep only trajectory frames with timestep <= restart timestep.
+    Creates backup before overwriting.
+    """
+    traj = Path(traj_file)
+    if not traj.exists():
+        print(f">>> Trajectory not found, skipping trim: {traj}")
+        return
+
+    max_step = get_restart_step_from_filename(restart_file)
+
+    backup = traj.with_suffix(traj.suffix + ".bak")
+    tmp = traj.with_suffix(traj.suffix + ".tmp")
+
+    shutil.copy2(traj, backup)
+
+    kept = 0
+    removed = 0
+
+    with open(traj, "r") as fin, open(tmp, "w") as fout:
+        while True:
+            line = fin.readline()
+            if not line:
+                break
+
+            if not line.startswith("ITEM: TIMESTEP"):
+                continue
+
+            frame = [line]
+
+            step_line = fin.readline()
+            if not step_line:
+                break
+            frame.append(step_line)
+            step = int(step_line.strip())
+
+            # ITEM: NUMBER OF ATOMS + natoms
+            line = fin.readline()
+            frame.append(line)
+            nat_line = fin.readline()
+            frame.append(nat_line)
+            natoms = int(nat_line.strip())
+
+            # ITEM: BOX BOUNDS + 3 box lines
+            for _ in range(4):
+                frame.append(fin.readline())
+
+            # ITEM: ATOMS + atom lines
+            frame.append(fin.readline())
+            for _ in range(natoms):
+                frame.append(fin.readline())
+
+            if step <= max_step:
+                fout.writelines(frame)
+                kept += 1
+            else:
+                removed += 1
+
+    tmp.replace(traj)
+
+    print(f">>> Restart step from filename : {max_step}")
+    print(f">>> Trajectory backup written  : {backup}")
+    print(f">>> Trimmed trajectory         : {traj}")
+    print(f">>> Frames kept/removed        : {kept}/{removed}")
+
+
+def trim_log_in_place_before_restart(log_file, restart_file):
+    """
+    Trim LAMMPS log file so it only contains data up to restart timestep.
+    Creates a backup before overwriting.
+    """
+    log = Path(log_file)
+    if not log.exists():
+        print(f">>> Log file not found, skipping trim: {log}")
+        return
+
+    max_step = get_restart_step_from_filename(restart_file)
+
+    backup = log.with_suffix(log.suffix + ".bak")
+    tmp = log.with_suffix(log.suffix + ".tmp")
+
+    shutil.copy2(log, backup)
+
+    kept_lines = []
+    last_valid_index = None
+
+    with open(log, "r") as f:
+        lines = f.readlines()
+
+    # find last occurrence of timestep <= restart step
+    for i, line in enumerate(lines):
+        parts = line.strip().split()
+        if not parts:
+            continue
+
+        # thermo lines usually start with timestep
+        if parts[0].isdigit():
+            step = int(parts[0])
+            if step <= max_step:
+                last_valid_index = i
+
+    if last_valid_index is None:
+        print(">>> WARNING: No valid timestep found in log; keeping full log.")
+        return
+
+    # keep everything up to that line
+    kept_lines = lines[: last_valid_index + 1]
+
+    with open(tmp, "w") as f:
+        f.writelines(kept_lines)
+
+    tmp.replace(log)
+
+    print(f">>> Log backup written        : {backup}")
+    print(f">>> Trimmed log               : {log}")
+    print(f">>> Last timestep kept        : {max_step}")
+
 
 def run_lammps_md():
     lmp = lammps()
@@ -137,10 +278,12 @@ def run_lammps_md():
     if restart_file is None:
         lmp.command("reset_timestep 0")
 
+    log_file_prod = f"{file_base}_{TEMP}K_prod.log"
     if restart_file is None:
-        lmp.command(f"log {file_base}_{TEMP}K_prod.log")
+        lmp.command(f"log {log_file_prod}")
     else:
-        lmp.command(f"log {file_base}_{TEMP}K_prod.log append")
+        trim_log_in_place_before_restart(log_file_prod, restart_file)
+        lmp.command(f"log {log_file_prod} append")
 
     # ------------------------------
     # Restart writing
@@ -153,6 +296,8 @@ def run_lammps_md():
     # Dump
     # ------------------------------
     dump_file = f"{file_base}_{TEMP}K.lammpstrj"
+    if restart_file is not None:
+        trim_lammpstrj_in_place_before_restart(dump_file, restart_file)
 
     lmp_block(f"""
     dump dump_all all custom {DUMP_EVERY} {dump_file} id mol type xu yu zu
