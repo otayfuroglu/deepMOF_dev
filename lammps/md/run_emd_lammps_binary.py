@@ -146,7 +146,7 @@ def run_lammps_md():
     # Restart writing
     # ------------------------------
     lmp.command(
-        f"restart 100000 {file_base}_{TEMP}K.restart1 {file_base}_{TEMP}K.restart2"
+        f"restart 100000 {file_base}_{TEMP}K.restart"
     )
 
     # ------------------------------

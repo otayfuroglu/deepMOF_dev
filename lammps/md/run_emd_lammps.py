@@ -139,7 +139,7 @@ def run_lammps_md():
     # ------------------------------
     # two alternating restart files is safer than one file
     lmp.command(
-        f"restart 500000 {file_base}_{TEMP}K.restart1 {file_base}_{TEMP}K.restart2"
+        f"restart 100000 {file_base}_{TEMP}K.restart"
     )
 
     # ------------------------------
