@@ -364,7 +364,7 @@ if sim_type == "rigid":
 PROD_STEPS = 2000000
 
 THERMO_EVERY = 50
-DUMP_EVERY = 20
+DUMP_EVERY = 50
 
 atom_type_pairs_frame = {
     1: ["Mg", 24.3050],
